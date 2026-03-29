@@ -4,19 +4,15 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-    <meta http-equiv="Pragma" content="no-cache"/>
-    <meta http-equiv="Expires" content="0"/>
     <title>低空仿真系统配置平台</title>
-    
-    <!-- 引入必要的库 -->
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    
+
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             background-color: #030a1c;
             color: #e2e8f0;
@@ -24,849 +20,594 @@
             height: 100vh;
             overflow: hidden;
         }
-        /* 统一顶部导航栏样式 */
-        .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1) !important; }
-        a.nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1) !important; }
-        
-        .glass-panel { 
-            background: rgba(15, 23, 42, 0.85); 
-            border: 1px solid rgba(0, 170, 255, 0.2); 
-            backdrop-filter: blur(12px); 
+        .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0,170,255,0.1) !important; }
+        nav a { color: #e2e8f0 !important; }
+        .glass-panel {
+            background: rgba(15,23,42,0.85);
+            border: 1px solid rgba(0,170,255,0.2);
+            backdrop-filter: blur(12px);
         }
-        
-        .rule-grid { 
-            background: radial-gradient(#334155 1px, transparent 1px); 
-            background-size: 20px 20px; 
-            opacity: 0.15; 
+        .rule-grid {
+            background: radial-gradient(#334155 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.15;
         }
-        
-        .section-title { 
-            font-size: 12px; 
-            font-weight: bold; 
-            color: #f97316; 
-            text-transform: uppercase; 
-            margin-bottom: 12px; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            border-bottom: 1px solid rgba(249, 115, 22, 0.2); 
-            padding-bottom: 4px; 
+        .section-title {
+            font-size: 12px; font-weight: bold; color: #f97316;
+            text-transform: uppercase; margin-bottom: 12px;
+            display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid rgba(249,115,22,0.2); padding-bottom: 4px;
         }
-        
         .tree-category { cursor: pointer; transition: all 0.2s; }
-        .tree-category:hover { background: rgba(249, 115, 22, 0.1); }
-        
-        .tree-item { 
-            cursor: pointer; 
-            border-left: 1px solid rgba(249, 115, 22, 0.3); 
-            margin-left: 20px; 
-            transition: all 0.2s; 
+        .tree-category:hover { background: rgba(249,115,22,0.1); }
+        .tree-item {
+            cursor: pointer;
+            border-left: 1px solid rgba(249,115,22,0.3);
+            margin-left: 20px;
+            transition: all 0.2s;
         }
-        .tree-item:hover { background: rgba(0, 170, 255, 0.1); color: #00aaff; }
-        .tree-item.active { background: rgba(249, 115, 22, 0.15); border-left: 2px solid #f97316; color: #f97316; }
-        
-        /* 切换按钮样式 */
-        .tab-button {
-            transition: all 0.3s;
-            position: relative;
-            color: #94a3b8;
-            background: transparent;
-        }
-        .tab-button:hover {
-            background: rgba(0, 170, 255, 0.05);
-            color: #00aaff;
-        }
-        .tab-button.active {
-            background: rgba(0, 170, 255, 0.15);
-            color: #00aaff;
-            border-bottom: 2px solid #00aaff;
-        }
-        .tab-button.active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #00aaff;
-        }
-        
+        .tree-item:hover { background: rgba(0,170,255,0.1); color: #00aaff; }
+        .tree-item.active { background: rgba(249,115,22,0.15); border-left: 2px solid #f97316; color: #f97316; }
+        .tab-button { transition: all 0.3s; position: relative; color: #94a3b8; background: transparent; }
+        .tab-button:hover { background: rgba(0,170,255,0.05); color: #00aaff; }
+        .tab-button.active { background: rgba(0,170,255,0.15); color: #00aaff; border-bottom: 2px solid #00aaff; }
         .rotate-90 { transform: rotate(90deg); }
         .animate-spin { animation: spin 1s linear infinite; }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* 状态提示样式 */
-        .status-info { 
-            background: rgba(59, 130, 246, 0.1); 
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            border-left: 4px solid #3b82f6;
-        }
-        .status-success { 
-            background: rgba(34, 197, 94, 0.1); 
-            border: 1px solid rgba(34, 197, 94, 0.2);
-            border-left: 4px solid #22c55e;
-        }
-        .status-error { 
-            background: rgba(239, 68, 68, 0.1); 
-            border: 1px solid rgba(239, 68, 68, 0.2);
-            border-left: 4px solid #ef4444;
-        }
-        .status-warning { 
-            background: rgba(245, 158, 11, 0.1); 
-            border: 1px solid rgba(245, 158, 11, 0.2);
-            border-left: 4px solid #f59e0b;
-        }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        .status-info { background: rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); border-left:4px solid #3b82f6; }
+        .status-success { background: rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.2); border-left:4px solid #22c55e; }
+        .status-error { background: rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-left:4px solid #ef4444; }
     </style>
 </head>
 <body>
-    <div id="app"></div>
+<div id="app"></div>
 
-    <script>
-        const { createApp, ref, onMounted, computed } = Vue;
-        
-        // 主应用组件
-        const App = {
-            template: `
-                <div class="flex flex-col h-screen">
-                    <!-- 导航栏 -->
-                    <header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
-                        <div class="flex items-center gap-3">
-                            <span class="iconify text-3xl text-blue-400" data-icon="lucide:gavel"></span>
-                            <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真基础模型管理系统</h1>
-                        </div>
-                        <nav class="flex gap-1 h-full justify-center">
-                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../terrain.html">
-                                <span class="iconify mr-2" data-icon="lucide:map"></span>地理环境</a>
-                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../electromagnetic/electromagnetic.html">
-                                <span class="iconify mr-2" data-icon="lucide:waves"></span>电磁环境</a>
-                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../weather/weather_cesium.html">
-                                <span class="iconify mr-2" data-icon="lucide:cloud-sun"></span>气象环境</a>
-                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../airspace/index.html">
-                                <span class="iconify mr-2" data-icon="lucide:layers"></span>空域航路</a>
-                            <a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="index.html">
-                                <span class="iconify mr-2" data-icon="lucide:gavel"></span>飞行规则</a>
-                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../assets/index.html">
-                                <span class="iconify mr-2" data-icon="lucide:database"></span>装备库</a>
-                        </nav>
-                        <div style="display:flex;align-items:center;gap:8px;margin-left:16px;padding-right:8px;">
-                          <a href="../index.html" title="基础管理主页" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:rgba(0,170,255,0.12);border:1px solid rgba(0,170,255,0.35);color:#60c8ff;text-decoration:none;">
-                            <span class="iconify" data-icon="lucide:layout-dashboard" style="font-size:17px;"></span>
-                          </a>
-                          <a href="../../main.html" title="系统主页面" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.35);color:#c084fc;text-decoration:none;">
-                            <span class="iconify" data-icon="lucide:home" style="font-size:17px;"></span>
-                          </a>
-                        </div>
-                    </header>
-                    
-                    <div class="flex flex-1 overflow-hidden">
-                        <!-- 左侧面板 -->
-                        <div class="w-80 glass-panel border-r border-slate-800 flex flex-col">
-                            <!-- 切换标签 -->
-                            <div class="flex border-b border-slate-700 bg-slate-800/30">
-                                <button 
-                                    @click="switchTab('rules')"
-                                    class="flex-1 py-3 px-4 text-center font-semibold transition-all tab-button flex items-center justify-center gap-2"
-                                    :class="{ 'active': currentTab === 'rules' }"
-                                >
-                                    <span class="iconify text-lg" data-icon="lucide:scroll"></span>
-                                    <span class="text-base">低空规则</span>
-                                </button>
-                                <button 
-                                    @click="switchTab('indicators')"
-                                    class="flex-1 py-3 px-4 text-center font-semibold transition-all tab-button flex items-center justify-center gap-2"
-                                    :class="{ 'active': currentTab === 'indicators' }"
-                                >
-                                    <span class="iconify text-lg" data-icon="lucide:bar-chart-2"></span>
-                                    <span class="text-base">评估指标</span>
-                                </button>
+<script>
+const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
+
+function downloadCSV(csvContent, fileName) {
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+}
+
+createApp({
+    setup() {
+        const currentTab = ref('rules');
+
+        // ── 规则数据 ──
+        const rulesData = ref([]);
+        const groupedRules = ref({});
+        const selectedRule = ref(null);
+        const loadingRules = ref(true);
+        const rulesError = ref(null);
+        const rulesLoaded = ref(false);
+        const totalRules = ref(0);
+        const expandedCategoriesRules = ref({});
+        const allExpandedRules = ref(true);
+
+        // ── 标准规范数据 ──
+        const standardsData = ref([]);
+        const groupedStandards = ref({});
+        const selectedStandard = ref(null);
+        const loadingStandards = ref(true);
+        const standardsError = ref(null);
+        const standardsLoaded = ref(false);
+        const expandedStandardCategories = reactive({});
+        const totalStandards = ref(0);
+
+        // ── 指标数据 ──
+        const indicatorsData = ref([]);
+        const groupedIndicators = ref({});
+        const selectedIndicator = ref(null);
+        const loadingIndicators = ref(true);
+        const indicatorsError = ref(null);
+        const indicatorsLoaded = ref(false);
+        const expandedCategoriesIndicators = reactive({});
+        const allExpandedIndicators = ref(true);
+        const totalIndicators = ref(0);
+
+        // ── computed ──
+        const ruleCountByCategory = computed(() => {
+            const r = {};
+            for (const cat in groupedRules.value)
+                r[cat] = new Set(groupedRules.value[cat].map(i => i.规则名称)).size;
+            return r;
+        });
+        const rulesByCategory = computed(() => {
+            const r = {};
+            for (const cat in groupedRules.value) {
+                const g = {};
+                groupedRules.value[cat].forEach(item => {
+                    const n = item.规则名称 || '未命名';
+                    if (!g[n]) g[n] = [];
+                    g[n].push(item);
+                });
+                r[cat] = g;
+            }
+            return r;
+        });
+        const indicatorCountByCategory = computed(() => {
+            const r = {};
+            for (const cat in groupedIndicators.value)
+                r[cat] = (groupedIndicators.value[cat] || []).length;
+            return r;
+        });
+        const ruleSources = computed(() => {
+            if (!selectedRule.value) return [];
+            const seen = new Set();
+            return (selectedRule.value.items || []).filter(item => {
+                if (item['来源文号'] && !seen.has(item['来源文号'])) { seen.add(item['来源文号']); return true; }
+                return false;
+            }).map(item => item['来源文号']);
+        });
+
+        // ── Tab 切换 ──
+        const switchTab = (tab) => {
+            if (tab === 'rules') { selectedStandard.value = null; selectedIndicator.value = null; }
+            else if (tab === 'sources') { selectedRule.value = null; selectedIndicator.value = null; }
+            else if (tab === 'indicators') { selectedRule.value = null; selectedStandard.value = null; }
+            currentTab.value = tab;
+        };
+
+        // ── 数据处理 ──
+        const processRulesData = (data) => {
+            rulesData.value = data;
+            totalRules.value = data.length;
+            const grouped = {};
+            data.forEach(item => { const c = item.规则维度||'未分类'; if(!grouped[c]) grouped[c]=[]; grouped[c].push(item); });
+            groupedRules.value = grouped;
+            const ec = {}; Object.keys(grouped).forEach(c => { ec[c] = true; });
+            expandedCategoriesRules.value = ec;
+            allExpandedRules.value = true;
+        };
+        const processStandardsData = (data) => {
+            standardsData.value = data; totalStandards.value = data.length;
+            const grouped = {};
+            data.forEach(item => { const c = item.category||'其他'; if(!grouped[c]) grouped[c]=[]; grouped[c].push(item); });
+            groupedStandards.value = grouped;
+            Object.keys(grouped).forEach(c => { expandedStandardCategories[c] = true; });
+        };
+        const processIndicatorsData = (data) => {
+            indicatorsData.value = data; totalIndicators.value = data.length;
+            const grouped = {};
+            data.forEach(item => { const c = item['指标分类']||'未分类'; if(!grouped[c]) grouped[c]=[]; grouped[c].push(item); });
+            groupedIndicators.value = grouped;
+            Object.keys(grouped).forEach(c => { expandedCategoriesIndicators[c] = true; });
+            allExpandedIndicators.value = true;
+        };
+
+        // ── 数据加载 ──
+        const loadRulesCSV = () => {
+            loadingRules.value = true; rulesError.value = null;
+            fetch('./rules.csv').then(r => { if(!r.ok) throw new Error(`加载失败(${r.status})`); return r.text(); })
+            .then(csv => { Papa.parse(csv, { header:true, skipEmptyLines:true, complete:(res) => {
+                try { if(res.errors.length) { rulesError.value=res.errors[0].message; rulesLoaded.value=false; } else { processRulesData(res.data); rulesLoaded.value=true; } }
+                catch(e) { rulesError.value=`数据处理失败:${e.message}`; rulesLoaded.value=false; }
+                finally { loadingRules.value=false; }
+            }}); }).catch(e => { rulesError.value=`加载失败:${e.message}`; rulesLoaded.value=false; loadingRules.value=false; });
+        };
+        const loadStandardsJSON = () => {
+            loadingStandards.value = true; standardsError.value = null;
+            fetch('./standards.json').then(r => { if(!r.ok) throw new Error(`加载失败(${r.status})`); return r.json(); })
+            .then(json => { processStandardsData(json.standards||[]); standardsLoaded.value=true; loadingStandards.value=false; })
+            .catch(e => { standardsError.value=`加载失败:${e.message}`; standardsLoaded.value=false; loadingStandards.value=false; });
+        };
+        const loadIndicatorsCSV = () => {
+            loadingIndicators.value = true; indicatorsError.value = null;
+            fetch('./evaluation_indicators.csv').then(r => { if(!r.ok) throw new Error(`加载失败(${r.status})`); return r.text(); })
+            .then(csv => { Papa.parse(csv, { header:true, skipEmptyLines:true, complete:(res) => {
+                if(res.errors.length) { indicatorsError.value=res.errors[0].message; indicatorsLoaded.value=false; }
+                else { processIndicatorsData(res.data); indicatorsLoaded.value=true; }
+                loadingIndicators.value=false;
+            }}); }).catch(e => { indicatorsError.value=`加载失败:${e.message}`; indicatorsLoaded.value=false; loadingIndicators.value=false; });
+        };
+
+        // ── 规则操作 ──
+        const selectRule = (category, ruleName, ruleItems) => {
+            selectedRule.value = { category, name: ruleName, items: ruleItems };
+        };
+        const exportSelectedRule = () => {
+            if (!selectedRule.value) return;
+            const csv = Papa.unparse(selectedRule.value.items.map(item => ({
+                规则维度: item.规则维度, 规则名称: item.规则名称, 参数名: item.参数名, 参数值: item.参数值,
+                '配置要求/说明': item['配置要求/说明'], 来源: item['来源']||'', 来源文号: item['来源文号']||''
+            })));
+            downloadCSV(csv, `${selectedRule.value.category}_${selectedRule.value.name}_配置.csv`);
+        };
+
+        // ── 标准规范操作 ──
+        const selectStandard = (std) => { selectedStandard.value = std; };
+        const toggleStandardCategory = (category) => { expandedStandardCategories[category] = !expandedStandardCategories[category]; };
+        const jumpToStandard = (sourceCode) => {
+            if (!standardsLoaded.value || !sourceCode) return;
+            const codePrefix = sourceCode.split(' ')[0].trim();
+            const matched = standardsData.value.find(s => s.code===codePrefix || s.code===sourceCode.trim() || sourceCode.startsWith(s.code));
+            currentTab.value = 'sources';
+            selectedRule.value = null; selectedIndicator.value = null;
+            nextTick(() => { selectedStandard.value = matched||null; if(matched) expandedStandardCategories[matched.category]=true; });
+        };
+
+        // ── 指标操作 ──
+        const selectIndicator = (indicator) => { selectedIndicator.value = indicator; };
+        const exportSelectedIndicator = () => {
+            if (!selectedIndicator.value) return;
+            downloadCSV(Papa.unparse([selectedIndicator.value]), `指标_${selectedIndicator.value['指标ID']}_${selectedIndicator.value['指标名称']}.csv`);
+        };
+
+        // ── 展开/折叠 ──
+        const toggleCategory = (type, category) => {
+            if (type==='rules') { expandedCategoriesRules.value[category]=!expandedCategoriesRules.value[category]; allExpandedRules.value=Object.keys(expandedCategoriesRules.value).every(c=>expandedCategoriesRules.value[c]); }
+            else if (type==='indicators') { expandedCategoriesIndicators[category]=!expandedCategoriesIndicators[category]; allExpandedIndicators.value=Object.keys(expandedCategoriesIndicators).every(c=>expandedCategoriesIndicators[c]); }
+        };
+        const toggleAllCategories = (type) => {
+            if (type==='rules') { const s=!allExpandedRules.value; const ne={}; Object.keys(expandedCategoriesRules.value).forEach(c=>{ne[c]=s;}); expandedCategoriesRules.value=ne; allExpandedRules.value=s; }
+            else if (type==='indicators') { const s=!allExpandedIndicators.value; Object.keys(expandedCategoriesIndicators).forEach(c=>{expandedCategoriesIndicators[c]=s;}); allExpandedIndicators.value=s; }
+        };
+
+        onMounted(() => { loadRulesCSV(); loadStandardsJSON(); loadIndicatorsCSV(); });
+
+        return {
+            currentTab, switchTab,
+            groupedRules, selectedRule, loadingRules, rulesError, rulesLoaded, totalRules,
+            expandedCategoriesRules, allExpandedRules,
+            ruleCountByCategory, rulesByCategory, ruleSources,
+            selectRule, exportSelectedRule, jumpToStandard,
+            groupedStandards, selectedStandard, loadingStandards, standardsError, standardsLoaded, totalStandards,
+            expandedStandardCategories, selectStandard, toggleStandardCategory,
+            groupedIndicators, selectedIndicator, loadingIndicators, indicatorsError, indicatorsLoaded, totalIndicators,
+            expandedCategoriesIndicators, allExpandedIndicators, indicatorCountByCategory,
+            selectIndicator, exportSelectedIndicator,
+            toggleCategory, toggleAllCategories,
+        };
+    },
+    template: `
+        <div class="flex flex-col h-screen">
+            <header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+                <div class="flex items-center gap-3">
+                    <span class="iconify text-3xl text-blue-400" data-icon="lucide:gavel"></span>
+                    <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真基础模型管理系统</h1>
+                </div>
+                <nav class="flex gap-1 h-full justify-center">
+                    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../terrain.html"><span class="iconify mr-2" data-icon="lucide:map"></span>地理环境</a>
+                    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../electromagnetic/electromagnetic.html"><span class="iconify mr-2" data-icon="lucide:waves"></span>电磁环境</a>
+                    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../weather/weather_cesium.html"><span class="iconify mr-2" data-icon="lucide:cloud-sun"></span>气象环境</a>
+                    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../airspace/index.html"><span class="iconify mr-2" data-icon="lucide:layers"></span>空域航路</a>
+                    <a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="index.html"><span class="iconify mr-2" data-icon="lucide:gavel"></span>飞行规则</a>
+                    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../assets/index.html"><span class="iconify mr-2" data-icon="lucide:database"></span>装备库</a>
+                </nav>
+                <div style="display:flex;align-items:center;gap:8px;margin-left:16px;padding-right:8px;">
+                    <a href="../index.html" title="基础管理主页" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:rgba(0,170,255,0.12);border:1px solid rgba(0,170,255,0.35);color:#60c8ff;text-decoration:none;">
+                        <span class="iconify" data-icon="lucide:layout-dashboard" style="font-size:17px;"></span>
+                    </a>
+                    <a href="../../main.html" title="系统主页面" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.35);color:#c084fc;text-decoration:none;">
+                        <span class="iconify" data-icon="lucide:home" style="font-size:17px;"></span>
+                    </a>
+                </div>
+            </header>
+
+            <div class="flex flex-1 overflow-hidden">
+
+                <div class="w-80 glass-panel border-r border-slate-800 flex flex-col">
+                    <div class="flex border-b border-slate-700 bg-slate-800/30">
+                        <button @click="switchTab('rules')" class="flex-1 py-3 px-4 text-center font-semibold transition-all tab-button flex items-center justify-center gap-2" :class="{ 'active': currentTab === 'rules' }">
+                            <span class="iconify text-lg" data-icon="lucide:scroll"></span><span class="text-base">低空规则</span>
+                        </button>
+                        <button @click="switchTab('sources')" class="flex-1 py-3 px-4 text-center font-semibold transition-all tab-button flex items-center justify-center gap-2" :class="{ 'active': currentTab === 'sources' }">
+                            <span class="iconify text-lg" data-icon="lucide:library"></span><span class="text-base">标准规范</span>
+                        </button>
+                        <button @click="switchTab('indicators')" class="flex-1 py-3 px-4 text-center font-semibold transition-all tab-button flex items-center justify-center gap-2" :class="{ 'active': currentTab === 'indicators' }">
+                            <span class="iconify text-lg" data-icon="lucide:bar-chart-2"></span><span class="text-base">评估指标</span>
+                        </button>
+                    </div>
+
+                    <div v-show="currentTab === 'rules'" class="flex-1 overflow-y-auto p-4">
+                        <div class="mb-6">
+                            <div class="section-title"><span class="iconify" data-icon="mdi:database"></span>数据源状态</div>
+                            <div class="space-y-3">
+                                <div v-if="loadingRules" class="p-3 status-info rounded"><div class="flex items-center gap-2"><span class="iconify animate-spin text-blue-400" data-icon="mdi:loading"></span><span class="text-blue-300">正在加载 rules.csv...</span></div></div>
+                                <div v-if="!loadingRules && rulesLoaded" class="p-3 status-success rounded"><div class="grid grid-cols-2 gap-3"><div class="text-center p-2 bg-slate-800/50 rounded"><p class="text-xs text-slate-400">规则维度</p><p class="text-lg font-bold text-white">{{ Object.keys(groupedRules).length }} 类</p></div><div class="text-center p-2 bg-slate-800/50 rounded"><p class="text-xs text-slate-400">配置参数</p><p class="text-lg font-bold text-white">{{ totalRules }} 条</p></div></div></div>
+                                <div v-if="!loadingRules && rulesError" class="p-3 status-error rounded"><div class="flex items-center gap-2"><span class="iconify text-red-400" data-icon="mdi:alert-circle"></span><span class="text-red-300">{{ rulesError }}</span></div></div>
                             </div>
-                            
-                            <!-- 低空规则内容 -->
-                            <div v-show="currentTab === 'rules'" class="flex-1 overflow-y-auto p-4">
-                                <!-- 规则数据源状态 -->
-                                <div class="mb-6">
-                                    <div class="section-title">
-                                        <span class="iconify" data-icon="mdi:database"></span>
-                                        数据源状态
+                        </div>
+                        <div>
+                            <div class="section-title flex justify-between items-center">
+                                <div class="flex items-center gap-2"><span class="iconify" data-icon="mdi:sitemap"></span>规则分类</div>
+                                <button v-if="rulesLoaded && Object.keys(groupedRules).length > 0" @click="toggleAllCategories('rules')" class="text-xs text-slate-400 hover:text-slate-300">{{ allExpandedRules ? '全部收起' : '全部展开' }}</button>
+                            </div>
+                            <div v-if="rulesLoaded && Object.keys(groupedRules).length > 0" class="space-y-2">
+                                <div v-for="(rules, category) in groupedRules" :key="category" class="tree-category">
+                                    <div class="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer transition-all"
+                                        @click="toggleCategory('rules', category)">
+                                        <span class="iconify transition-transform" :class="{ 'rotate-90': expandedCategoriesRules[category] }" data-icon="mdi:chevron-right"></span>
+                                        <span class="font-semibold text-orange-400">{{ category }}</span>
+                                        <span class="text-xs bg-slate-700 px-2 py-1 rounded-full ml-auto">{{ ruleCountByCategory[category] || 0 }}</span>
                                     </div>
-                                    
-                                    <div class="space-y-3">
-                                        <!-- 加载状态 -->
-                                        <div v-if="loadingRules" class="p-3 status-info rounded">
+                                    <div v-show="expandedCategoriesRules[category]" class="ml-6 space-y-1">
+                                        <div v-for="(ruleItems, ruleName) in rulesByCategory[category]" :key="ruleName"
+                                            class="tree-item p-2 rounded"
+                                            :class="{ 'active': selectedRule && selectedRule.name === ruleName && selectedRule.category === category }"
+                                            @click="selectRule(category, ruleName, ruleItems)">
                                             <div class="flex items-center gap-2">
-                                                <span class="iconify animate-spin text-blue-400" data-icon="mdi:loading"></span>
-                                                <span class="text-blue-300">正在加载 rules.csv...</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- 规则统计 -->
-                                        <div v-if="!loadingRules && rulesLoaded" class="p-3 status-success rounded">
-                                            <div class="grid grid-cols-2 gap-3">
-                                                <div class="text-center p-2 bg-slate-800/50 rounded">
-                                                    <p class="text-xs text-slate-400">规则维度</p>
-                                                    <p class="text-lg font-bold text-white">{{ Object.keys(groupedRules).length }} 类</p>
-                                                </div>
-                                                <div class="text-center p-2 bg-slate-800/50 rounded">
-                                                    <p class="text-xs text-slate-400">配置参数</p>
-                                                    <p class="text-lg font-bold text-white">{{ totalRules }} 条</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- 加载失败 -->
-                                        <div v-if="!loadingRules && rulesError" class="p-3 status-error rounded">
-                                            <div class="flex items-center gap-2">
-                                                <span class="iconify text-red-400" data-icon="mdi:alert-circle"></span>
-                                                <span class="text-red-300">{{ rulesError }}</span>
+                                                <span class="iconify text-blue-400" data-icon="mdi:cog"></span>
+                                                <span class="text-sm truncate">{{ ruleName }}</span>
+                                                <span class="text-xs bg-slate-600 px-1.5 py-0.5 rounded ml-auto">{{ ruleItems.length }}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- 规则树 -->
+                            </div>
+                            <div v-if="rulesLoaded && Object.keys(groupedRules).length === 0" class="p-4 text-center"><p class="text-slate-400">rules.csv 文件中未找到规则数据</p></div>
+                        </div>
+                    </div>
+
+                    <div v-show="currentTab === 'sources'" class="flex-1 overflow-y-auto p-4">
+                        <div class="mb-4">
+                            <div v-if="loadingStandards" class="p-3 status-info rounded"><div class="flex items-center gap-2"><span class="iconify animate-spin text-blue-400" data-icon="mdi:loading"></span><span class="text-blue-300">正在加载标准规范数据...</span></div></div>
+                            <div v-if="!loadingStandards && standardsLoaded" class="p-3 status-success rounded"><div class="grid grid-cols-2 gap-3"><div class="text-center p-2 bg-slate-800/50 rounded"><p class="text-xs text-slate-400">规范类别</p><p class="text-lg font-bold text-white">{{ Object.keys(groupedStandards).length }} 类</p></div><div class="text-center p-2 bg-slate-800/50 rounded"><p class="text-xs text-slate-400">收录标准</p><p class="text-lg font-bold text-white">{{ totalStandards }} 项</p></div></div></div>
+                            <div v-if="!loadingStandards && standardsError" class="p-3 status-error rounded"><div class="flex items-center gap-2"><span class="iconify text-red-400" data-icon="mdi:alert-circle"></span><span class="text-red-300">{{ standardsError }}</span></div></div>
+                        </div>
+                        <div v-if="standardsLoaded">
+                            <div class="section-title"><span class="iconify" data-icon="mdi:file-document-multiple"></span>标准分类</div>
+                            <div class="space-y-2">
+                                <div v-for="(items, category) in groupedStandards" :key="category" class="tree-category">
+                                    <div class="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer" @click="toggleStandardCategory(category)">
+                                        <span class="iconify transition-transform" :class="{ 'rotate-90': expandedStandardCategories[category] }" data-icon="mdi:chevron-right"></span>
+                                        <span class="text-orange-400 font-semibold text-sm">{{ category }}</span>
+                                        <span class="text-xs bg-slate-700 px-2 py-0.5 rounded-full ml-auto">{{ items.length }}</span>
+                                    </div>
+                                    <div v-show="expandedStandardCategories[category]" class="ml-5 space-y-1">
+                                        <div v-for="std in items" :key="std.id" class="tree-item p-2 rounded cursor-pointer" :class="{ 'active': selectedStandard && selectedStandard.id === std.id }" @click="selectStandard(std)">
+                                            <div class="flex items-start gap-2">
+                                                <span class="iconify text-amber-400 mt-0.5 flex-shrink-0" data-icon="mdi:book-open-variant"></span>
+                                                <div class="min-w-0"><p class="text-sm leading-snug truncate">{{ std.name }}</p><p class="text-xs text-slate-500 font-mono mt-0.5">{{ std.code }}</p></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-show="currentTab === 'indicators'" class="flex-1 overflow-y-auto p-4">
+                        <div class="mb-6">
+                            <div class="section-title"><span class="iconify" data-icon="mdi:database"></span>数据源状态</div>
+                            <div class="space-y-3">
+                                <div v-if="loadingIndicators" class="p-3 status-info rounded"><div class="flex items-center gap-2"><span class="iconify animate-spin text-blue-400" data-icon="mdi:loading"></span><span class="text-blue-300">正在加载 evaluation_indicators.csv...</span></div></div>
+                                <div v-if="!loadingIndicators && indicatorsLoaded" class="p-3 status-success rounded"><div class="grid grid-cols-2 gap-3"><div class="text-center p-2 bg-slate-800/50 rounded"><p class="text-xs text-slate-400">指标分类</p><p class="text-lg font-bold text-white">{{ Object.keys(groupedIndicators).length }} 类</p></div><div class="text-center p-2 bg-slate-800/50 rounded"><p class="text-xs text-slate-400">评估指标</p><p class="text-lg font-bold text-white">{{ totalIndicators }} 个</p></div></div></div>
+                                <div v-if="!loadingIndicators && indicatorsError" class="p-3 status-error rounded"><div class="flex items-center gap-2"><span class="iconify text-red-400" data-icon="mdi:alert-circle"></span><span class="text-red-300">{{ indicatorsError }}</span></div></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="section-title flex justify-between items-center">
+                                <div class="flex items-center gap-2"><span class="iconify" data-icon="mdi:chart-bar"></span>指标分类</div>
+                                <button v-if="indicatorsLoaded && Object.keys(groupedIndicators).length > 0" @click="toggleAllCategories('indicators')" class="text-xs text-slate-400 hover:text-slate-300">{{ allExpandedIndicators ? '全部收起' : '全部展开' }}</button>
+                            </div>
+                            <div v-if="indicatorsLoaded && Object.keys(groupedIndicators).length > 0" class="space-y-2">
+                                <div v-for="(indicators, category) in groupedIndicators" :key="category" class="tree-category">
+                                    <div class="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer" @click="toggleCategory('indicators', category)">
+                                        <span class="iconify transition-transform" :class="{ 'rotate-90': expandedCategoriesIndicators[category] }" data-icon="mdi:chevron-right"></span>
+                                        <span class="text-orange-400 font-semibold">{{ category }}</span>
+                                        <span class="text-xs bg-slate-700 px-2 py-1 rounded-full ml-auto">{{ indicatorCountByCategory[category] || 0 }}</span>
+                                    </div>
+                                    <div v-show="expandedCategoriesIndicators[category]" class="ml-6 space-y-1">
+                                        <div v-for="(indicator, index) in indicators" :key="index" class="tree-item p-2 rounded" :class="{ 'active': selectedIndicator && selectedIndicator['指标ID'] === indicator['指标ID'] }" @click="selectIndicator(indicator)">
+                                            <div class="flex items-center gap-2">
+                                                <span class="iconify text-blue-400" data-icon="mdi:target"></span>
+                                                <span class="text-sm truncate">{{ indicator['指标名称'] }}</span>
+                                                <span class="text-xs bg-slate-600 px-1.5 py-0.5 rounded ml-auto">ID: {{ indicator['指标ID'] }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-if="indicatorsLoaded && Object.keys(groupedIndicators).length === 0" class="p-4 text-center"><p class="text-slate-400">evaluation_indicators.csv 文件中未找到指标数据</p></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 relative overflow-hidden flex flex-col">
+                    <div class="rule-grid absolute inset-0 pointer-events-none"></div>
+
+                    <div v-show="currentTab === 'rules'" class="flex-1 overflow-y-auto flex flex-col">
+                        <div v-if="selectedRule" class="glass-panel m-6 p-6">
+                            <div class="flex justify-between items-start mb-6">
                                 <div>
-                                    <div class="section-title flex justify-between items-center">
-                                        <div class="flex items-center gap-2">
-                                            <span class="iconify" data-icon="mdi:sitemap"></span>
-                                            规则分类
-                                        </div>
-                                        <button 
-                                            v-if="rulesLoaded && Object.keys(groupedRules).length > 0"
-                                            @click="toggleAllCategories('rules')"
-                                            class="text-xs text-slate-400 hover:text-slate-300"
-                                        >
-                                            {{ allExpandedRules ? '全部收起' : '全部展开' }}
-                                        </button>
-                                    </div>
-                                    
-                                    <!-- 规则树内容 -->
-                                    <div v-if="rulesLoaded && Object.keys(groupedRules).length > 0" class="space-y-2">
-                                        <div 
-                                            v-for="(rules, category) in groupedRules" 
-                                            :key="category"
-                                            class="tree-category"
-                                        >
-                                            <div 
-                                                class="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer"
-                                                @click="toggleCategory('rules', category)"
-                                            >
-                                                <span 
-                                                    class="iconify transition-transform"
-                                                    :class="{ 'rotate-90': expandedCategoriesRules[category] }"
-                                                    data-icon="mdi:chevron-right"
-                                                ></span>
-                                                <span class="text-orange-400 font-semibold">{{ category }}</span>
-                                                <span class="text-xs bg-slate-700 px-2 py-1 rounded-full ml-auto">
-                                                    {{ getRuleCountInCategory(category) }}
-                                                </span>
-                                            </div>
-                                            
-                                            <!-- 子规则列表 -->
-                                            <div v-show="expandedCategoriesRules[category]" class="ml-6 space-y-1">
-                                                <div 
-                                                    v-for="(ruleItems, ruleName) in getRulesByCategory(category)"
-                                                    :key="ruleName"
-                                                    class="tree-item p-2 rounded"
-                                                    :class="{ 'active': selectedRule && selectedRule.name === ruleName && selectedRule.category === category }"
-                                                    @click="selectRule(category, ruleName, ruleItems)"
-                                                >
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="iconify text-blue-400" data-icon="mdi:cog"></span>
-                                                        <span class="text-sm truncate">{{ ruleName }}</span>
-                                                        <span class="text-xs bg-slate-600 px-1.5 py-0.5 rounded ml-auto">
-                                                            {{ ruleItems.length }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- 空数据提示 -->
-                                    <div v-if="rulesLoaded && Object.keys(groupedRules).length === 0" class="p-4 text-center">
-                                        <p class="text-slate-400">rules.csv 文件中未找到规则数据</p>
-                                    </div>
+                                    <h2 class="text-2xl font-bold text-orange-400">{{ selectedRule.name }}</h2>
+                                    <p class="text-slate-400 text-sm">{{ selectedRule.category }} · {{ selectedRule.items.length }} 个配置参数</p>
+                                </div>
+                                <button @click="exportSelectedRule" class="px-4 py-2 rounded border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-2">
+                                    <span class="iconify" data-icon="mdi:download"></span>导出当前规则
+                                </button>
+                            </div>
+                            <div class="mb-5 p-4 bg-slate-800/40 rounded border border-amber-500/20">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="iconify text-amber-400 text-sm" data-icon="mdi:book-open-variant"></span>
+                                    <p class="text-xs font-semibold text-amber-400 uppercase tracking-wide">参数来源依据</p>
+                                    <span class="text-slate-600 text-xs font-normal normal-case">（点击跳转标准规范）</span>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <button v-for="src in ruleSources" :key="src" @click="jumpToStandard(src)"
+                                        class="px-2 py-1 rounded-full text-xs bg-amber-500/10 text-amber-300 border border-amber-500/25 font-mono hover:bg-amber-500/25 hover:border-amber-400/60 hover:text-amber-200 transition-all flex items-center gap-1 group"
+                                        title="点击查看对应标准规范">
+                                        <span class="iconify text-amber-500 group-hover:text-amber-300 text-xs" data-icon="mdi:open-in-new"></span>{{ src }}
+                                    </button>
                                 </div>
                             </div>
-                            
-                            <!-- 评估指标内容 -->
-                            <div v-show="currentTab === 'indicators'" class="flex-1 overflow-y-auto p-4">
-                                <!-- 指标数据源状态 -->
-                                <div class="mb-6">
-                                    <div class="section-title">
-                                        <span class="iconify" data-icon="mdi:database"></span>
-                                        数据源状态
-                                    </div>
-                                    
-                                    <div class="space-y-3">
-                                        <!-- 加载状态 -->
-                                        <div v-if="loadingIndicators" class="p-3 status-info rounded">
-                                            <div class="flex items-center gap-2">
-                                                <span class="iconify animate-spin text-blue-400" data-icon="mdi:loading"></span>
-                                                <span class="text-blue-300">正在加载 evaluation_indicators.csv...</span>
-                                            </div>
-                                        </div>
-
-                                        <!-- 指标统计 -->
-                                        <div v-if="!loadingIndicators && indicatorsLoaded" class="p-3 status-success rounded">
-                                            <div class="grid grid-cols-2 gap-3">
-                                                <div class="text-center p-2 bg-slate-800/50 rounded">
-                                                    <p class="text-xs text-slate-400">指标分类</p>
-                                                    <p class="text-lg font-bold text-white">{{ Object.keys(groupedIndicators).length }} 类</p>
-                                                </div>
-                                                <div class="text-center p-2 bg-slate-800/50 rounded">
-                                                    <p class="text-xs text-slate-400">评估指标</p>
-                                                    <p class="text-lg font-bold text-white">{{ totalIndicators }} 个</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- 加载失败 -->
-                                        <div v-if="!loadingIndicators && indicatorsError" class="p-3 status-error rounded">
-                                            <div class="flex items-center gap-2">
-                                                <span class="iconify text-red-400" data-icon="mdi:alert-circle"></span>
-                                                <span class="text-red-300">{{ indicatorsError }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- 指标树 -->
-                                <div>
-                                    <div class="section-title flex justify-between items-center">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div v-for="(item, index) in selectedRule.items" :key="index" class="p-5 bg-slate-800/50 rounded border border-slate-700/50 hover:border-blue-500/50 transition-all flex flex-col">
+                                    <div class="flex items-start justify-between mb-3">
                                         <div class="flex items-center gap-2">
-                                            <span class="iconify" data-icon="mdi:chart-bar"></span>
-                                            指标分类
+                                            <span class="iconify text-orange-400" data-icon="mdi:cog"></span>
+                                            <h3 class="font-semibold text-slate-200">{{ item.参数名 }}</h3>
                                         </div>
-                                        <button 
-                                            v-if="indicatorsLoaded && Object.keys(groupedIndicators).length > 0"
-                                            @click="toggleAllCategories('indicators')"
-                                            class="text-xs text-slate-400 hover:text-slate-300"
-                                        >
-                                            {{ allExpandedIndicators ? '全部收起' : '全部展开' }}
-                                        </button>
                                     </div>
-                                    
-                                    <!-- 指标树内容 -->
-                                    <div v-if="indicatorsLoaded && Object.keys(groupedIndicators).length > 0" class="space-y-2">
-                                        <div 
-                                            v-for="(indicators, category) in groupedIndicators" 
-                                            :key="category"
-                                            class="tree-category"
-                                        >
-                                            <div 
-                                                class="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer"
-                                                @click="toggleCategory('indicators', category)"
-                                            >
-                                                <span 
-                                                    class="iconify transition-transform"
-                                                    :class="{ 'rotate-90': expandedCategoriesIndicators[category] }"
-                                                    data-icon="mdi:chevron-right"
-                                                ></span>
-                                                <span class="text-orange-400 font-semibold">{{ category }}</span>
-                                                <span class="text-xs bg-slate-700 px-2 py-1 rounded-full ml-auto">
-                                                    {{ getIndicatorCountInCategory(category) }}
-                                                </span>
-                                            </div>
-                                            
-                                            <!-- 子指标列表 -->
-                                            <div v-show="expandedCategoriesIndicators[category]" class="ml-6 space-y-1">
-                                                <div 
-                                                    v-for="(indicator, index) in indicators"
-                                                    :key="index"
-                                                    class="tree-item p-2 rounded"
-                                                    :class="{ 'active': selectedIndicator && selectedIndicator['指标ID'] === indicator['指标ID'] }"
-                                                    @click="selectIndicator(indicator)"
-                                                >
-                                                    <div class="flex items-center gap-2">
-                                                        <span class="iconify text-blue-400" data-icon="mdi:target"></span>
-                                                        <span class="text-sm truncate">{{ indicator['指标名称'] }}</span>
-                                                        <span class="text-xs bg-slate-600 px-1.5 py-0.5 rounded ml-auto">
-                                                            ID: {{ indicator['指标ID'] }}
-                                                        </span>
-                                                    </div>
-                                                </div>
+                                    <div class="space-y-2 flex-1">
+                                        <div><p class="text-xs text-slate-400 mb-1">参数值</p><p class="text-emerald-400 font-mono font-bold text-lg">{{ item.参数值 }}</p></div>
+                                        <div><p class="text-xs text-slate-400 mb-1">配置要求/说明</p><p class="text-slate-300 text-sm">{{ item['配置要求/说明'] }}</p></div>
+                                    </div>
+                                    <div v-if="item['来源']" class="mt-3 pt-3 border-t border-slate-700/60">
+                                        <div class="flex items-start gap-1.5">
+                                            <span class="iconify text-amber-400 mt-0.5 flex-shrink-0 text-xs" data-icon="mdi:book-open-variant"></span>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-xs text-amber-300 leading-snug">{{ item['来源'] }}</p>
+                                                <button v-if="item['来源文号']" @click.stop="jumpToStandard(item['来源文号'])"
+                                                    class="text-xs font-mono mt-1 px-2 py-0.5 rounded border border-amber-500/30 text-amber-400 hover:bg-amber-500/15 hover:border-amber-500/60 transition-all flex items-center gap-1 group"
+                                                    title="点击查看对应标准规范">
+                                                    <span class="iconify text-amber-500 group-hover:text-amber-300" data-icon="mdi:arrow-right-circle-outline"></span>{{ item['来源文号'] }}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <!-- 空数据提示 -->
-                                    <div v-if="indicatorsLoaded && Object.keys(groupedIndicators).length === 0" class="p-4 text-center">
-                                        <p class="text-slate-400">evaluation_indicators.csv 文件中未找到指标数据</p>
+                                    <div v-else class="mt-3 pt-3 border-t border-slate-700/60">
+                                        <div class="flex items-center gap-1.5">
+                                            <span class="iconify text-slate-600 text-xs" data-icon="mdi:help-circle-outline"></span>
+                                            <p class="text-xs text-slate-600">暂无权威来源</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- 主内容区 -->
-                        <div class="flex-1 relative overflow-y-auto">
-                            <!-- 网格背景 -->
-                            <div class="rule-grid absolute inset-0"></div>
-                            
-                            <!-- 规则详情面板 -->
-                            <div v-if="currentTab === 'rules' && selectedRule" class="glass-panel m-6 p-6">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div>
-                                        <h2 class="text-2xl font-bold text-orange-400">{{ selectedRule.name }}</h2>
-                                        <p class="text-slate-400 text-sm">{{ selectedRule.category }} · {{ selectedRule.items.length }} 个配置参数</p>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <button 
-                                            @click="exportSelectedRule"
-                                            class="px-4 py-2 rounded border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-2"
-                                        >
-                                            <span class="iconify" data-icon="mdi:download"></span>
-                                            导出当前规则
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- 规则参数卡片 -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <div 
-                                        v-for="(item, index) in selectedRule.items" 
-                                        :key="index"
-                                        class="p-5 bg-slate-800/50 rounded border border-slate-700/50 hover:border-blue-500/50 transition-all"
-                                    >
-                                        <div class="flex items-start justify-between mb-3">
-                                            <div class="flex items-center gap-2">
-                                                <span class="iconify text-orange-400" data-icon="mdi:cog"></span>
-                                                <h3 class="font-semibold text-slate-200">{{ item.参数名 }}</h3>
-                                            </div>
-                                        </div>
-                                        <div class="space-y-2">
-                                            <div>
-                                                <p class="text-xs text-slate-400 mb-1">参数值</p>
-                                                <p class="text-emerald-400 font-mono font-bold text-lg">{{ item.参数值 }}</p>
-                                            </div>
-                                            <div>
-                                                <p class="text-xs text-slate-400 mb-1">配置要求/说明</p>
-                                                <p class="text-slate-300 text-sm">{{ item['配置要求/说明'] }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 指标详情面板 -->
-                            <div v-if="currentTab === 'indicators' && selectedIndicator" class="glass-panel m-6 p-6">
-                                <div class="flex justify-between items-start mb-6">
-                                    <div>
-                                        <h2 class="text-2xl font-bold text-orange-400">{{ selectedIndicator['指标名称'] }}</h2>
-                                        <p class="text-slate-400 text-sm">{{ selectedIndicator['指标分类'] }} · ID: {{ selectedIndicator['指标ID'] }}</p>
-                                    </div>
-                                    <div class="flex items-center gap-3">
-                                        <button 
-                                            @click="exportSelectedIndicator"
-                                            class="px-4 py-2 rounded border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-2"
-                                        >
-                                            <span class="iconify" data-icon="mdi:download"></span>
-                                            导出当前指标
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <!-- 指标详情 -->
-                                <div class="space-y-4">
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div class="p-4 bg-slate-800/50 rounded">
-                                            <p class="text-sm text-slate-400 mb-2">算法说明</p>
-                                            <p class="text-slate-200">{{ selectedIndicator['算法说明'] }}</p>
-                                        </div>
-                                        <div class="p-4 bg-slate-800/50 rounded">
-                                            <p class="text-sm text-slate-400 mb-2">评价参考</p>
-                                            <p class="text-slate-200">{{ selectedIndicator['评价参考'] }}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-3 gap-4">
-                                        <div class="p-4 bg-slate-800/50 rounded">
-                                            <p class="text-sm text-slate-400 mb-2">指标单位</p>
-                                            <p class="text-xl font-bold text-blue-400">{{ selectedIndicator['指标单位'] }}</p>
-                                        </div>
-                                        <div class="p-4 bg-slate-800/50 rounded">
-                                            <p class="text-sm text-slate-400 mb-2">指标范围</p>
-                                            <p class="text-xl font-bold text-blue-400">{{ selectedIndicator['指标范围'] }}</p>
-                                        </div>
-                                        <div class="p-4 bg-slate-800/50 rounded">
-                                            <p class="text-sm text-slate-400 mb-2">指标分类</p>
-                                            <p class="text-xl font-bold text-orange-400">{{ selectedIndicator['指标分类'] }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- 无选中内容时的提示 -->
-                            <div v-else-if="currentTab === 'rules' && rulesLoaded && !selectedRule" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                                <span class="iconify text-6xl text-slate-500 mx-auto mb-4" data-icon="mdi:airplane-takeoff"></span>
+                        <div v-else class="flex-1 flex items-center justify-center text-center">
+                            <div>
+                                <span class="iconify text-6xl text-slate-500 mx-auto mb-4 block" data-icon="mdi:airplane-takeoff"></span>
                                 <p class="text-slate-400 text-lg">请从左侧选择一条规则查看详细配置</p>
                                 <p class="text-slate-500 text-sm mt-2">系统已加载 {{ totalRules }} 条规则配置参数</p>
                             </div>
+                        </div>
+                    </div>
 
-                            <div v-else-if="currentTab === 'indicators' && indicatorsLoaded && !selectedIndicator" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-                                <span class="iconify text-6xl text-slate-500 mx-auto mb-4" data-icon="mdi:target"></span>
+                    <div v-show="currentTab === 'sources'" class="flex-1 overflow-y-auto">
+                        <div v-if="selectedStandard" class="glass-panel m-6 p-6">
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="flex-1 min-w-0 pr-4">
+                                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                                        <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/15 text-amber-300 border border-amber-500/25 flex-shrink-0">{{ selectedStandard.category }}</span>
+                                        <span class="px-2 py-0.5 rounded text-xs font-mono flex-shrink-0" :class="selectedStandard.status === '现行有效' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25' : 'bg-slate-700 text-slate-400'">● {{ selectedStandard.status }}</span>
+                                    </div>
+                                    <h2 class="text-xl font-bold text-orange-400 leading-snug">{{ selectedStandard.name }}</h2>
+                                    <p class="text-slate-400 text-sm mt-1 font-mono">{{ selectedStandard.code }}</p>
+                                </div>
+                                <a v-if="selectedStandard.official_url" :href="selectedStandard.official_url" target="_blank"
+                                    class="px-3 py-2 rounded border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 flex items-center gap-2 text-sm flex-shrink-0">
+                                    <span class="iconify" data-icon="mdi:open-in-new"></span>原文链接
+                                </a>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+                                <div class="p-3 bg-slate-800/50 rounded"><p class="text-xs text-slate-400 mb-1">文号 / 编号</p><p class="text-sm font-mono text-emerald-400 break-all">{{ selectedStandard.code }}</p></div>
+                                <div class="p-3 bg-slate-800/50 rounded"><p class="text-xs text-slate-400 mb-1">发布日期</p><p class="text-sm text-blue-300">{{ selectedStandard.publish_date }}</p></div>
+                                <div class="p-3 bg-slate-800/50 rounded"><p class="text-xs text-slate-400 mb-1">生效日期</p><p class="text-sm text-blue-300">{{ selectedStandard.effective_date }}</p></div>
+                                <div class="p-3 bg-slate-800/50 rounded"><p class="text-xs text-slate-400 mb-1">发布机构</p><p class="text-sm text-slate-200 leading-snug">{{ selectedStandard.issuer }}</p></div>
+                            </div>
+                            <div class="mb-5 p-4 bg-slate-800/50 rounded border-l-4 border-orange-500">
+                                <p class="text-xs text-slate-400 mb-2 uppercase tracking-wide font-semibold">内容介绍</p>
+                                <p class="text-slate-200 text-sm leading-relaxed">{{ selectedStandard.summary }}</p>
+                            </div>
+                            <div class="mb-5 p-4 bg-slate-800/40 rounded border border-blue-500/20">
+                                <p class="text-xs text-slate-400 mb-2 uppercase tracking-wide font-semibold">适用范围</p>
+                                <p class="text-slate-300 text-sm leading-relaxed">{{ selectedStandard.scope }}</p>
+                            </div>
+                            <div class="mb-5">
+                                <p class="text-xs text-slate-400 mb-2 uppercase tracking-wide font-semibold flex items-center gap-2">
+                                    关联规则维度
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    <span v-for="dim in (selectedStandard.applicable_rules || [])" :key="dim"
+                                        class="px-3 py-1 rounded-full text-xs bg-blue-500/10 text-blue-300 border border-blue-500/20 flex items-center gap-1.5">
+                                        <span class="iconify text-blue-500" data-icon="mdi:tag-outline"></span>{{ dim }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-400 mb-3 uppercase tracking-wide font-semibold flex items-center gap-2">
+                                    <span class="iconify text-amber-400" data-icon="mdi:text-box-multiple"></span>关键条款全文
+                                </p>
+                                <div class="space-y-3">
+                                    <div v-for="(art, idx) in (selectedStandard.key_articles || [])" :key="idx"
+                                        class="p-4 bg-slate-900/60 rounded border border-slate-700/60 hover:border-amber-500/30 transition-all">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span class="px-2 py-0.5 rounded text-xs font-mono font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25">{{ art.article }}</span>
+                                            <span class="text-sm font-semibold text-slate-200">{{ art.title }}</span>
+                                        </div>
+                                        <p class="text-slate-300 text-sm leading-relaxed pl-1">{{ art.content }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="m-6">
+                            <div v-if="loadingStandards" class="flex items-center justify-center h-40">
+                                <span class="iconify animate-spin text-4xl text-blue-400" data-icon="mdi:loading"></span>
+                            </div>
+                            <div v-else>
+                                <div class="glass-panel p-5 mb-5">
+                                    <div class="flex items-center gap-3 mb-2">
+                                        <span class="iconify text-2xl text-amber-400" data-icon="lucide:library"></span>
+                                        <h2 class="text-lg font-bold text-slate-200">低空飞行标准规范库</h2>
+                                    </div>
+                                    <p class="text-slate-400 text-sm">收录 {{ totalStandards }} 项权威法规、国家标准、行业标准及团体标准，涵盖低空飞行管理各核心领域。点击左侧列表查看详情与全文。</p>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div v-for="(items, category) in groupedStandards" :key="category"
+                                        class="glass-panel p-4 hover:border-amber-500/40 transition-all cursor-pointer"
+                                        @click="selectStandard(items[0])">
+                                        <div class="flex items-center gap-3 mb-3">
+                                            <span class="iconify text-xl text-amber-400" data-icon="mdi:book-open-variant"></span>
+                                            <h3 class="font-semibold text-slate-200">{{ category }}</h3>
+                                            <span class="ml-auto text-xs bg-slate-700 px-2 py-1 rounded-full text-slate-300">{{ items.length }} 项</span>
+                                        </div>
+                                        <div class="space-y-1.5">
+                                            <div v-for="item in items" :key="item.id" class="text-xs text-slate-400 flex items-start gap-1.5">
+                                                <span class="iconify text-slate-600 mt-0.5 flex-shrink-0" data-icon="mdi:circle-small"></span>
+                                                <span>{{ item.name }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div v-show="currentTab === 'indicators'" class="flex-1 overflow-y-auto flex flex-col">
+                        <div v-if="selectedIndicator" class="glass-panel m-6 p-6">
+                            <div class="flex justify-between items-start mb-6">
+                                <div>
+                                    <h2 class="text-2xl font-bold text-orange-400">{{ selectedIndicator['指标名称'] }}</h2>
+                                    <p class="text-slate-400 text-sm">{{ selectedIndicator['指标分类'] }} · ID: {{ selectedIndicator['指标ID'] }}</p>
+                                </div>
+                                <button @click="exportSelectedIndicator" class="px-4 py-2 rounded border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-2">
+                                    <span class="iconify" data-icon="mdi:download"></span>导出当前指标
+                                </button>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="p-4 bg-slate-800/50 rounded"><p class="text-sm text-slate-400 mb-2">算法说明</p><p class="text-slate-200">{{ selectedIndicator['算法说明'] }}</p></div>
+                                    <div class="p-4 bg-slate-800/50 rounded"><p class="text-sm text-slate-400 mb-2">评价参考</p><p class="text-slate-200">{{ selectedIndicator['评价参考'] }}</p></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-4">
+                                    <div class="p-4 bg-slate-800/50 rounded"><p class="text-sm text-slate-400 mb-2">指标单位</p><p class="text-xl font-bold text-blue-400">{{ selectedIndicator['指标单位'] }}</p></div>
+                                    <div class="p-4 bg-slate-800/50 rounded"><p class="text-sm text-slate-400 mb-2">指标范围</p><p class="text-xl font-bold text-blue-400">{{ selectedIndicator['指标范围'] }}</p></div>
+                                    <div class="p-4 bg-slate-800/50 rounded"><p class="text-sm text-slate-400 mb-2">指标分类</p><p class="text-xl font-bold text-orange-400">{{ selectedIndicator['指标分类'] }}</p></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="flex-1 flex items-center justify-center text-center">
+                            <div>
+                                <span class="iconify text-6xl text-slate-500 mx-auto mb-4 block" data-icon="mdi:target"></span>
                                 <p class="text-slate-400 text-lg">请从左侧选择一个指标查看详细信息</p>
                                 <p class="text-slate-500 text-sm mt-2">系统已加载 {{ totalIndicators }} 个评估指标</p>
                             </div>
                         </div>
                     </div>
+
                 </div>
-            `,
-            
-            setup() {
-                // 响应式数据
-                const currentTab = ref('rules');
-                
-                // 调试日志
-                console.log('Vue setup executed, currentTab:', currentTab.value);
-                
-                // 规则相关数据
-                const rulesData = ref([]);
-                const groupedRules = ref({});
-                const selectedRule = ref(null);
-                const loadingRules = ref(true);
-                const rulesError = ref(null);
-                const rulesLoaded = ref(false);
-                const expandedCategoriesRules = ref({});
-                const allExpandedRules = ref(true);
-                const totalRules = ref(0);
-                
-                // 指标相关数据
-                const indicatorsData = ref([]);
-                const groupedIndicators = ref({});
-                const selectedIndicator = ref(null);
-                const loadingIndicators = ref(true);
-                const indicatorsError = ref(null);
-                const indicatorsLoaded = ref(false);
-                const expandedCategoriesIndicators = ref({});
-                const allExpandedIndicators = ref(true);
-                const totalIndicators = ref(0);
-                
-                // 切换标签
-                const switchTab = (tab) => {
-                    console.log('switchTab called with:', tab);
-                    currentTab.value = tab;
-                    console.log('currentTab updated to:', currentTab.value);
-                };
-                
-                // 加载规则CSV文件
-                const loadRulesCSV = () => {
-                    loadingRules.value = true;
-                    rulesError.value = null;
-
-                    // 优先使用fetch（HTTP服务器），失败则回退到文件读取
-                    fetch('./rules.csv')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`文件加载失败 (${response.status})`);
-                            }
-                            return response.text();
-                        })
-                        .then(csvText => {
-                            if (!csvText || csvText.trim().length === 0) {
-                                throw new Error('CSV文件为空');
-                            }
-
-                            Papa.parse(csvText, {
-                                header: true,
-                                skipEmptyLines: true,
-                                complete: (results) => {
-                                    if (results.errors.length > 0) {
-                                        rulesError.value = `CSV解析错误: ${results.errors[0].message}`;
-                                        rulesLoaded.value = false;
-                                    } else if (results.data.length === 0) {
-                                        rulesError.value = 'CSV文件中没有数据';
-                                        rulesLoaded.value = false;
-                                    } else {
-                                        processRulesData(results.data);
-                                        rulesLoaded.value = true;
-                                    }
-                                    loadingRules.value = false;
-                                },
-                                error: (err) => {
-                                    rulesError.value = `解析失败: ${err.message}`;
-                                    rulesLoaded.value = false;
-                                    loadingRules.value = false;
-                                }
-                            });
-                        })
-                        .catch(err => {
-                            // 如果fetch失败（可能是file://协议），提示用户
-                            if (window.location.protocol === 'file:') {
-                                rulesError.value = '直接打开文件无法加载CSV，请使用HTTP服务器运行（如Live Server）';
-                            } else {
-                                rulesError.value = `加载文件失败: ${err.message}`;
-                            }
-                            rulesLoaded.value = false;
-                            loadingRules.value = false;
-                        });
-                };
-                
-                // 加载指标CSV文件
-                const loadIndicatorsCSV = () => {
-                    loadingIndicators.value = true;
-                    indicatorsError.value = null;
-
-                    fetch('./evaluation_indicators.csv')
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`文件加载失败 (${response.status})`);
-                            }
-                            return response.text();
-                        })
-                        .then(csvText => {
-                            if (!csvText || csvText.trim().length === 0) {
-                                throw new Error('CSV文件为空');
-                            }
-
-                            Papa.parse(csvText, {
-                                header: true,
-                                skipEmptyLines: true,
-                                complete: (results) => {
-                                    if (results.errors.length > 0) {
-                                        indicatorsError.value = `CSV解析错误: ${results.errors[0].message}`;
-                                        indicatorsLoaded.value = false;
-                                    } else if (results.data.length === 0) {
-                                        indicatorsError.value = 'CSV文件中没有数据';
-                                        indicatorsLoaded.value = false;
-                                    } else {
-                                        processIndicatorsData(results.data);
-                                        indicatorsLoaded.value = true;
-                                    }
-                                    loadingIndicators.value = false;
-                                },
-                                error: (err) => {
-                                    indicatorsError.value = `解析失败: ${err.message}`;
-                                    indicatorsLoaded.value = false;
-                                    loadingIndicators.value = false;
-                                }
-                            });
-                        })
-                        .catch(err => {
-                            if (window.location.protocol === 'file:') {
-                                indicatorsError.value = '直接打开文件无法加载CSV，请使用HTTP服务器运行（如Live Server）';
-                            } else {
-                                indicatorsError.value = `加载文件失败: ${err.message}`;
-                            }
-                            indicatorsLoaded.value = false;
-                            loadingIndicators.value = false;
-                        });
-                };
-                
-                // 处理规则数据
-                const processRulesData = (data) => {
-                    rulesData.value = data;
-                    totalRules.value = data.length;
-                    
-                    const grouped = {};
-                    data.forEach(item => {
-                        const category = item.规则维度 || '未分类';
-                        if (!grouped[category]) {
-                            grouped[category] = [];
-                        }
-                        grouped[category].push(item);
-                    });
-                    
-                    groupedRules.value = grouped;
-                    
-                    Object.keys(grouped).forEach(category => {
-                        expandedCategoriesRules.value[category] = true;
-                    });
-                    
-                    allExpandedRules.value = true;
-                };
-                
-                // 处理指标数据
-                const processIndicatorsData = (data) => {
-                    indicatorsData.value = data;
-                    totalIndicators.value = data.length;
-                    
-                    const grouped = {};
-                    data.forEach(item => {
-                        const category = item['指标分类'] || '未分类';
-                        if (!grouped[category]) {
-                            grouped[category] = [];
-                        }
-                        grouped[category].push(item);
-                    });
-                    
-                    groupedIndicators.value = grouped;
-                    
-                    Object.keys(grouped).forEach(category => {
-                        expandedCategoriesIndicators.value[category] = true;
-                    });
-                    
-                    allExpandedIndicators.value = true;
-                };
-                
-                // 获取分类中的规则数量
-                const getRuleCountInCategory = (category) => {
-                    const rules = groupedRules.value[category] || [];
-                    const ruleNames = new Set();
-                    rules.forEach(rule => ruleNames.add(rule.规则名称));
-                    return ruleNames.size;
-                };
-                
-                // 获取分类下的规则
-                const getRulesByCategory = (category) => {
-                    const rules = groupedRules.value[category] || [];
-                    const grouped = {};
-                    
-                    rules.forEach(item => {
-                        const ruleName = item.规则名称 || '未命名规则';
-                        if (!grouped[ruleName]) {
-                            grouped[ruleName] = [];
-                        }
-                        grouped[ruleName].push(item);
-                    });
-                    
-                    return grouped;
-                };
-                
-                // 获取分类中的指标数量
-                const getIndicatorCountInCategory = (category) => {
-                    return groupedIndicators.value[category]?.length || 0;
-                };
-                
-                // 选择规则
-                const selectRule = (category, ruleName, ruleItems) => {
-                    selectedRule.value = {
-                        category,
-                        name: ruleName,
-                        items: ruleItems
-                    };
-                    selectedIndicator.value = null;
-                };
-                
-                // 选择指标
-                const selectIndicator = (indicator) => {
-                    selectedIndicator.value = indicator;
-                    selectedRule.value = null;
-                };
-                
-                // 切换分类展开状态
-                const toggleCategory = (type, category) => {
-                    if (type === 'rules') {
-                        expandedCategoriesRules.value[category] = !expandedCategoriesRules.value[category];
-                        updateAllExpandedState('rules');
-                    } else {
-                        expandedCategoriesIndicators.value[category] = !expandedCategoriesIndicators.value[category];
-                        updateAllExpandedState('indicators');
-                    }
-                };
-                
-                // 切换所有分类
-                const toggleAllCategories = (type) => {
-                    if (type === 'rules') {
-                        const newState = !allExpandedRules.value;
-                        Object.keys(expandedCategoriesRules.value).forEach(category => {
-                            expandedCategoriesRules.value[category] = newState;
-                        });
-                        allExpandedRules.value = newState;
-                    } else {
-                        const newState = !allExpandedIndicators.value;
-                        Object.keys(expandedCategoriesIndicators.value).forEach(category => {
-                            expandedCategoriesIndicators.value[category] = newState;
-                        });
-                        allExpandedIndicators.value = newState;
-                    }
-                };
-                
-                // 更新全部展开状态
-                const updateAllExpandedState = (type) => {
-                    if (type === 'rules') {
-                        const categories = Object.keys(expandedCategoriesRules.value);
-                        allExpandedRules.value = categories.every(category => expandedCategoriesRules.value[category]);
-                    } else {
-                        const categories = Object.keys(expandedCategoriesIndicators.value);
-                        allExpandedIndicators.value = categories.every(category => expandedCategoriesIndicators.value[category]);
-                    }
-                };
-                
-                // 导出选中的规则
-                const exportSelectedRule = () => {
-                    if (!selectedRule.value) return;
-                    
-                    const csvData = selectedRule.value.items.map(item => ({
-                        规则维度: item.规则维度,
-                        规则名称: item.规则名称,
-                        参数名: item.参数名,
-                        参数值: item.参数值,
-                        '配置要求/说明': item['配置要求/说明']
-                    }));
-                    
-                    const csv = Papa.unparse(csvData);
-                    downloadCSV(csv, `${selectedRule.value.category}_${selectedRule.value.name}_配置.csv`);
-                };
-                
-                // 导出选中的指标
-                const exportSelectedIndicator = () => {
-                    if (!selectedIndicator.value) return;
-                    
-                    const csv = Papa.unparse([selectedIndicator.value]);
-                    downloadCSV(csv, `指标_${selectedIndicator.value['指标ID']}_${selectedIndicator.value['指标名称']}.csv`);
-                };
-                
-                // 下载CSV文件
-                const downloadCSV = (csvContent, fileName) => {
-                    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement('a');
-                    link.href = URL.createObjectURL(blob);
-                    link.download = fileName;
-                    link.click();
-                };
-                
-                // 组件挂载时自动加载CSV文件
-                onMounted(() => {
-                    loadRulesCSV();
-                    loadIndicatorsCSV();
-                });
-                
-                return {
-                    currentTab,
-                    switchTab,
-                    
-                    // 规则相关
-                    rulesData,
-                    groupedRules,
-                    selectedRule,
-                    loadingRules,
-                    rulesError,
-                    rulesLoaded,
-                    expandedCategoriesRules,
-                    allExpandedRules,
-                    totalRules,
-                    
-                    // 指标相关
-                    indicatorsData,
-                    groupedIndicators,
-                    selectedIndicator,
-                    loadingIndicators,
-                    indicatorsError,
-                    indicatorsLoaded,
-                    expandedCategoriesIndicators,
-                    allExpandedIndicators,
-                    totalIndicators,
-                    
-                    // 方法
-                    getRuleCountInCategory,
-                    getRulesByCategory,
-                    getIndicatorCountInCategory,
-                    selectRule,
-                    selectIndicator,
-                    toggleCategory,
-                    toggleAllCategories,
-                    exportSelectedRule,
-                    exportSelectedIndicator
-                };
-            }
-        };
-        
-        // 创建并挂载Vue应用
-        createApp(App).mount('#app');
-    </script>
+            </div>
+        </div>
+    `
+}).mount('#app');
+</script>
 </body>
 </html>
