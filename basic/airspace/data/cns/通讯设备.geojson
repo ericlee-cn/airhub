@@ -1,0 +1,91 @@
+{
+   "crs" : {
+      "properties" : {
+         "name" : "urn:ogc:def:crs:EPSG::4490"
+      },
+      "type" : "name"
+   },
+   "features" : [
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9712967977313, 30.52355836887861 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "5G基站-1"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9624061139184, 30.51517207893123 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "5G基站-2"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9762522651380, 30.51426268892555 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "5G基站-3"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9591012335834, 30.52901861304756 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "5G基站-4"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9185180664063, 30.55856553798283 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "5G基站-5"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.8819541931152, 30.59846854371451 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "5G基站-6"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 120.0372219085693, 30.52910807064572 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "5G基站-7"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 120.0234031677246, 30.54688710949595 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "5G基站-8"
+         },
+         "type" : "Feature"
+      }
+   ],
+   "type" : "FeatureCollection"
+}

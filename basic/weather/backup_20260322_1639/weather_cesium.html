@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>德清低空气象环境仿真系统 | Cesium版</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/iconify/3.1.0/iconify.min.js"></script>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <style>
+    /* Cesium容器样式 */
+    #cesiumContainer {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    .cesium-viewer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <style>
+    body { background-color: #030a1c; color: #e2e8f0; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; height: 100vh; overflow: hidden; }
+    .glass-panel { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 170, 255, 0.2); backdrop-filter: blur(12px); }
+    .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1); }
+
+    .side-panel {
+      width: 320px; min-width: 320px;
+      transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .side-panel.collapsed { width: 0 !important; min-width: 0 !important; opacity: 0; }
+
+    .panel-toggle-btn {
+      flex-shrink: 0; width: 14px; align-self: stretch;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(0, 170, 255, 0.25); color: #60a5fa;
+      font-size: 9px; transition: background 0.2s; z-index: 30; user-select: none;
+    }
+    .panel-toggle-btn:hover { background: rgba(0, 170, 255, 0.18); color: #fff; }
+
+    .tree-node { cursor: pointer; transition: all 0.2s; border-left: 2px solid transparent; }
+    .tree-node:hover { background: rgba(59, 130, 246, 0.1); border-left: 2px solid #3b82f6; }
+    .tree-node.active { background: rgba(59, 130, 246, 0.2); border-left: 2px solid #3b82f6; color: #60a5fa; }
+    .node-tag { font-size: 10px; padding: 1px 4px; border-radius: 2px; margin-left: auto; }
+
+    .section-content { transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease; overflow: hidden; }
+
+    #cesiumContainer { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+    .cesium-viewer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .cesium-viewer-bottom { display: none !important; }
+    .cesium-widget-credits { display: none !important; }
+
+    /* 时间滑块 */
+    .time-slider { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: rgba(59,130,246,0.3); outline: none; }
+    .time-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #3b82f6; cursor: pointer; border: 2px solid #60a5fa; }
+
+    /* 图例 */
+    .legend-bar { height: 12px; border-radius: 4px; background: linear-gradient(to right, #1e3a8a, #2563eb, #22c55e, #facc15, #f97316, #ef4444); }
+
+    /* 彩色标签 */
+    .bg-tag-red    { background: rgba(239,68,68,.2);  color: #ef4444; border: 1px solid rgba(239,68,68,.3); }
+    .bg-tag-orange { background: rgba(249,115,22,.2); color: #f97316; border: 1px solid rgba(249,115,22,.3); }
+    .bg-tag-yellow { background: rgba(234,179,8,.2);  color: #eab308; border: 1px solid rgba(234,179,8,.3); }
+    .bg-tag-green  { background: rgba(34,197,94,.2);  color: #22c55e; border: 1px solid rgba(34,197,94,.3); }
+    .bg-tag-blue   { background: rgba(59,130,246,.2); color: #3b82f6; border: 1px solid rgba(59,130,246,.3); }
+    .bg-tag-cyan   { background: rgba(6,182,212,.2);  color: #06b6d4; border: 1px solid rgba(6,182,212,.3); }
+
+    /* 表格样式 */
+    .data-table-container { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; overflow: hidden; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { background: rgba(56, 189, 248, 0.1); color: #7dd3fc; font-weight: 600; padding: 12px 8px; border-bottom: 1px solid rgba(56, 189, 248, 0.2); white-space: nowrap; }
+    td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); white-space: nowrap; }
+    
+    .status-tag { padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+    .tag-normal { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .tag-warning { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+    .tag-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    /* 风场粒子 */
+    .wind-particle { position: absolute; pointer-events: none; }
+  </style>
+  <!-- Tailwind CDN (inline minimal) -->
+  <style>*,::before,::after{box-sizing:border-box}body{margin:0}button,input{font-family:inherit;font-size:100%;margin:0;padding:0}button{cursor:pointer}.flex{display:flex}.flex-col{flex-direction:column}.flex-1{flex:1 1 0%}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.h-full{height:100%}.h-16{height:4rem}.w-full{width:100%}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.relative{position:relative}.absolute{position:absolute}.inset-0{inset:0}.z-10{z-index:10}.z-20{z-index:20}.z-50{z-index:50}.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-2{margin-bottom:.5rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.ml-4{margin-left:1rem}.ml-6{margin-left:1.5rem}.mr-2{margin-right:.5rem}.space-y-1>:not([hidden])~:not([hidden]){margin-top:.25rem}.space-y-2>:not([hidden])~:not([hidden]){margin-top:.5rem}.space-y-4>:not([hidden])~:not([hidden]){margin-top:1rem}.text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[10px\]{font-size:10px}.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-mono{font-family:ui-monospace,monospace}.uppercase{text-transform:uppercase}.italic{font-style:italic}.tracking-widest{letter-spacing:.1em}.leading-relaxed{line-height:1.625}.text-right{text-align:right}.rounded{border-radius:.25rem}.rounded-lg{border-radius:.5rem}.rounded-full{border-radius:9999px}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-l{border-left-width:1px}.border-l-4{border-left-width:4px}.border-r{border-right-width:1px}.border-slate-700{border-color:rgb(51 65 85)}.border-slate-800{border-color:rgb(30 41 59)}.border-blue-500\/20{border-color:rgb(59 130 246/.2)}.border-blue-500\/40{border-color:rgb(59 130 246/.4)}.bg-slate-900\/40{background-color:rgb(15 23 42/.4)}.bg-slate-900\/60{background-color:rgb(15 23 42/.6)}.bg-blue-600\/20{background-color:rgb(37 99 235/.2)}.hover\:bg-blue-600\/40:hover{background-color:rgb(37 99 235/.4)}.bg-slate-800\/50{background-color:rgb(30 41 59/.5)}.hover\:bg-slate-800\/50:hover{background-color:rgb(30 41 59/.5)}.hover\:bg-slate-800:hover{background-color:rgb(30 41 59)}.hover\:bg-slate-700\/50:hover{background-color:rgb(51 65 85/.5)}.text-blue-400{color:rgb(96 165 250)}.text-blue-500{color:rgb(59 130 246)}.text-cyan-400{color:rgb(34 211 238)}.text-emerald-400{color:rgb(52 211 153)}.text-green-400{color:rgb(74 222 128)}.text-orange-400{color:rgb(251 146 60)}.text-purple-400{color:rgb(192 132 252)}.text-red-400{color:rgb(248 113 113)}.text-yellow-400{color:rgb(250 204 21)}.text-slate-300{color:rgb(203 213 225)}.text-slate-400{color:rgb(148 163 184)}.text-slate-500{color:rgb(100 116 139)}.text-transparent{color:transparent}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}.from-blue-400{--tw-gradient-from:#60a5fa;--tw-gradient-stops:var(--tw-gradient-from),rgb(96 165 250/0)}.to-cyan-300{--tw-gradient-to:#67e8f9}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}@keyframes pulse{50%{opacity:.5}}.transition{transition-property:color,background-color,border-color,opacity,box-shadow,transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}.grid{display:grid}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.col-span-2{grid-column:span 2/span 2}.hidden{display:none}</style>
+</head>
+<body class="flex flex-col">
+
+<!-- 顶部导航 -->
+<header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+  <div class="flex items-center gap-3">
+    <span class="iconify text-3xl text-blue-400" data-icon="lucide:cloud-sun"></span>
+    <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真系统</h1>
+  </div>
+  <nav class="flex gap-1 h-full">
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../overview.html">系统总览</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../terrain/terrain.html">
+      <span class="iconify mr-2" data-icon="lucide:map"></span>地理环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../electromagnetic/electromagnetic.html">
+      <span class="iconify mr-2" data-icon="lucide:waves"></span>电磁环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="weather_cesium.html">
+      <span class="iconify mr-2" data-icon="lucide:cloud-sun"></span>气象环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../airspace/cesium_airspace_standalone.html">
+      <span class="iconify mr-2" data-icon="lucide:layers"></span>空域航路</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../rules/rules.html">
+      <span class="iconify mr-2" data-icon="lucide:gavel"></span>飞行规则</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../assets/assets.html">
+      <span class="iconify mr-2" data-icon="lucide:database"></span>装备库</a>
+  </nav>
+</header>
+
+<!-- 主体 -->
+<div class="flex-1 flex overflow-hidden">
+
+  <!-- 左侧：气象区域树 -->
+  <aside class="side-panel glass-panel border-r border-slate-700 flex flex-col z-20" id="leftPanel">
+    <div class="p-4 border-b border-slate-800 bg-slate-900/40">
+      <h2 class="font-bold flex items-center gap-2 text-blue-400">
+        <span class="iconify" data-icon="lucide:map"></span> 气象分区选择
+      </h2>
+    </div>
+    
+
+
+    <div class="flex-1 overflow-y-auto p-2 space-y-1" id="resourceTree">
+
+      <!-- 春夏场景 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-green-400 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-green-400" data-icon="lucide:flower-2"></span>
+            春夏场景
+          </div>
+          <button class="p-1 rounded hover:bg-slate-700/50" onclick="event.stopPropagation();toggleSeason('春夏',this)">
+            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+          </button>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0">
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded active" onclick="loadZone('春夏', '中心城区', this)">
+            <span class="iconify text-blue-400" data-icon="lucide:building-2"></span>
+            中心城区
+            <span class="node-tag bg-tag-blue">城市</span>
+          </div>
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="loadZone('春夏', '东部山区', this)">
+            <span class="iconify text-emerald-400" data-icon="lucide:mountain"></span>
+            东部山区
+            <span class="node-tag bg-tag-green">山地</span>
+          </div>
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="loadZone('春夏', '西部山区', this)">
+            <span class="iconify text-cyan-400" data-icon="lucide:mountain-snow"></span>
+            西部山区
+            <span class="node-tag bg-tag-cyan">丘陵</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 秋冬场景 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-blue-200 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-blue-200" data-icon="lucide:snowflake"></span>
+            秋冬场景
+          </div>
+          <button class="p-1 rounded hover:bg-slate-700/50" onclick="event.stopPropagation();toggleSeason('秋冬',this)">
+            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+          </button>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0">
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="loadZone('秋冬', '中心城区', this)">
+            <span class="iconify text-blue-400" data-icon="lucide:building-2"></span>
+            中心城区
+            <span class="node-tag bg-tag-blue">城市</span>
+          </div>
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="loadZone('秋冬', '东部山区', this)">
+            <span class="iconify text-emerald-400" data-icon="lucide:mountain"></span>
+            东部山区
+            <span class="node-tag bg-tag-green">山地</span>
+          </div>
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="loadZone('秋冬', '西部山区', this)">
+            <span class="iconify text-cyan-400" data-icon="lucide:mountain-snow"></span>
+            西部山区
+            <span class="node-tag bg-tag-cyan">丘陵</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 气象要素图层 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-orange-400 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-orange-400" data-icon="lucide:layers"></span>
+            气象要素图层
+          </div>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0">
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="toggleWeatherLayer('wind', this)">
+            <span class="iconify text-cyan-400" data-icon="lucide:wind"></span>
+            风场矢量
+            <span class="node-tag bg-tag-cyan">矢量</span>
+          </div>
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="toggleWeatherLayer('temperature', this)">
+            <span class="iconify text-orange-400" data-icon="lucide:thermometer"></span>
+            温度分布
+            <span class="node-tag bg-tag-orange">热力</span>
+          </div>
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="toggleWeatherLayer('visibility', this)">
+            <span class="iconify text-blue-400" data-icon="lucide:eye"></span>
+            能见度
+            <span class="node-tag bg-tag-blue">网格</span>
+          </div>
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="toggleWeatherLayer('precipitation', this)">
+            <span class="iconify text-blue-300" data-icon="lucide:cloud-rain"></span>
+            降水强度
+            <span class="node-tag bg-tag-blue">雷达</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 气象推演 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-purple-400 transition-all" data-icon="lucide:chevron-down" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-purple-400" data-icon="lucide:cloud-sun"></span>
+            气象推演
+          </div>
+        </div>
+        <div class="ml-4 space-y-1 section-content" id="weatherEvolutionSection" style="max-height:200px;opacity:1">
+          <div class="p-2 text-xs text-slate-400">
+            <div class="flex items-center justify-between mb-1">
+              <span>当前时刻</span>
+              <span class="text-purple-400 font-mono" id="curTimeLabel">06:00</span>
+            </div>
+            <input type="range" min="6" max="19" value="6" step="0.5" class="time-slider w-full mt-1" id="timeSlider" oninput="onTimeChange(this.value)">
+            <div class="flex justify-between text-[10px] text-slate-600 mt-1">
+              <span>06:00</span><span>12:00</span><span>19:00</span>
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button class="flex-1 py-1 px-2 rounded text-xs bg-slate-700 hover:bg-slate-600" onclick="playTimeAnimation()">
+                <span class="iconify mr-1" data-icon="lucide:play"></span>播放
+              </button>
+              <button class="flex-1 py-1 px-2 rounded text-xs bg-slate-700 hover:bg-slate-600" onclick="stopTimeAnimation()">
+                <span class="iconify mr-1" data-icon="lucide:square"></span>停止
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    
+    <!-- 底部统计 -->
+    <div class="p-3 border-t border-slate-800 bg-slate-900/60 text-[10px] text-slate-500">
+      <div class="flex justify-between mb-2">
+        <span>仿真区域: <span class="text-blue-400 font-bold">德清县</span></span>
+        <span>更新频率: <span class="text-green-400">≤5分钟</span></span>
+      </div>
+      <div class="flex justify-between gap-2">
+        <span>数据源: <span class="text-blue-400 font-mono">气象局仿真库</span></span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="panel-toggle-btn" id="leftToggleBtn" onclick="togglePanel('left')" title="收起/展开左侧">&#10094;</div>
+
+  <!-- 中间：Cesium地图 -->
+  <main class="flex-1 relative" style="background:#030a1c; position: relative;">
+    <div id="cesiumContainer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+
+    <!-- 地图上方时间显示 -->
+    <div class="absolute z-20" style="top:1rem;left:50%;transform:translateX(-50%)">
+      <div class="px-6 py-3 rounded-lg flex items-center gap-4" style="background:rgba(51,65,85,0.9);border:1px solid rgba(100,116,139,0.3)">
+        <span class="iconify text-2xl text-blue-400" data-icon="lucide:clock"></span>
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase">仿真时间</div>
+          <div class="text-xl font-bold text-white font-mono" id="displayTime">06:00</div>
+        </div>
+        <div class="border-l border-slate-600 pl-4">
+          <div class="text-[10px] text-slate-400 uppercase">当前场景</div>
+          <div class="text-sm font-bold text-blue-400" id="displayScene">春夏 - 中心城区</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 飞行风险评估面板 - 时间推演时动态显示 -->
+    <div id="flightRiskPanel" class="absolute z-20 top-4 right-4 w-72 rounded-lg overflow-hidden transition-all duration-300"
+         style="background:rgba(15, 23, 42, 0.95); border:1px solid rgba(56, 189, 248, 0.3); backdrop-filter: blur(8px);">
+      <div class="p-3 border-b border-slate-700">
+        <span class="font-bold text-sm text-blue-400 flex items-center gap-2">
+          <span class="iconify" data-icon="lucide:plane"></span> 飞行风险评估
+        </span>
+        <div class="mt-1 text-xs text-slate-400">
+          当前时间: <span class="text-purple-400 font-mono" id="riskTimeLabel">06:00</span>
+        </div>
+      </div>
+      <div class="p-3 space-y-3">
+        <!-- 风速 -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">风速</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-mono font-bold" id="riskWindSpeed">2.0 m/s</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded" id="riskWindTag" style="background:rgba(34,197,94,0.2);color:#22c55e">安全</span>
+          </div>
+        </div>
+        <!-- 能见度 -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">能见度</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-mono font-bold" id="riskVis">2500 m</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded" id="riskVisTag" style="background:rgba(234,179,8,0.2);color:#eab308">一般</span>
+          </div>
+        </div>
+        <!-- 湍流 -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">湍流强度</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-mono font-bold" id="riskTurb">3%</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded" id="riskTurbTag" style="background:rgba(34,197,94,0.2);color:#22c55e">弱</span>
+          </div>
+        </div>
+        <!-- 降水 -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">降水强度</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-mono font-bold" id="riskRain">0.0 mm/h</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded" id="riskRainTag" style="background:rgba(34,197,94,0.2);color:#22c55e">无</span>
+          </div>
+        </div>
+        <!-- 爆流 -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">下击爆流</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-mono font-bold" id="riskBurst">无</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded" id="riskBurstTag" style="background:rgba(34,197,94,0.2);color:#22c55e">安全</span>
+          </div>
+        </div>
+        <!-- 团雾 -->
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400">团雾等级</span>
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-mono font-bold" id="riskFog">2级</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded" id="riskFogTag" style="background:rgba(234,179,8,0.2);color:#eab308">轻度</span>
+          </div>
+        </div>
+        <!-- 分隔线 -->
+        <div class="border-t border-slate-700 pt-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs text-slate-300 font-semibold">综合风险度</span>
+            <span class="text-lg font-bold" id="riskLevel" style="color:#22c55e">低风险</span>
+          </div>
+          <!-- 风险进度条 -->
+          <div class="mt-2 h-2 rounded-full overflow-hidden" style="background:rgba(255,255,255,0.1)">
+            <div id="riskBar" class="h-full rounded-full transition-all duration-500" style="width:25%; background:linear-gradient(90deg, #22c55e, #4ade80)"></div>
+          </div>
+        </div>
+        <!-- 查看详情按钮 - 仅在右侧面板收起时显示 -->
+        <button id="viewDetailBtn" onclick="openDetailPanel()" class="w-full mt-3 py-2 px-3 rounded text-xs font-semibold flex items-center justify-center gap-2 transition hover:opacity-90"
+                style="background: linear-gradient(90deg, rgba(59,130,246,0.3), rgba(6,182,212,0.3)); border: 1px solid rgba(56,189,248,0.4); color: #7dd3fc;">
+          <span class="iconify" data-icon="lucide:external-link"></span>
+          查看详情
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- 右侧：气象数据表格（合并切换按钮和面板） -->
+  <aside class="flex flex-col z-20" id="rightPanelWrapper" style="width: 40px; min-width: 40px;">
+    <!-- 折叠状态：只显示竖条按钮 -->
+    <div id="rightPanelCollapsedBar" class="h-full glass-panel border-l border-slate-700 flex flex-col items-center py-4 cursor-pointer hover:bg-slate-800/60 transition" onclick="toggleRightPanel()" style="width: 40px;">
+      <span class="iconify text-slate-400" data-icon="lucide:chevron-left" style="transform: rotate(0deg);"></span>
+      <span class="text-xs text-slate-400 mt-2 writing-mode-vertical" style="writing-mode: vertical-rl; text-orientation: mixed;">气象数据</span>
+    </div>
+    
+    <!-- 展开状态：完整面板 -->
+    <div id="rightPanelExpanded" class="hidden h-full glass-panel border-l border-slate-700 flex-col" style="width: 900px;">
+      <!-- 标题栏 - 可点击收起 -->
+      <div id="rightPanelHeader" class="p-4 border-b border-slate-800 bg-slate-900/40 font-bold flex items-center justify-between cursor-pointer hover:bg-slate-800/60 transition" onclick="toggleRightPanel()">
+        <span class="flex items-center gap-2">
+          <span class="iconify text-blue-400" data-icon="lucide:table"></span> 气象数据详情
+        </span>
+        <div class="flex items-center gap-3">
+          <span class="text-[10px] text-slate-500 font-mono" id="dataTime">2026-03-15</span>
+          <span class="iconify text-slate-400" data-icon="lucide:chevron-right"></span>
+        </div>
+      </div>
+      
+      <!-- 面板内容区 -->
+      <div id="rightPanelContent" class="flex flex-col flex-1 overflow-hidden">
+      <!-- 当前区域信息 - 数据源选择 -->
+      <div class="p-3 border-b border-slate-800 bg-slate-900/30">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-slate-400">数据源:</span>
+            <select id="dataSourceSelect" onchange="onDataSourceChange(this.value)" 
+                    class="px-3 py-1.5 rounded text-sm bg-slate-800 border border-slate-600 text-blue-400 font-semibold focus:outline-none focus:border-blue-500 cursor-pointer">
+              <option value="春夏-中心城区">春夏 - 中心城区</option>
+              <option value="春夏-东部山区">春夏 - 东部山区</option>
+              <option value="春夏-西部山区">春夏 - 西部山区</option>
+              <option value="秋冬-中心城区">秋冬 - 中心城区</option>
+              <option value="秋冬-东部山区">秋冬 - 东部山区</option>
+              <option value="秋冬-西部山区">秋冬 - 西部山区</option>
+            </select>
+          </div>
+          <div class="flex gap-2 text-xs">
+            <span class="px-2 py-1 bg-green-500/20 text-green-400 rounded">数据源：德清气象局</span>
+            <span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded">最后更新：2026-03-15 13:30</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 数据表格 - 带横向和纵向滚动，充满剩余空间 -->
+      <div class="flex-1 overflow-hidden" style="position: relative;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; overflow: auto;">
+          <table id="weather-table" style="min-width: 1400px; border-collapse: collapse; font-size: 12px;">
+            <thead style="position: sticky; top: 0; z-index: 10;">
+              <tr style="background: rgba(15, 23, 42, 0.95);">
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: left; white-space: nowrap; position: sticky; left: 0; background: rgba(15, 23, 42, 0.95); z-index: 11;">时间</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">风速<br>(m/s)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">风向<br>(°)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">垂直风<br>(m/s)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">风切变</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">湍流<br>(%)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">能见度<br>(m)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">气温<br>(℃)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">气压<br>(hPa)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">湿度<br>(%)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">降水<br>(mm/h)</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">爆流<br>强度</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">团雾<br>等级</th>
+                <th style="padding: 10px 8px; border-bottom: 2px solid rgba(56, 189, 248, 0.3); color: #7dd3fc; font-weight: 600; text-align: center; white-space: nowrap;">寒潮<br>等级</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- 数据由JS动态填充 -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<script>
+// =====================================================================
+// 气象仿真数据 (基于 Excel 手册)
+// =====================================================================
+const WEATHER_DATA = {
+  '春夏': {
+    '中心城区': [
+      { t: "6:00", ws: 2.0, wd: 110, vw: 0.0, sh: 0.5, tu: 3, vi: 2500, te: 20, pr: 1010, hu: 88, rain: 0.0, burst: 0, fog: 2, cold: 0 },
+      { t: "7:00", ws: 3.0, wd: 120, vw: 0.2, sh: 0.6, tu: 4, vi: 6000, te: 22, pr: 1008, hu: 75, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "8:00", ws: 3.0, wd: 130, vw: 0.3, sh: 0.7, tu: 5, vi: 8000, te: 24, pr: 1007, hu: 70, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "9:00", ws: 4.0, wd: 140, vw: 0.5, sh: 0.8, tu: 6, vi: 10000, te: 26, pr: 1005, hu: 65, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "10:00", ws: 4.0, wd: 150, vw: 0.6, sh: 1.0, tu: 7, vi: 12000, te: 27, pr: 1003, hu: 60, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "11:00", ws: 5.0, wd: 160, vw: 0.8, sh: 1.2, tu: 8, vi: 12000, te: 29, pr: 1001, hu: 55, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "12:00", ws: 5.0, wd: 170, vw: 1.0, sh: 1.5, tu: 10, vi: 12000, te: 31, pr: 999, hu: 50, rain: 5.0, burst: 1, fog: 1, cold: 0 },
+      { t: "13:00", ws: 6.0, wd: 180, vw: -1.0, sh: 2.0, tu: 12, vi: 8000, te: 32, pr: 998, hu: 60, rain: 8.0, burst: 2, fog: 2, cold: 0 },
+      { t: "13:30", ws: 7.0, wd: 185, vw: -1.0, sh: 2.2, tu: 14, vi: 6000, te: 33, pr: 997, hu: 65, rain: 10.0, burst: 3, fog: 2, cold: 0 },
+      { t: "14:00", ws: 6.5, wd: 190, vw: -0.8, sh: 1.8, tu: 11, vi: 8000, te: 32, pr: 998, hu: 62, rain: 6.0, burst: 2, fog: 1, cold: 0 },
+      { t: "15:00", ws: 5.5, wd: 200, vw: -0.5, sh: 1.5, tu: 9, vi: 10000, te: 30, pr: 999, hu: 58, rain: 3.0, burst: 1, fog: 1, cold: 0 },
+      { t: "16:00", ws: 4.5, wd: 210, vw: -0.3, sh: 1.2, tu: 7, vi: 12000, te: 28, pr: 1001, hu: 60, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "17:00", ws: 3.5, wd: 220, vw: -0.2, sh: 0.8, tu: 5, vi: 10000, te: 26, pr: 1003, hu: 68, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "18:00", ws: 2.5, wd: 230, vw: 0.0, sh: 0.6, tu: 4, vi: 8000, te: 24, pr: 1005, hu: 75, rain: 0.0, burst: 0, fog: 2, cold: 0 },
+      { t: "19:00", ws: 2.0, wd: 240, vw: 0.0, sh: 0.5, tu: 3, vi: 6000, te: 22, pr: 1007, hu: 82, rain: 0.0, burst: 0, fog: 2, cold: 0 }
+    ],
+    '东部山区': [
+      { t: "6:00", ws: 3.2, wd: 115, vw: 0.1, sh: 0.8, tu: 5, vi: 2000, te: 18, pr: 1010, hu: 90, rain: 0.0, burst: 0, fog: 3, cold: 0 },
+      { t: "7:00", ws: 4.0, wd: 125, vw: 0.3, sh: 1.0, tu: 6, vi: 4000, te: 20, pr: 1008, hu: 82, rain: 0.0, burst: 0, fog: 2, cold: 0 },
+      { t: "8:00", ws: 4.5, wd: 135, vw: 0.5, sh: 1.2, tu: 7, vi: 6000, te: 22, pr: 1006, hu: 75, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "9:00", ws: 5.0, wd: 145, vw: 0.8, sh: 1.5, tu: 8, vi: 8000, te: 24, pr: 1004, hu: 68, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "10:00", ws: 5.5, wd: 155, vw: 1.0, sh: 1.8, tu: 10, vi: 10000, te: 25, pr: 1002, hu: 62, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "11:00", ws: 6.0, wd: 165, vw: 1.2, sh: 2.0, tu: 12, vi: 10000, te: 27, pr: 1000, hu: 58, rain: 2.0, burst: 1, fog: 1, cold: 0 },
+      { t: "12:00", ws: 6.5, wd: 175, vw: 1.5, sh: 2.5, tu: 14, vi: 10000, te: 29, pr: 998, hu: 52, rain: 4.0, burst: 2, fog: 1, cold: 0 },
+      { t: "13:00", ws: 7.5, wd: 185, vw: -1.5, sh: 3.0, tu: 16, vi: 6000, te: 30, pr: 996, hu: 65, rain: 8.0, burst: 3, fog: 2, cold: 0 },
+      { t: "13:30", ws: 8.5, wd: 190, vw: -2.0, sh: 3.5, tu: 18, vi: 4000, te: 31, pr: 995, hu: 70, rain: 12.0, burst: 4, fog: 3, cold: 0 },
+      { t: "14:00", ws: 7.8, wd: 195, vw: -1.5, sh: 2.8, tu: 15, vi: 6000, te: 30, pr: 996, hu: 68, rain: 8.0, burst: 3, fog: 2, cold: 0 },
+      { t: "15:00", ws: 6.8, wd: 205, vw: -1.0, sh: 2.2, tu: 12, vi: 8000, te: 28, pr: 998, hu: 62, rain: 4.0, burst: 2, fog: 1, cold: 0 },
+      { t: "16:00", ws: 5.8, wd: 215, vw: -0.5, sh: 1.8, tu: 9, vi: 10000, te: 26, pr: 1000, hu: 65, rain: 1.0, burst: 1, fog: 1, cold: 0 },
+      { t: "17:00", ws: 4.5, wd: 225, vw: -0.3, sh: 1.2, tu: 7, vi: 8000, te: 24, pr: 1002, hu: 72, rain: 0.0, burst: 0, fog: 2, cold: 0 },
+      { t: "18:00", ws: 3.5, wd: 235, vw: 0.0, sh: 0.8, tu: 5, vi: 6000, te: 22, pr: 1004, hu: 80, rain: 0.0, burst: 0, fog: 2, cold: 0 },
+      { t: "19:00", ws: 3.0, wd: 245, vw: 0.0, sh: 0.6, tu: 4, vi: 4000, te: 20, pr: 1006, hu: 88, rain: 0.0, burst: 0, fog: 3, cold: 0 }
+    ],
+    '西部山区': [
+      { t: "6:00", ws: 2.8, wd: 105, vw: 0.0, sh: 0.6, tu: 4, vi: 3000, te: 19, pr: 1011, hu: 85, rain: 0.0, burst: 0, fog: 2, cold: 0 },
+      { t: "7:00", ws: 3.5, wd: 115, vw: 0.2, sh: 0.8, tu: 5, vi: 5500, te: 21, pr: 1009, hu: 78, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "8:00", ws: 4.0, wd: 125, vw: 0.4, sh: 1.0, tu: 6, vi: 7500, te: 23, pr: 1007, hu: 72, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "9:00", ws: 4.5, wd: 135, vw: 0.6, sh: 1.2, tu: 7, vi: 9500, te: 25, pr: 1005, hu: 65, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "10:00", ws: 5.0, wd: 145, vw: 0.8, sh: 1.5, tu: 8, vi: 11000, te: 26, pr: 1003, hu: 60, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "11:00", ws: 5.5, wd: 155, vw: 1.0, sh: 1.8, tu: 10, vi: 11000, te: 28, pr: 1001, hu: 55, rain: 3.0, burst: 1, fog: 1, cold: 0 },
+      { t: "12:00", ws: 6.0, wd: 165, vw: 1.2, sh: 2.2, tu: 12, vi: 11000, te: 30, pr: 999, hu: 50, rain: 6.0, burst: 2, fog: 1, cold: 0 },
+      { t: "13:00", ws: 7.0, wd: 175, vw: -1.2, sh: 2.8, tu: 14, vi: 7000, te: 31, pr: 997, hu: 62, rain: 10.0, burst: 3, fog: 2, cold: 0 },
+      { t: "13:30", ws: 8.0, wd: 180, vw: -1.5, sh: 3.2, tu: 16, vi: 5000, te: 32, pr: 996, hu: 68, rain: 15.0, burst: 4, fog: 2, cold: 0 },
+      { t: "14:00", ws: 7.2, wd: 185, vw: -1.2, sh: 2.5, tu: 13, vi: 7000, te: 31, pr: 997, hu: 65, rain: 10.0, burst: 3, fog: 2, cold: 0 },
+      { t: "15:00", ws: 6.2, wd: 195, vw: -0.8, sh: 2.0, tu: 10, vi: 9000, te: 29, pr: 999, hu: 58, rain: 5.0, burst: 2, fog: 1, cold: 0 },
+      { t: "16:00", ws: 5.2, wd: 205, vw: -0.4, sh: 1.5, tu: 8, vi: 11000, te: 27, pr: 1001, hu: 62, rain: 2.0, burst: 1, fog: 1, cold: 0 },
+      { t: "17:00", ws: 4.0, wd: 215, vw: -0.2, sh: 1.0, tu: 6, vi: 9000, te: 25, pr: 1003, hu: 70, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+      { t: "18:00", ws: 3.0, wd: 225, vw: 0.0, sh: 0.6, tu: 4, vi: 7000, te: 23, pr: 1005, hu: 78, rain: 0.0, burst: 0, fog: 2, cold: 0 },
+      { t: "19:00", ws: 2.5, wd: 235, vw: 0.0, sh: 0.5, tu: 3, vi: 5000, te: 21, pr: 1007, hu: 85, rain: 0.0, burst: 0, fog: 2, cold: 0 }
+    ]
+  },
+  '秋冬': {
+    '中心城区': [
+      { t: "6:00", ws: 3.5, wd: 280, vw: 0.0, sh: 0.8, tu: 4, vi: 3000, te: 5, pr: 1025, hu: 75, rain: 0.0, burst: 0, fog: 2, cold: 1 },
+      { t: "7:00", ws: 4.0, wd: 285, vw: 0.1, sh: 1.0, tu: 5, vi: 5000, te: 6, pr: 1024, hu: 72, rain: 0.0, burst: 0, fog: 1, cold: 1 },
+      { t: "8:00", ws: 4.5, wd: 290, vw: 0.2, sh: 1.2, tu: 6, vi: 7000, te: 7, pr: 1023, hu: 68, rain: 0.0, burst: 0, fog: 1, cold: 1 },
+      { t: "9:00", ws: 5.0, wd: 295, vw: 0.3, sh: 1.5, tu: 7, vi: 9000, te: 8, pr: 1022, hu: 65, rain: 0.0, burst: 0, fog: 1, cold: 1 },
+      { t: "10:00", ws: 5.5, wd: 300, vw: 0.5, sh: 1.8, tu: 8, vi: 10000, te: 9, pr: 1020, hu: 60, rain: 0.0, burst: 0, fog: 1, cold: 1 },
+      { t: "11:00", ws: 6.0, wd: 305, vw: 0.6, sh: 2.0, tu: 9, vi: 10000, te: 10, pr: 1018, hu: 55, rain: 0.0, burst: 0, fog: 1, cold: 1 },
+      { t: "12:00", ws: 6.5, wd: 310, vw: 0.8, sh: 2.2, tu: 10, vi: 10000, te: 11, pr: 1016, hu: 52, rain: 0.0, burst: 0, fog: 1, cold: 1 },
+      { t: "13:00", ws: 7.0, wd: 315, vw: -0.5, sh: 2.5, tu: 11, vi: 8000, te: 12, pr: 1015, hu: 58, rain: 0.0, burst: 1, fog: 1, cold: 1 },
+      { t: "13:30", ws: 7.5, wd: 320, vw: -0.8, sh: 2.8, tu: 12, vi: 6000, te: 12, pr: 1014, hu: 62, rain: 0.0, burst: 1, fog: 2, cold: 2 },
+      { t: "14:00", ws: 7.0, wd: 325, vw: -0.5, sh: 2.5, tu: 11, vi: 8000, te: 11, pr: 1015, hu: 60, rain: 0.0, burst: 1, fog: 1, cold: 1 },
+      { t: "15:00", ws: 6.5, wd: 330, vw: -0.3, sh: 2.0, tu: 9, vi: 9000, te: 10, pr: 1017, hu: 58, rain: 0.0, burst: 0, fog: 1, cold: 1 },
+      { t: "16:00", ws: 5.5, wd: 335, vw: -0.2, sh: 1.5, tu: 7, vi: 8000, te: 9, pr: 1019, hu: 62, rain: 0.0, burst: 0, fog: 1, cold: 1 },
+      { t: "17:00", ws: 4.5, wd: 340, vw: 0.0, sh: 1.0, tu: 5, vi: 6000, te: 7, pr: 1021, hu: 70, rain: 0.0, burst: 0, fog: 2, cold: 2 },
+      { t: "18:00", ws: 3.5, wd: 345, vw: 0.0, sh: 0.8, tu: 4, vi: 4000, te: 6, pr: 1023, hu: 78, rain: 0.0, burst: 0, fog: 2, cold: 2 },
+      { t: "19:00", ws: 3.0, wd: 350, vw: 0.0, sh: 0.6, tu: 3, vi: 3000, te: 5, pr: 1025, hu: 85, rain: 0.0, burst: 0, fog: 3, cold: 2 }
+    ],
+    '东部山区': [
+      { t: "6:00", ws: 5.0, wd: 275, vw: 0.0, sh: 1.5, tu: 6, vi: 2000, te: 3, pr: 1026, hu: 80, rain: 0.0, burst: 0, fog: 3, cold: 2 },
+      { t: "7:00", ws: 5.5, wd: 280, vw: 0.2, sh: 1.8, tu: 7, vi: 3500, te: 4, pr: 1025, hu: 78, rain: 0.0, burst: 0, fog: 2, cold: 2 },
+      { t: "8:00", ws: 6.0, wd: 285, vw: 0.4, sh: 2.0, tu: 8, vi: 5000, te: 5, pr: 1024, hu: 75, rain: 0.0, burst: 0, fog: 2, cold: 2 },
+      { t: "9:00", ws: 6.5, wd: 290, vw: 0.6, sh: 2.2, tu: 9, vi: 7000, te: 6, pr: 1023, hu: 70, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "10:00", ws: 7.0, wd: 295, vw: 0.8, sh: 2.5, tu: 10, vi: 8000, te: 7, pr: 1021, hu: 65, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "11:00", ws: 7.5, wd: 300, vw: 1.0, sh: 2.8, tu: 11, vi: 8000, te: 8, pr: 1019, hu: 60, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "12:00", ws: 8.0, wd: 305, vw: 1.2, sh: 3.0, tu: 12, vi: 8000, te: 9, pr: 1017, hu: 55, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "13:00", ws: 8.5, wd: 310, vw: -1.0, sh: 3.2, tu: 13, vi: 6000, te: 10, pr: 1016, hu: 62, rain: 0.0, burst: 1, fog: 2, cold: 2 },
+      { t: "13:30", ws: 9.0, wd: 315, vw: -1.5, sh: 3.5, tu: 14, vi: 4000, te: 10, pr: 1015, hu: 68, rain: 0.0, burst: 2, fog: 3, cold: 3 },
+      { t: "14:00", ws: 8.5, wd: 320, vw: -1.0, sh: 3.0, tu: 13, vi: 6000, te: 9, pr: 1016, hu: 65, rain: 0.0, burst: 1, fog: 2, cold: 2 },
+      { t: "15:00", ws: 7.5, wd: 325, vw: -0.5, sh: 2.5, tu: 10, vi: 7000, te: 8, pr: 1018, hu: 60, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "16:00", ws: 6.5, wd: 330, vw: -0.3, sh: 2.0, tu: 8, vi: 6000, te: 7, pr: 1020, hu: 65, rain: 0.0, burst: 0, fog: 2, cold: 2 },
+      { t: "17:00", ws: 5.5, wd: 335, vw: 0.0, sh: 1.5, tu: 6, vi: 4500, te: 5, pr: 1022, hu: 75, rain: 0.0, burst: 0, fog: 2, cold: 3 },
+      { t: "18:00", ws: 4.5, wd: 340, vw: 0.0, sh: 1.0, tu: 4, vi: 3000, te: 4, pr: 1024, hu: 85, rain: 0.0, burst: 0, fog: 3, cold: 3 },
+      { t: "19:00", ws: 4.0, wd: 345, vw: 0.0, sh: 0.8, tu: 3, vi: 2000, te: 3, pr: 1026, hu: 92, rain: 0.0, burst: 0, fog: 3, cold: 3 }
+    ],
+    '西部山区': [
+      { t: "6:00", ws: 4.5, wd: 285, vw: 0.0, sh: 1.2, tu: 5, vi: 2500, te: 4, pr: 1025, hu: 78, rain: 0.0, burst: 0, fog: 2, cold: 2 },
+      { t: "7:00", ws: 5.0, wd: 290, vw: 0.1, sh: 1.5, tu: 6, vi: 4500, te: 5, pr: 1024, hu: 75, rain: 0.0, burst: 0, fog: 2, cold: 2 },
+      { t: "8:00", ws: 5.5, wd: 295, vw: 0.3, sh: 1.8, tu: 7, vi: 6500, te: 6, pr: 1023, hu: 70, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "9:00", ws: 6.0, wd: 300, vw: 0.5, sh: 2.0, tu: 8, vi: 8500, te: 7, pr: 1022, hu: 65, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "10:00", ws: 6.5, wd: 305, vw: 0.6, sh: 2.2, tu: 9, vi: 9500, te: 8, pr: 1020, hu: 60, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "11:00", ws: 7.0, wd: 310, vw: 0.8, sh: 2.5, tu: 10, vi: 9500, te: 9, pr: 1018, hu: 55, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "12:00", ws: 7.5, wd: 315, vw: 1.0, sh: 2.8, tu: 11, vi: 9500, te: 10, pr: 1016, hu: 50, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "13:00", ws: 8.0, wd: 320, vw: -0.8, sh: 3.0, tu: 12, vi: 7000, te: 11, pr: 1015, hu: 58, rain: 0.0, burst: 1, fog: 2, cold: 2 },
+      { t: "13:30", ws: 8.5, wd: 325, vw: -1.2, sh: 3.2, tu: 13, vi: 5000, te: 11, pr: 1014, hu: 65, rain: 0.0, burst: 1, fog: 2, cold: 3 },
+      { t: "14:00", ws: 8.0, wd: 330, vw: -0.8, sh: 2.8, tu: 12, vi: 7000, te: 10, pr: 1015, hu: 62, rain: 0.0, burst: 1, fog: 2, cold: 2 },
+      { t: "15:00", ws: 7.0, wd: 335, vw: -0.5, sh: 2.2, tu: 10, vi: 8500, te: 9, pr: 1017, hu: 58, rain: 0.0, burst: 0, fog: 1, cold: 2 },
+      { t: "16:00", ws: 6.0, wd: 340, vw: -0.3, sh: 1.8, tu: 8, vi: 7000, te: 8, pr: 1019, hu: 62, rain: 0.0, burst: 0, fog: 2, cold: 2 },
+      { t: "17:00", ws: 5.0, wd: 345, vw: 0.0, sh: 1.2, tu: 6, vi: 5500, te: 6, pr: 1021, hu: 72, rain: 0.0, burst: 0, fog: 2, cold: 3 },
+      { t: "18:00", ws: 4.0, wd: 350, vw: 0.0, sh: 0.8, tu: 4, vi: 3500, te: 5, pr: 1023, hu: 82, rain: 0.0, burst: 0, fog: 3, cold: 3 },
+      { t: "19:00", ws: 3.5, wd: 355, vw: 0.0, sh: 0.6, tu: 3, vi: 2500, te: 4, pr: 1025, hu: 90, rain: 0.0, burst: 0, fog: 3, cold: 3 }
+    ]
+  }
+};
+
+// 气象分区GeoJSON数据
+const WEATHER_ZONES = {
+  "type": "FeatureCollection",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::4490" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "西部山区", "season": "春夏" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[119.93705750, 30.486254980], [119.94293690, 30.528784620], [119.925727840, 30.551617780], [119.938774110, 30.564330320], [119.950447080, 30.603935450], [119.929504390, 30.639979780], [119.883499150, 30.647659630], [119.818267820, 30.637616630], [119.799728390, 30.567286490], [119.839210510, 30.527074920], [119.880409240, 30.496609490]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "中心城区", "season": "春夏" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[119.950447080, 30.603935450], [119.938774110, 30.564330320], [119.925727840, 30.551617780], [119.94293690, 30.528784620], [119.93705750, 30.486254980], [119.969673160, 30.490692760], [120.00057220, 30.50637130], [119.985809330, 30.523526040], [120.014305110, 30.531215110], [120.037994380, 30.576745610], [119.987182620, 30.606890410]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "东部山区", "season": "春夏" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[120.037994380, 30.576745610], [120.103225710, 30.57970140], [120.154037480, 30.530919390], [120.168113710, 30.447489780], [120.046577450, 30.418183710], [120.016365050, 30.468797760], [120.002288820, 30.496905310], [120.00057220, 30.50637130], [119.985809330, 30.523526040], [120.014305110, 30.531215110], [120.026149750, 30.553980360]]]
+      }
+    }
+  ]
+};
+
+// =====================================================================
+// UI 工具函数
+// =====================================================================
+function togglePanel(side) {
+  const panel = document.getElementById(side==='left'?'leftPanel':'rightPanel');
+  const btn   = document.getElementById(side==='left'?'leftToggleBtn':'rightToggleBtn');
+  const collapsed = panel.classList.toggle('collapsed');
+  btn.innerHTML = side==='left' ? (collapsed?'&#10095;':'&#10094;') : (collapsed?'&#10094;':'&#10095;');
+}
+
+function toggleSection(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.iconify[data-icon="lucide:chevron-right"]');
+  if (!content) return;
+  const isCollapsed = content.dataset.collapsed === 'true' || content.style.maxHeight === '0px';
+  if (isCollapsed) {
+    content.dataset.collapsed = 'false';
+    content.style.overflow = 'hidden';
+    content.style.maxHeight = content.scrollHeight + 'px';
+    content.style.opacity = '1';
+    if (icon) icon.style.transform = 'rotate(90deg)';
+    content.addEventListener('transitionend', function cb() {
+      if (content.dataset.collapsed === 'false') { content.style.maxHeight = 'none'; content.style.overflow = ''; }
+      content.removeEventListener('transitionend', cb);
+    });
+  } else {
+    content.dataset.collapsed = 'true';
+    content.style.overflow = 'hidden';
+    content.style.maxHeight = content.scrollHeight + 'px';
+    content.offsetHeight;
+    content.style.maxHeight = '0px';
+    content.style.opacity = '0';
+    if (icon) icon.style.transform = 'rotate(0deg)';
+  }
+}
+
+function showNotification(title, message, duration=5000) {
+  const notif = document.getElementById('mapNotification');
+  document.getElementById('notificationTitle').textContent = title;
+  document.getElementById('notificationMessage').textContent = message;
+  notif.classList.remove('translate-x-full', 'opacity-0');
+  if (duration > 0) {
+    setTimeout(() => hideNotification(), duration);
+  }
+}
+
+function hideNotification() {
+  document.getElementById('mapNotification').classList.add('translate-x-full', 'opacity-0');
+}
+
+// =====================================================================
+// Cesium 初始化
+// =====================================================================
+const tiandituTokens = [
+  '8601ffd31167ff069ef2ae1585df5e21',
+  '4bac064681a9f35b4a7dc86368470e73',
+  'bae7709a89b8287beac232afc75fed73',
+  '4bed22704923895e2282a12713173bf9',
+  '901258d3f2950a2b0ddec5b0a1a73fe2'
+];
+let tokenIdx = 0;
+function getTiandituToken() {
+  const t = tiandituTokens[tokenIdx];
+  tokenIdx = (tokenIdx+1) % tiandituTokens.length;
+  return t;
+}
+
+let viewer, zoneEntities = {}, windEntities = [];
+let currentSeason = '春夏', currentZone = '中心城区', currentTime = 6.0;
+let timeAnimationId = null;
+
+// 初始化Cesium
+try {
+  const tk = getTiandituToken();
+  let imgProvider;
+  let useTianditu = true;
+
+  try {
+    imgProvider = new Cesium.WebMapTileServiceImageryProvider({
+      url: 'http://t0.tianditu.com/img_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk='+tk,
+      layer:'img', style:'default', format:'tiles', tileMatrixSetID:'w', maximumLevel:18, credit:'天地图',
+      subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7']
+    });
+  } catch(e) {
+    useTianditu = false;
+    imgProvider = new Cesium.UrlTemplateImageryProvider({
+      url:'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', maximumLevel:19, credit:'OSM'
+    });
+  }
+
+  // 监听瓦片加载错误
+  const originalRequestImage = imgProvider.requestImage;
+  let errorCount = 0;
+  const maxErrors = 5;
+  let notificationShown = false;
+
+  imgProvider.requestImage = function(x, y, level, request) {
+    const promise = originalRequestImage.call(this, x, y, level, request);
+    promise.then(undefined, function(error) {
+      if (error && (error.statusCode === 429 || error.statusCode === 403)) {
+        errorCount++;
+        if (errorCount === 1 && !notificationShown) {
+          showNotification('地图加载警告', '天地图请求过于频繁，可能影响地图显示。', 8000);
+          notificationShown = true;
+        }
+        if (useTianditu && errorCount >= maxErrors) {
+          useTianditu = false;
+          const osmProvider = new Cesium.UrlTemplateImageryProvider({
+            url:'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', maximumLevel:19, credit:'OSM'
+          });
+          viewer.imageryLayers.removeAll();
+          viewer.imageryLayers.addImageryProvider(osmProvider);
+          showNotification('地图源已切换', '已自动切换到OpenStreetMap地图源。', 10000);
+        }
+      }
+    });
+    return promise;
+  };
+
+  viewer = new Cesium.Viewer('cesiumContainer', {
+    imageryProvider: imgProvider,
+    terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+    baseLayerPicker: false, geocoder: false, homeButton: false,
+    sceneModePicker: false, navigationHelpButton: false,
+    animation: false, timeline: false, fullscreenButton: false,
+    vrButton: false, infoBox: false, selectionIndicator: false,
+    shadows: false, shouldAnimate: false,
+    contextOptions: {
+      webgl: {
+        alpha: false,
+        antialias: true,
+        preserveDrawingBuffer: true,
+        failIfMajorPerformanceCaveat: false
+      }
+    }
+  });
+  
+  // 确保viewer正确初始化
+  if (!viewer || !viewer.scene) {
+    throw new Error('Cesium Viewer初始化失败');
+  }
+  
+  viewer.imageryLayers.removeAll();
+  viewer.imageryLayers.addImageryProvider(imgProvider);
+  window.viewer = viewer;
+  
+  // 启用光照
+  viewer.scene.globe.enableLighting = true;
+  viewer.scene.globe.depthTestAgainstTerrain = false;
+
+  // 定位到德清区域中心
+  viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(119.9975, 30.5513, 80000),
+    orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-90), roll: 0 }
+  });
+
+  // 绘制气象分区
+  drawWeatherZones();
+  
+  // 初始化数据表格
+  updateWeatherTable(currentSeason, currentZone);
+
+} catch(e) {
+  console.error('Cesium初始化失败:', e);
+  showNotification('初始化错误', '地图加载失败，请刷新页面重试。', 0);
+}
+
+// 绘制气象分区
+function drawWeatherZones() {
+  const colors = {
+    '中心城区': Cesium.Color.fromCssColorString('#3b82f6').withAlpha(0.3),
+    '东部山区': Cesium.Color.fromCssColorString('#10b981').withAlpha(0.3),
+    '西部山区': Cesium.Color.fromCssColorString('#06b6d4').withAlpha(0.3)
+  };
+  
+  const outlineColors = {
+    '中心城区': Cesium.Color.fromCssColorString('#3b82f6'),
+    '东部山区': Cesium.Color.fromCssColorString('#10b981'),
+    '西部山区': Cesium.Color.fromCssColorString('#06b6d4')
+  };
+
+  WEATHER_ZONES.features.forEach((feature, index) => {
+    const coords = feature.geometry.coordinates[0];
+    const positions = coords.map(c => Cesium.Cartesian3.fromDegrees(c[0], c[1], 0));
+    const zoneName = feature.properties.name;
+    
+    zoneEntities[zoneName] = viewer.entities.add({
+      name: zoneName,
+      polygon: {
+        hierarchy: new Cesium.PolygonHierarchy(positions),
+        material: colors[zoneName],
+        outline: true,
+        outlineColor: outlineColors[zoneName],
+        outlineWidth: 2
+      },
+      label: {
+        text: zoneName,
+        font: '14px sans-serif',
+        fillColor: Cesium.Color.WHITE,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+      },
+      position: Cesium.Cartesian3.fromDegrees(
+        coords.reduce((sum, c) => sum + c[0], 0) / coords.length,
+        coords.reduce((sum, c) => sum + c[1], 0) / coords.length,
+        0
+      )
+    });
+  });
+}
+
+// 飞到指定区域
+function flyToZone(zoneName) {
+  const zone = WEATHER_ZONES.features.find(f => f.properties.name === zoneName);
+  if (zone) {
+    const coords = zone.geometry.coordinates[0];
+    const centerLon = coords.reduce((sum, c) => sum + c[0], 0) / coords.length;
+    const centerLat = coords.reduce((sum, c) => sum + c[1], 0) / coords.length;
+    
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(centerLon, centerLat, 35000),
+      orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+      duration: 1.5
+    });
+    
+    // 高亮选中区域 - 选中用红色，其他恢复默认透明度
+    Object.keys(zoneEntities).forEach(name => {
+      const entity = zoneEntities[name];
+      if (name === zoneName) {
+        // 选中区域用红色高亮
+        entity.polygon.material = Cesium.Color.fromCssColorString('#ef4444').withAlpha(0.5);
+        entity.polygon.outlineColor = Cesium.Color.fromCssColorString('#f87171');
+        entity.polygon.outlineWidth = 3;
+      } else {
+        // 恢复默认颜色和透明度
+        const defaultColors = {
+          '中心城区': Cesium.Color.fromCssColorString('#3b82f6').withAlpha(0.2),
+          '东部山区': Cesium.Color.fromCssColorString('#10b981').withAlpha(0.2),
+          '西部山区': Cesium.Color.fromCssColorString('#06b6d4').withAlpha(0.2)
+        };
+        const defaultOutlines = {
+          '中心城区': Cesium.Color.fromCssColorString('#3b82f6'),
+          '东部山区': Cesium.Color.fromCssColorString('#10b981'),
+          '西部山区': Cesium.Color.fromCssColorString('#06b6d4')
+        };
+        entity.polygon.material = defaultColors[name];
+        entity.polygon.outlineColor = defaultOutlines[name];
+        entity.polygon.outlineWidth = 2;
+      }
+    });
+  }
+}
+
+// =====================================================================
+// 数据表格更新
+// =====================================================================
+function updateWeatherTable(season, zone) {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  
+  const data = WEATHER_DATA[season]?.[zone] || [];
+  
+  data.forEach((row, index) => {
+    const tr = document.createElement('tr');
+    tr.style.cssText = 'border-bottom: 1px solid rgba(255, 255, 255, 0.05); transition: background 0.2s;';
+    tr.onmouseover = function() { this.style.background = 'rgba(59, 130, 246, 0.1)'; };
+    tr.onmouseout = function() { this.style.background = 'transparent'; };
+    
+    const fogClass = row.fog > 1 ? 'tag-warning' : 'tag-normal';
+    const rainClass = row.rain > 5 ? 'tag-danger' : (row.rain > 0 ? 'tag-warning' : 'tag-normal');
+    const coldClass = row.cold > 1 ? 'tag-danger' : (row.cold > 0 ? 'tag-warning' : 'tag-normal');
+    
+    // 交替行背景色
+    const bgStyle = index % 2 === 0 ? '' : 'background: rgba(255,255,255,0.02);';
+    
+    tr.innerHTML = `
+      <td style="padding: 8px; font-weight: bold; color: #38bdf8; white-space: nowrap; position: sticky; left: 0; background: rgba(15, 23, 42, 0.95); z-index: 5; ${bgStyle}">${row.t}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle} ${row.ws > 7 ? 'color: #fb923c; font-weight: bold;' : ''}">${row.ws.toFixed(1)}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle}">${row.wd}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle} ${row.vw < 0 ? 'color: #f87171;' : row.vw > 0 ? 'color: #4ade80;' : ''}">${row.vw > 0 ? '+' : ''}${row.vw.toFixed(1)}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle}">${row.sh.toFixed(1)}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle}">${row.tu}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle} ${row.vi < 5000 ? 'color: #facc15;' : ''}">${row.vi}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle} ${row.te < 5 ? 'color: #60a5fa; font-weight: bold;' : row.te > 30 ? 'color: #fb923c; font-weight: bold;' : ''}">${row.te.toFixed(1)}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle}">${row.pr}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle}">${row.hu}%</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle}"><span class="status-tag ${rainClass}">${row.rain.toFixed(1)}</span></td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle} ${row.burst > 0 ? 'color: #f87171; font-weight: bold;' : ''}">${row.burst}</td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle}"><span class="status-tag ${fogClass}">${row.fog}</span></td>
+      <td style="padding: 8px; text-align: center; white-space: nowrap; ${bgStyle} ${row.cold > 0 ? 'color: #60a5fa; font-weight: bold;' : ''}">${row.cold > 0 ? row.cold : '0'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+  
+  // 更新统计
+  updateStatistics(data);
+}
+
+function updateStatistics(data) {
+  // 统计功能已移除，保留函数避免调用错误
+}
+
+// =====================================================================
+// 飞行风险评估 - 根据当前时间动态更新
+// =====================================================================
+function updateFlightRiskAssessment() {
+  const data = WEATHER_DATA[currentSeason]?.[currentZone] || [];
+  if (data.length === 0) return;
+  
+  // 找到当前时间对应的数据点
+  const currentTimeStr = document.getElementById('curTimeLabel').textContent;
+  const currentData = data.find(d => d.t === currentTimeStr) || data[0];
+  
+  // 更新风险面板时间
+  document.getElementById('riskTimeLabel').textContent = currentTimeStr;
+  
+  // 风速评估
+  const ws = currentData.ws;
+  document.getElementById('riskWindSpeed').textContent = ws.toFixed(1) + ' m/s';
+  updateRiskTag('riskWindTag', ws, [
+    { max: 5, text: '安全', color: '#22c55e', bg: 'rgba(34,197,94,0.2)' },
+    { max: 8, text: '注意', color: '#eab308', bg: 'rgba(234,179,8,0.2)' },
+    { max: 12, text: '危险', color: '#f97316', bg: 'rgba(249,115,22,0.2)' },
+    { max: 999, text: '禁止', color: '#ef4444', bg: 'rgba(239,68,68,0.2)' }
+  ]);
+  
+  // 能见度评估
+  const vi = currentData.vi;
+  document.getElementById('riskVis').textContent = vi + ' m';
+  updateRiskTag('riskVisTag', vi, [
+    { max: 1000, text: '危险', color: '#ef4444', bg: 'rgba(239,68,68,0.2)' },
+    { max: 3000, text: '受限', color: '#f97316', bg: 'rgba(249,115,22,0.2)' },
+    { max: 5000, text: '一般', color: '#eab308', bg: 'rgba(234,179,8,0.2)' },
+    { max: 99999, text: '良好', color: '#22c55e', bg: 'rgba(34,197,94,0.2)' }
+  ], true); // 反向评估，值越大越好
+  
+  // 湍流评估
+  const tu = currentData.tu;
+  document.getElementById('riskTurb').textContent = tu + '%';
+  updateRiskTag('riskTurbTag', tu, [
+    { max: 5, text: '弱', color: '#22c55e', bg: 'rgba(34,197,94,0.2)' },
+    { max: 15, text: '中', color: '#eab308', bg: 'rgba(234,179,8,0.2)' },
+    { max: 25, text: '强', color: '#f97316', bg: 'rgba(249,115,22,0.2)' },
+    { max: 999, text: '极强', color: '#ef4444', bg: 'rgba(239,68,68,0.2)' }
+  ]);
+  
+  // 降水评估
+  const rain = currentData.rain;
+  document.getElementById('riskRain').textContent = rain.toFixed(1) + ' mm/h';
+  updateRiskTag('riskRainTag', rain, [
+    { max: 0.1, text: '无', color: '#22c55e', bg: 'rgba(34,197,94,0.2)' },
+    { max: 2.5, text: '小雨', color: '#eab308', bg: 'rgba(234,179,8,0.2)' },
+    { max: 8, text: '中雨', color: '#f97316', bg: 'rgba(249,115,22,0.2)' },
+    { max: 999, text: '大雨', color: '#ef4444', bg: 'rgba(239,68,68,0.2)' }
+  ]);
+  
+  // 爆流评估
+  const burst = currentData.burst;
+  document.getElementById('riskBurst').textContent = burst > 0 ? burst + '级' : '无';
+  updateRiskTag('riskBurstTag', burst, [
+    { max: 0, text: '安全', color: '#22c55e', bg: 'rgba(34,197,94,0.2)' },
+    { max: 1, text: '轻度', color: '#eab308', bg: 'rgba(234,179,8,0.2)' },
+    { max: 2, text: '中度', color: '#f97316', bg: 'rgba(249,115,22,0.2)' },
+    { max: 999, text: '严重', color: '#ef4444', bg: 'rgba(239,68,68,0.2)' }
+  ]);
+  
+  // 团雾评估
+  const fog = currentData.fog;
+  document.getElementById('riskFog').textContent = fog + '级';
+  updateRiskTag('riskFogTag', fog, [
+    { max: 1, text: '无', color: '#22c55e', bg: 'rgba(34,197,94,0.2)' },
+    { max: 2, text: '轻度', color: '#eab308', bg: 'rgba(234,179,8,0.2)' },
+    { max: 3, text: '中度', color: '#f97316', bg: 'rgba(249,115,22,0.2)' },
+    { max: 999, text: '严重', color: '#ef4444', bg: 'rgba(239,68,68,0.2)' }
+  ]);
+  
+  // 计算综合风险度
+  calculateOverallRisk(currentData);
+}
+
+function updateRiskTag(elementId, value, thresholds, reverse = false) {
+  const el = document.getElementById(elementId);
+  let level = 0;
+  
+  if (reverse) {
+    // 反向评估（如能见度，值越大越好）
+    for (let i = 0; i < thresholds.length; i++) {
+      if (value <= thresholds[i].max) {
+        level = thresholds.length - 1 - i;
+        break;
+      }
+    }
+  } else {
+    // 正向评估
+    for (let i = 0; i < thresholds.length; i++) {
+      if (value <= thresholds[i].max) {
+        level = i;
+        break;
+      }
+    }
+  }
+  
+  const threshold = thresholds[reverse ? thresholds.length - 1 - level : level];
+  el.textContent = threshold.text;
+  el.style.color = threshold.color;
+  el.style.background = threshold.bg;
+  
+  return level;
+}
+
+function calculateOverallRisk(data) {
+  // 计算各因素的风险等级 (0-3)
+  let riskScore = 0;
+  let riskFactors = 0;
+  
+  // 风速风险 (0-3)
+  if (data.ws > 12) riskScore += 3;
+  else if (data.ws > 8) riskScore += 2;
+  else if (data.ws > 5) riskScore += 1;
+  riskFactors++;
+  
+  // 能见度风险 (反向，值越小风险越高)
+  if (data.vi < 1000) riskScore += 3;
+  else if (data.vi < 3000) riskScore += 2;
+  else if (data.vi < 5000) riskScore += 1;
+  riskFactors++;
+  
+  // 湍流风险
+  if (data.tu > 25) riskScore += 3;
+  else if (data.tu > 15) riskScore += 2;
+  else if (data.tu > 5) riskScore += 1;
+  riskFactors++;
+  
+  // 降水风险
+  if (data.rain > 8) riskScore += 3;
+  else if (data.rain > 2.5) riskScore += 2;
+  else if (data.rain > 0.1) riskScore += 1;
+  riskFactors++;
+  
+  // 爆流风险
+  riskScore += data.burst;
+  riskFactors++;
+  
+  // 团雾风险
+  riskScore += Math.max(0, data.fog - 1);
+  riskFactors++;
+  
+  // 计算平均风险等级 (0-3)
+  const avgRisk = riskScore / riskFactors;
+  const maxRisk = 3;
+  const riskPercent = (avgRisk / maxRisk) * 100;
+  
+  // 更新风险等级显示
+  const riskLevelEl = document.getElementById('riskLevel');
+  const riskBarEl = document.getElementById('riskBar');
+  
+  if (avgRisk >= 2.5) {
+    riskLevelEl.textContent = '高风险';
+    riskLevelEl.style.color = '#ef4444';
+    riskBarEl.style.background = 'linear-gradient(90deg, #ef4444, #f87171)';
+  } else if (avgRisk >= 1.5) {
+    riskLevelEl.textContent = '中风险';
+    riskLevelEl.style.color = '#eab308';
+    riskBarEl.style.background = 'linear-gradient(90deg, #eab308, #facc15)';
+  } else if (avgRisk >= 0.8) {
+    riskLevelEl.textContent = '低风险';
+    riskLevelEl.style.color = '#22c55e';
+    riskBarEl.style.background = 'linear-gradient(90deg, #22c55e, #4ade80)';
+  } else {
+    riskLevelEl.textContent = '安全';
+    riskLevelEl.style.color = '#06b6d4';
+    riskBarEl.style.background = 'linear-gradient(90deg, #06b6d4, #67e8f9)';
+  }
+  
+  riskBarEl.style.width = Math.min(100, Math.max(10, riskPercent)) + '%';
+}
+
+// =====================================================================
+// 交互函数
+// =====================================================================
+function loadZone(season, zone, element) {
+  currentSeason = season;
+  currentZone = zone;
+  
+  // UI更新
+  document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
+  if (element) element.classList.add('active');
+  
+  // 更新显示
+  document.getElementById('displayScene').textContent = season + ' - ' + zone;
+  
+  // 同步更新下拉框
+  const select = document.getElementById('dataSourceSelect');
+  if (select) select.value = season + '-' + zone;
+  
+  // 更新表格
+  updateWeatherTable(season, zone);
+  
+  // 飞到区域
+  flyToZone(zone);
+  
+  // 更新风险评估
+  updateFlightRiskAssessment();
+}
+
+// 数据源下拉框切换
+function onDataSourceChange(value) {
+  const parts = value.split('-');
+  if (parts.length === 2) {
+    const season = parts[0];
+    const zone = parts[1];
+    
+    currentSeason = season;
+    currentZone = zone;
+    
+    // 更新显示
+    document.getElementById('displayScene').textContent = season + ' - ' + zone;
+    
+    // 更新左侧树形菜单选中状态
+    document.querySelectorAll('.tree-node').forEach(n => {
+      n.classList.remove('active');
+      // 如果节点文本匹配当前区域，设为选中
+      if (n.textContent.includes(zone)) {
+        n.classList.add('active');
+      }
+    });
+    
+    // 更新表格
+    updateWeatherTable(season, zone);
+    
+    // 飞到区域
+    flyToZone(zone);
+    
+    // 更新风险评估
+    updateFlightRiskAssessment();
+  }
+}
+
+function toggleSeason(season, btn) {
+  // 切换季节显示
+}
+
+function toggleWeatherLayer(layerType, element) {
+  element.classList.toggle('active');
+}
+
+// =====================================================================
+// 右侧面板收起/展开
+// =====================================================================
+let isRightPanelCollapsed = true; // 默认为收起状态
+
+function toggleRightPanel() {
+  const wrapper = document.getElementById('rightPanelWrapper');
+  const collapsedBar = document.getElementById('rightPanelCollapsedBar');
+  const expandedPanel = document.getElementById('rightPanelExpanded');
+  const viewDetailBtn = document.getElementById('viewDetailBtn');
+  
+  if (!wrapper || !collapsedBar || !expandedPanel) {
+    console.error('右侧面板元素未找到');
+    return;
+  }
+  
+  isRightPanelCollapsed = !isRightPanelCollapsed;
+  
+  if (isRightPanelCollapsed) {
+    // 收起状态：显示竖条，隐藏面板
+    wrapper.style.width = '40px';
+    wrapper.style.minWidth = '40px';
+    collapsedBar.classList.remove('hidden');
+    collapsedBar.classList.add('flex');
+    expandedPanel.classList.add('hidden');
+    expandedPanel.classList.remove('flex');
+    // 显示查看详情按钮
+    if (viewDetailBtn) viewDetailBtn.style.display = 'flex';
+  } else {
+    // 展开状态：显示面板，隐藏竖条
+    wrapper.style.width = '900px';
+    wrapper.style.minWidth = '900px';
+    collapsedBar.classList.add('hidden');
+    collapsedBar.classList.remove('flex');
+    expandedPanel.classList.remove('hidden');
+    expandedPanel.classList.add('flex');
+    // 隐藏查看详情按钮
+    if (viewDetailBtn) viewDetailBtn.style.display = 'none';
+  }
+}
+
+// 初始化右侧面板为收起状态
+function initRightPanel() {
+  const wrapper = document.getElementById('rightPanelWrapper');
+  const collapsedBar = document.getElementById('rightPanelCollapsedBar');
+  const expandedPanel = document.getElementById('rightPanelExpanded');
+  const viewDetailBtn = document.getElementById('viewDetailBtn');
+  
+  if (!wrapper || !collapsedBar || !expandedPanel) {
+    console.error('右侧面板元素未找到');
+    return;
+  }
+  
+  isRightPanelCollapsed = true;
+  // 收起状态：显示竖条，隐藏面板
+  wrapper.style.width = '40px';
+  wrapper.style.minWidth = '40px';
+  collapsedBar.classList.remove('hidden');
+  collapsedBar.classList.add('flex');
+  expandedPanel.classList.add('hidden');
+  expandedPanel.classList.remove('flex');
+  // 显示查看详情按钮
+  if (viewDetailBtn) viewDetailBtn.style.display = 'flex';
+}
+
+// 打开详情面板（展开右侧气象数据详情）
+function openDetailPanel() {
+  if (isRightPanelCollapsed) {
+    toggleRightPanel();
+  }
+}
+
+// =====================================================================
+// 时间控制
+// =====================================================================
+function onTimeChange(value) {
+  currentTime = parseFloat(value);
+  const hours = Math.floor(currentTime);
+  const minutes = (currentTime - hours) * 60;
+  const timeStr = String(hours).padStart(2, '0') + ':' + String(Math.round(minutes)).padStart(2, '0');
+  
+  document.getElementById('curTimeLabel').textContent = timeStr;
+  document.getElementById('displayTime').textContent = timeStr;
+  
+  // 同步更新飞行风险评估
+  updateFlightRiskAssessment();
+}
+
+function playTimeAnimation() {
+  if (timeAnimationId) return;
+  
+  timeAnimationId = setInterval(() => {
+    // 每30分钟步进一次
+    currentTime += 0.5;
+    if (currentTime > 19) currentTime = 6;
+    document.getElementById('timeSlider').value = currentTime;
+    onTimeChange(currentTime);
+    
+    // 更新飞行风险评估
+    updateFlightRiskAssessment();
+  }, 1500); // 每1.5秒推演30分钟
+}
+
+function stopTimeAnimation() {
+  if (timeAnimationId) {
+    clearInterval(timeAnimationId);
+    timeAnimationId = null;
+  }
+}
+
+// 页面加载完成后初始化
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    // 展开春夏场景分区
+    const firstSection = document.querySelector('#resourceTree .section-content');
+    if (firstSection) {
+      firstSection.style.maxHeight = firstSection.scrollHeight + 'px';
+      firstSection.style.opacity = '1';
+      firstSection.dataset.collapsed = 'false';
+      // 更新箭头方向
+      const arrow = firstSection.parentElement.querySelector('[data-icon="lucide:chevron-right"]');
+      if (arrow) arrow.style.transform = 'rotate(90deg)';
+    }
+    
+    // 气象推演保持打开状态（已在HTML中设置）
+    
+    // 初始化右侧面板为收起状态
+    initRightPanel();
+    // 初始化飞行风险评估
+    updateFlightRiskAssessment();
+    // 初始化高亮第一个区域
+    flyToZone('中心城区');
+  }, 500);
+});
+</script>
+</body>
+</html>

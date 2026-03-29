@@ -1,0 +1,2631 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AirFogSim - 低空仿真推演系统</title>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Microsoft YaHei', sans-serif; background: #0a0e1a; color: #e2e8f0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* 顶部导航 */
+  #topbar {
+    height: 52px; background: linear-gradient(90deg, #0d1b2e, #1a2744);
+    border-bottom: 1px solid #1e3a5f; display: flex; align-items: center;
+    padding: 0 16px; gap: 12px; z-index: 100; flex-shrink: 0;
+  }
+  #topbar .logo { font-size: 18px; font-weight: bold; color: #38bdf8; letter-spacing: 1px; }
+  #topbar .logo span { color: #94a3b8; font-size: 13px; font-weight: normal; margin-left: 8px; }
+  .topbar-divider { width: 1px; height: 28px; background: #1e3a5f; }
+  #topbar select {
+    background: #0d1b2e; border: 1px solid #1e3a5f; color: #e2e8f0;
+    padding: 5px 10px; border-radius: 4px; font-size: 13px; cursor: pointer; min-width: 220px;
+  }
+  .btn {
+    padding: 6px 14px; border: none; border-radius: 4px; font-size: 13px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-primary { background: #0ea5e9; color: #fff; }
+  .btn-primary:hover { background: #38bdf8; }
+  .btn-success { background: #10b981; color: #fff; }
+  .btn-success:hover { background: #34d399; }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #f87171; }
+  .btn-warn { background: #f59e0b; color: #fff; }
+  .btn-warn:hover { background: #fbbf24; }
+  .btn-gray { background: #374151; color: #e2e8f0; }
+  .btn-gray:hover { background: #4b5563; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* 主布局 */
+  #main { flex: 1; display: flex; overflow: hidden; }
+
+  /* 左侧面板 */
+  #left-panel {
+    width: 280px; background: #0d1b2e; border-right: 1px solid #1e3a5f;
+    display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+  }
+  .panel-section { border-bottom: 1px solid #1e3a5f; }
+  .panel-title {
+    padding: 10px 14px; font-size: 12px; font-weight: bold;
+    color: #64748b; text-transform: uppercase; letter-spacing: 1px;
+    background: #0a1220;
+  }
+  .panel-body { padding: 10px 14px; }
+
+  /* 想定信息卡 */
+  .scene-card {
+    background: #111e35; border: 1px solid #1e3a5f; border-radius: 6px;
+    padding: 10px 12px; margin-bottom: 8px;
+  }
+  .scene-card-title { font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 4px; }
+  .scene-card-info { font-size: 11px; color: #64748b; line-height: 1.8; }
+  .scene-card-info span { color: #94a3b8; }
+
+  /* 仿真控制 */
+  .ctrl-row { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+  .ctrl-row .btn { flex: 1; min-width: 60px; font-size: 12px; padding: 6px 8px; }
+
+  /* 进度条 */
+  .progress-wrap { margin: 8px 0; }
+  .progress-label { font-size: 11px; color: #64748b; margin-bottom: 4px; display: flex; justify-content: space-between; }
+  .progress-bar { height: 6px; background: #1e3a5f; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #38bdf8); transition: width 0.3s; border-radius: 3px; }
+
+  /* 统计数字 */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stat-box {
+    background: #111e35; border: 1px solid #1e3a5f; border-radius: 5px;
+    padding: 8px; text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: bold; color: #38bdf8; }
+  .stat-label { font-size: 10px; color: #64748b; margin-top: 2px; }
+  .stat-num.warn { color: #f59e0b; }
+  .stat-num.danger { color: #ef4444; }
+  .stat-num.ok { color: #10b981; }
+
+  /* 告警列表 */
+  #alarm-list { overflow-y: auto; flex: 1; min-height: 0; }
+  .alarm-item {
+    padding: 7px 14px; border-bottom: 1px solid #0d1b2e;
+    font-size: 11px; cursor: pointer;
+  }
+  .alarm-item:hover { background: #111e35; }
+  .alarm-item .alarm-time { color: #64748b; float: right; }
+  .alarm-item .alarm-uav { color: #38bdf8; font-weight: bold; }
+  .alarm-item .alarm-reason { color: #94a3b8; }
+  .alarm-item.level-4 { border-left: 3px solid #ef4444; background: rgba(239,68,68,0.08); }
+  .alarm-item.level-4 .alarm-reason { color: #fca5a5; }
+  .alarm-item.level-3 { border-left: 3px solid #f59e0b; }
+  .alarm-item.level-2 { border-left: 3px solid #eab308; }
+  .alarm-item.level-1 { border-left: 3px solid #3b82f6; }
+
+  /* 地图容器 */
+  #cesium-container { flex: 1; position: relative; }
+  #cesiumContainer { width: 100%; height: 100%; }
+  /* 隐藏 Cesium 底部 logo 和版权栏 */
+  .cesium-viewer-bottom,
+  .cesium-credit-logoContainer,
+  .cesium-credit-expand-link,
+  .cesium-widget-credits { display: none !important; }
+
+  /* 右侧面板 */
+  #right-panel {
+    width: 260px; background: #0d1b2e; border-left: 1px solid #1e3a5f;
+    display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+  }
+
+  /* UAV列表 */
+  #uav-list { overflow-y: auto; flex: 1; min-height: 0; }
+  .uav-item {
+    padding: 7px 14px; border-bottom: 1px solid #0a1220;
+    font-size: 11px; display: flex; align-items: center; gap: 8px; cursor: pointer;
+  }
+  .uav-item:hover { background: #111e35; }
+  .uav-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .uav-dot.flying { background: #10b981; }
+  .uav-dot.waiting { background: #64748b; }
+  .uav-dot.hovering { background: #f59e0b; }
+  .uav-dot.alarm { background: #ef4444; }
+  .uav-dot.completed { background: #3b82f6; }
+  .uav-dot.grounded { background: #6b21a8; }
+  .uav-info { flex: 1; }
+  .uav-id { font-weight: bold; color: #e2e8f0; }
+  .uav-pos { color: #64748b; font-size: 10px; }
+  .uav-status-tag {
+    font-size: 10px; padding: 1px 5px; border-radius: 3px;
+    background: #1e3a5f; color: #94a3b8;
+  }
+
+  /* ===== 底部推演控制条 ===== */
+  #statusbar {
+    height: 58px;
+    background: linear-gradient(90deg, #080f1e 0%, #0b1528 50%, #080f1e 100%);
+    border-top: 2px solid #0ea5e9;
+    display: flex; align-items: center; padding: 0 18px; gap: 0;
+    font-size: 11px; color: #64748b; flex-shrink: 0;
+    box-shadow: 0 -4px 20px rgba(14,165,233,0.08);
+  }
+
+  /* 圆形控制按钮组 */
+  .ctrl-btns { display: flex; align-items: center; gap: 10px; }
+  .ctrl-circle {
+    width: 36px; height: 36px; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.18s; flex-shrink: 0;
+    font-size: 14px; line-height: 1;
+  }
+  .ctrl-circle:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+  .ctrl-circle:not(:disabled):hover { transform: scale(1.1); }
+  .ctrl-circle.play  { background: #1db8e8; box-shadow: 0 0 12px rgba(29,184,232,0.5); color: #fff; }
+  .ctrl-circle.play:not(:disabled):hover  { background: #38d0ff; }
+  .ctrl-circle.pause { background: #2d3748; border: 1px solid #4a5568; color: #cbd5e1; }
+  .ctrl-circle.pause:not(:disabled):hover { background: #374151; border-color: #60748b; }
+  .ctrl-circle.stop  { background: #2d3748; border: 1px solid #4a5568; color: #cbd5e1; }
+  .ctrl-circle.stop:not(:disabled):hover  { background: #374151; border-color: #60748b; }
+
+  /* 分隔线 */
+  .statusbar-divider { width: 1px; height: 32px; background: #1a2d4a; margin: 0 14px; flex-shrink: 0; }
+
+  /* 进度区 */
+  .sim-progress-area {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
+    justify-content: center; padding: 0 4px; gap: 4px;
+  }
+  .sim-progress-top {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; color: #64748b;
+  }
+  .sim-time-info { color: #e2e8f0; font-size: 12px; font-weight: 500; letter-spacing: 0.3px; }
+  .sim-time-info .time-highlight { color: #38bdf8; font-weight: bold; }
+  .sim-breakpoint-btn {
+    background: none; border: 1px dashed #334155; border-radius: 4px;
+    color: #64748b; padding: 1px 8px; font-size: 10px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sim-breakpoint-btn:hover { border-color: #38bdf8; color: #38bdf8; }
+  .sim-duration-info { font-size: 11px; color: #64748b; }
+  .sim-duration-info span { color: #94a3b8; }
+
+  /* 进度滑块 */
+  .sim-slider-wrap { position: relative; height: 10px; display: flex; align-items: center; }
+  #sim-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 100%; height: 4px; border-radius: 2px;
+    background: #1e3a5f; outline: none; cursor: pointer;
+    position: relative; z-index: 1;
+  }
+  #sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #f59e0b; border: 2px solid #fff;
+    box-shadow: 0 0 6px rgba(245,158,11,0.8);
+    cursor: pointer; transition: transform 0.1s;
+  }
+  #sim-slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
+  #sim-slider::-moz-range-thumb {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #f59e0b; border: 2px solid #fff; cursor: pointer;
+  }
+  .sim-progress-fill {
+    position: absolute; left: 0; height: 4px; border-radius: 2px;
+    background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 100%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* 倍速按钮组 */
+  .speed-group { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .speed-group-label { font-size: 10px; color: #64748b; margin-right: 4px; letter-spacing: 0.5px; }
+  .speed-btn {
+    padding: 4px 10px; font-size: 11px; font-weight: 500;
+    border: 1px solid #1e3a5f; background: #111e35;
+    color: #64748b; border-radius: 4px; cursor: pointer; transition: all 0.15s;
+    min-width: 38px; text-align: center;
+  }
+  .speed-btn.active { background: #0c2a45; color: #e2e8f0; border-color: #38bdf8; box-shadow: 0 0 6px rgba(56,189,248,0.25); }
+  .speed-btn:hover:not(.active) { border-color: #334155; color: #94a3b8; }
+
+  /* 推演回退按钮 */
+  .btn-replay-back {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: 1px solid #1e3a5f;
+    border-radius: 6px; color: #64748b; padding: 0 12px; height: 30px;
+    font-size: 11px; cursor: pointer; transition: all 0.15s; flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .btn-replay-back:hover { border-color: #38bdf8; color: #38bdf8; }
+
+  /* 状态指示 */
+  #statusbar .status-item { display: flex; align-items: center; gap: 5px; }
+  #statusbar .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-green { background: #10b981; }
+  .dot-yellow { background: #f59e0b; box-shadow: 0 0 4px rgba(245,158,11,0.6); }
+  .dot-red { background: #ef4444; box-shadow: 0 0 4px rgba(239,68,68,0.6); }
+  .dot-gray { background: #475569; }
+  .dot-blue { background: #38bdf8; box-shadow: 0 0 4px rgba(56,189,248,0.6); }
+
+  /* 右侧面板拆分 */
+  #right-panel {
+    width: 260px; background: #0d1b2e; border-left: 1px solid #1e3a5f;
+    display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0;
+  }
+  #right-uav-panel { flex: 1; display: flex; flex-direction: column; min-height: 0; border-bottom: 2px solid #1e3a5f; }
+  #right-alarm-panel { height: 260px; display: flex; flex-direction: column; flex-shrink: 0; }
+
+  /* 右侧告警列表（滚动） */
+  #right-alarm-list { overflow-y: auto; flex: 1; min-height: 0; }
+  .alarm-item {
+    padding: 7px 14px; border-bottom: 1px solid #0d1b2e;
+    font-size: 11px; cursor: pointer;
+  }
+  .alarm-item:hover { background: #111e35; }
+  .alarm-item .alarm-time { color: #64748b; float: right; font-size: 10px; }
+  .alarm-item .alarm-uav { color: #38bdf8; font-weight: bold; }
+  .alarm-item .alarm-reason { color: #94a3b8; }
+  .alarm-item.level-4 { border-left: 3px solid #ef4444; background: rgba(239,68,68,0.08); }
+  .alarm-item.level-4 .alarm-reason { color: #fca5a5; }
+  .alarm-item.level-3 { border-left: 3px solid #f59e0b; }
+  .alarm-item.level-2 { border-left: 3px solid #eab308; }
+  .alarm-item.level-1 { border-left: 3px solid #3b82f6; }
+
+
+  @keyframes msgSlideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; transform: translateX(20px); } }
+
+  /* 图层控制浮窗 */
+  #layer-ctrl {
+    position: absolute; top: 12px; right: 12px; z-index: 50;
+    background: rgba(13,27,46,0.92); border: 1px solid #1e3a5f;
+    border-radius: 6px; padding: 10px 12px; min-width: 150px;
+  }
+  .layer-ctrl-title { font-size: 11px; color: #64748b; margin-bottom: 8px; font-weight: bold; }
+  .layer-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; cursor: pointer; }
+  .layer-row input { cursor: pointer; }
+  .layer-row label { cursor: pointer; color: #94a3b8; }
+  .layer-row label:hover { color: #e2e8f0; }
+
+  /* 时间轴回放 */
+  #replay-bar {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(13,27,46,0.92); border: 1px solid #1e3a5f;
+    border-radius: 6px; padding: 8px 14px; display: none; align-items: center; gap: 10px; z-index: 50;
+  }
+  #replay-bar.visible { display: flex; }
+  #replay-slider { width: 300px; cursor: pointer; }
+  #replay-time-label { font-size: 12px; color: #38bdf8; min-width: 70px; }
+
+  /* 连接状态指示 */
+  #ws-status { font-size: 11px; display: flex; align-items: center; gap: 5px; }
+
+  /* 空域图例 */
+  .legend-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+  .legend-color { width: 14px; height: 14px; border-radius: 2px; flex-shrink: 0; }
+
+  /* 图例紧凑两列 */
+  .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 8px; }
+  .legend-row { display: flex; align-items: center; gap: 5px; font-size: 10.5px; color: #94a3b8; }
+  .legend-color { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+  /* 碰撞规则栏 */
+  #conflict-rules-body { font-size: 10.5px; }
+  .rule-row { display: flex; justify-content: space-between; align-items: center;
+              padding: 3px 0; border-bottom: 1px solid #0d1b2e; }
+  .rule-row:last-child { border-bottom: none; }
+  .rule-label { color: #64748b; }
+  .rule-val { color: #38bdf8; font-weight: bold; font-size: 11.5px; }
+  .rule-val.warn { color: #f59e0b; }
+  .rule-val.danger { color: #ef4444; }
+  #tooltip {
+    position: absolute; pointer-events: none; z-index: 200;
+    background: rgba(13,27,46,0.95); border: 1px solid #1e3a5f;
+    border-radius: 5px; padding: 8px 12px; font-size: 12px; color: #e2e8f0;
+    max-width: 220px; display: none;
+  }
+
+  /* 后端未启动引导弹窗 */
+  #server-guide-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.65); backdrop-filter: blur(3px);
+    align-items: center; justify-content: center;
+  }
+  #server-guide-overlay.show { display: flex; }
+  #server-guide-box {
+    background: #0d1b2e; border: 1px solid #1e3a5f; border-radius: 12px;
+    padding: 32px 36px; max-width: 420px; width: 90%; text-align: center;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  }
+  #server-guide-box .guide-icon { font-size: 48px; margin-bottom: 12px; }
+  #server-guide-box h2 { font-size: 18px; color: #ef4444; margin-bottom: 8px; }
+  #server-guide-box p { font-size: 13px; color: #94a3b8; line-height: 1.8; margin-bottom: 16px; }
+  #server-guide-box .guide-step {
+    background: #111e35; border: 1px solid #1e3a5f; border-radius: 8px;
+    padding: 12px 16px; text-align: left; margin-bottom: 16px;
+  }
+  #server-guide-box .guide-step code {
+    display: block; background: #060e1a; border-radius: 4px;
+    padding: 8px 12px; font-size: 13px; color: #38bdf8;
+    margin-top: 6px; font-family: Consolas, monospace; word-break: break-all;
+  }
+  #server-guide-box .guide-step .step-label {
+    font-size: 12px; color: #64748b; font-weight: bold;
+  }
+  .btn-guide-retry {
+    background: #0ea5e9; color: #fff; border: none; border-radius: 6px;
+    padding: 10px 28px; font-size: 14px; cursor: pointer; transition: background 0.2s;
+    margin-top: 4px;
+  }
+  /* 单飞行器控制面板 */
+  #uav-ctrl-panel {
+    display: none; position: fixed; z-index: 600;
+    background: #0d1b2e; border: 1px solid #1e3a5f;
+    border-radius: 8px; padding: 14px 16px; width: 260px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  #uav-ctrl-panel.show { display: block; }
+  #uav-ctrl-title { font-size: 13px; font-weight: bold; color: #38bdf8; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  #uav-ctrl-title button { background: none; border: none; color: #64748b; cursor: pointer; font-size: 16px; line-height: 1; }
+  #uav-ctrl-title button:hover { color: #e2e8f0; }
+  .uav-ctrl-section { margin-bottom: 10px; }
+  .uav-ctrl-label { font-size: 10px; color: #64748b; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .uav-ctrl-row { display: flex; gap: 5px; }
+  .uav-ctrl-row .btn { flex: 1; font-size: 11px; padding: 5px 4px; }
+  .uav-ctrl-info { font-size: 11px; color: #94a3b8; line-height: 1.8; background: #111e35; border-radius: 4px; padding: 6px 8px; margin-bottom: 8px; }
+
+  /* 方向控制摇杆 */
+  .uav-dpad { display: grid; grid-template-rows: repeat(3,1fr); gap: 3px; width: fit-content; }
+  .uav-dpad-row { display: grid; grid-template-columns: 32px 32px 32px; gap: 3px; align-items: center; justify-items: center; }
+  .btn-dpad {
+    width: 30px; height: 30px; border: 1px solid #1e3a5f; border-radius: 5px;
+    background: #111e35; color: #94a3b8; font-size: 13px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s; padding: 0;
+  }
+  .btn-dpad:hover { background: #1e3a5f; color: #38bdf8; }
+  .btn-dpad:active { background: #0e2a48; transform: scale(0.93); }
+  .btn-dpad-center { color: #38bdf8; font-size: 16px; border-color: #38bdf8; }
+  .btn-dpad-up   { color: #10b981; border-color: #10b981; }
+  .btn-dpad-down { color: #f59e0b; border-color: #f59e0b; }
+
+  /* 态势推送面板 */
+  #push-panel {
+    display: none; position: fixed; z-index: 600; right: 270px; top: 60px;
+    background: #0d1b2e; border: 1px solid #1e3a5f;
+    border-radius: 8px; padding: 14px 16px; width: 260px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  #push-panel.show { display: block; }
+  .push-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; }
+  .push-row label { color: #94a3b8; }
+  .push-row input[type=text], .push-row input[type=number], .push-row select {
+    background: #111e35; border: 1px solid #1e3a5f; color: #e2e8f0;
+    padding: 3px 7px; border-radius: 4px; font-size: 11px; width: 140px;
+  }
+  .toggle-switch { position: relative; width: 36px; height: 18px; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: #374151; border-radius: 18px; cursor: pointer; transition: 0.2s;
+  }
+  .toggle-slider:before {
+    content: ''; position: absolute; width: 12px; height: 12px; left: 3px; top: 3px;
+    background: #fff; border-radius: 50%; transition: 0.2s;
+  }
+  .toggle-switch input:checked + .toggle-slider { background: #10b981; }
+  .toggle-switch input:checked + .toggle-slider:before { transform: translateX(18px); }
+
+</style>
+</head>
+<body>
+
+<!-- 顶部导航栏 -->
+<div id="topbar">
+  <div class="logo">AirFogSim <span>低空仿真推演系统 v1.0</span></div>
+  <div class="topbar-divider"></div>
+  <select id="scene-select" onchange="onSceneChange()">
+    <option value="">-- 选择想定 --</option>
+  </select>
+  <div class="topbar-divider"></div>
+  <button class="btn btn-gray" onclick="loadSceneToMap()">🗺 加载空域</button>
+  <button class="btn btn-gray" onclick="toggleReplayBar()">⏪ 回放模式</button>
+  <div class="topbar-divider"></div>
+  <div id="ws-status"><div class="status-dot dot-gray" id="ws-dot"></div><span id="ws-label">未连接</span></div>
+  <div style="margin-left:auto;display:flex;gap:8px;">
+    <button class="btn btn-gray" onclick="togglePushPanel()" title="态势推送设置">📡 推送</button>
+    <button class="btn btn-gray" onclick="exportReport()" title="导出推演报告">📄 报告</button>
+  </div>
+</div>
+
+<!-- 主体区域 -->
+<div id="main">
+
+  <!-- 左侧面板 -->
+  <div id="left-panel">
+    <!-- 推演状态 -->
+    <div class="panel-section">
+      <div class="panel-title">⚙️ 推演状态</div>
+      <div class="panel-body">
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>仿真时间</span>
+            <span id="sim-time-label">0s / 0s</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" id="sim-progress" style="width:0%"></div></div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat-box">
+            <div class="stat-num ok" id="stat-flying">0</div>
+            <div class="stat-label">飞行中</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num warn" id="stat-hover">0</div>
+            <div class="stat-label">悬停中</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num danger" id="stat-alarm">0</div>
+            <div class="stat-label">告警数</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-num" id="stat-done">0</div>
+            <div class="stat-label">已完成</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 图例 -->
+    <div class="panel-section">
+      <div class="panel-title">🗺 空域 &amp; 状态图例</div>
+      <div class="panel-body" style="padding:6px 10px;">
+        <!-- 空域色标（两列） -->
+        <div style="font-size:10px;color:#475569;margin-bottom:4px;letter-spacing:.5px;">空域类型</div>
+        <div class="legend-grid" style="margin-bottom:6px;">
+          <div class="legend-row"><div class="legend-color" style="background:rgba(239,68,68,0.5);border:1px solid #ef4444;"></div>禁飞区</div>
+          <div class="legend-row"><div class="legend-color" style="background:rgba(245,158,11,0.4);border:1px solid #f59e0b;"></div>限高区</div>
+          <div class="legend-row"><div class="legend-color" style="background:rgba(59,130,246,0.3);border:1px solid #3b82f6;"></div>管制区</div>
+          <div class="legend-row"><div class="legend-color" style="background:rgba(168,85,247,0.3);border:1px solid #a855f7;"></div>临时管制</div>
+          <div class="legend-row" style="grid-column:span 2;"><div class="legend-color" style="background:rgba(6,182,212,0.3);border:1px solid #06b6d4;"></div>气象影响区</div>
+        </div>
+        <!-- 飞机状态（两列） -->
+        <div style="font-size:10px;color:#475569;margin-bottom:4px;letter-spacing:.5px;">飞机状态</div>
+        <div class="legend-grid">
+          <div class="legend-row"><div class="uav-dot flying" style="width:9px;height:9px;"></div>飞行中</div>
+          <div class="legend-row"><div class="uav-dot hovering" style="width:9px;height:9px;"></div>悬停</div>
+          <div class="legend-row"><div class="uav-dot alarm" style="width:9px;height:9px;"></div>告警</div>
+          <div class="legend-row"><div class="uav-dot completed" style="width:9px;height:9px;"></div>完成</div>
+          <div class="legend-row" style="grid-column:span 2;"><div class="uav-dot grounded" style="width:9px;height:9px;"></div>强制落地</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 碰撞检测规则 -->
+    <div class="panel-section">
+      <div class="panel-title">🛡 碰撞检测规则</div>
+      <div class="panel-body" id="conflict-rules-body" style="padding:6px 10px;">
+        <!-- 由 JS loadSafetyRules() 动态填充 -->
+        <div style="color:#475569;font-size:10.5px;text-align:center;padding:8px 0;">加载中…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 地图 -->
+  <div id="cesium-container">
+    <div id="cesiumContainer"></div>
+
+    <!-- 图层控制 -->
+    <div id="layer-ctrl">
+      <div class="layer-ctrl-title" onclick="toggleLayerPanel()" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;">
+        <span>图层控制</span>
+        <span id="layer-ctrl-arrow" style="font-size:10px;transition:transform .2s;">▶</span>
+      </div>
+      <div id="layer-ctrl-body" style="display:none;">
+        <div class="layer-row"><input type="checkbox" id="layer-nofly" checked onchange="toggleLayerVis('nofly')"><label for="layer-nofly">禁飞区</label></div>
+        <div class="layer-row"><input type="checkbox" id="layer-limit" checked onchange="toggleLayerVis('limit')"><label for="layer-limit">限高区</label></div>
+        <div class="layer-row"><input type="checkbox" id="layer-control" checked onchange="toggleLayerVis('control')"><label for="layer-control">管制区</label></div>
+        <div class="layer-row"><input type="checkbox" id="layer-weather" checked onchange="toggleLayerVis('weather')"><label for="layer-weather">气象区</label></div>
+        <div class="layer-row"><input type="checkbox" id="layer-uav" checked onchange="toggleLayerVis('uav')"><label for="layer-uav">无人机</label></div>
+        <div class="layer-row"><input type="checkbox" id="layer-label" onchange="toggleLayerVis('label')"><label for="layer-label">无人机编号</label></div>
+        <div class="layer-row"><input type="checkbox" id="layer-route" checked onchange="toggleLayerVis('route')"><label for="layer-route">航线</label></div>
+        <div class="layer-row"><input type="checkbox" id="layer-trail" checked onchange="toggleLayerVis('trail')"><label for="layer-trail">轨迹</label></div>
+      </div>
+    </div>
+
+    <!-- 回放时间轴 -->
+    <div id="replay-bar">
+      <span style="font-size:12px;color:#64748b;">回放进度</span>
+      <input type="range" id="replay-slider" min="0" max="100" value="0" oninput="onReplaySeek(this.value)">
+      <span id="replay-time-label">0s</span>
+      <button class="btn btn-primary" onclick="replayPlay()" style="font-size:11px;padding:4px 10px;">▶</button>
+      <button class="btn btn-gray" onclick="replayPause()" style="font-size:11px;padding:4px 10px;">⏸</button>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip"></div>
+  </div>
+
+  <!-- 通用消息Toast容器（系统提示用，非告警弹窗） -->
+  <div id="msg-toast-container" style="position:fixed;top:70px;right:20px;z-index:500;
+    display:flex;flex-direction:column;gap:8px;pointer-events:none;max-width:320px;"></div>
+
+  <!-- 右侧面板：上半=态势，下半=告警 -->
+  <div id="right-panel">
+    <!-- 上：无人机态势 -->
+    <div id="right-uav-panel">
+      <div class="panel-title">🛸 无人机态势</div>
+      <div id="uav-list"></div>
+    </div>
+    <!-- 下：实时告警 -->
+    <div id="right-alarm-panel">
+      <div class="panel-title" style="display:flex;align-items:center;justify-content:space-between;">
+        <span>🚨 实时告警</span>
+        <span id="alarm-count-badge" style="background:#ef4444;color:#fff;font-size:10px;padding:1px 6px;border-radius:10px;display:none;">0</span>
+      </div>
+      <div id="right-alarm-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 底部推演控制条 -->
+<div id="statusbar">
+
+  <!-- ① 圆形 播放/暂停切换 + 停止 按钮 -->
+  <div class="ctrl-btns">
+    <!-- 播放/暂停合一：未启动时点击=开始，运行中点击=暂停/继续 -->
+    <button class="ctrl-circle play" id="btn-play-pause" onclick="togglePlayPause()" disabled title="开始推演">&#9654;</button>
+    <button class="ctrl-circle stop"  id="btn-stop"  onclick="stopSim()"  disabled title="停止">&#9632;</button>
+  </div>
+
+  <div class="statusbar-divider"></div>
+
+  <!-- ② 进度区 -->
+  <div class="sim-progress-area">
+    <div class="sim-progress-top">
+      <span class="sim-time-info">
+        已推演 <span class="time-highlight" id="sim-elapsed">00:00:00</span>
+        <span style="color:#475569;font-size:10px;margin-left:4px;" id="sim-elapsed-s">(T+0s)</span>
+      </span>
+      <button class="sim-breakpoint-btn" onclick="addBreakpoint()" title="在当前位置添加断点">＋ 添加断点</button>
+      <span class="sim-duration-info">预计时长 <span id="sim-total-label">00:00:00</span></span>
+    </div>
+    <div class="sim-slider-wrap">
+      <div class="sim-progress-fill" id="sim-progress-fill" style="width:0%"></div>
+      <input type="range" id="sim-slider" min="0" max="100" value="0"
+             oninput="onSimSliderInput(this.value)"
+             onchange="onSimSliderChange(this.value)">
+    </div>
+  </div>
+
+  <div class="statusbar-divider"></div>
+
+  <!-- ④ 倍速 -->
+  <div class="speed-group">
+    <span class="speed-group-label">倍速</span>
+    <button class="speed-btn active" id="speed-1"  onclick="setSpeed(1)">x1</button>
+    <button class="speed-btn" id="speed-2"  onclick="setSpeed(2)">x2</button>
+    <button class="speed-btn" id="speed-4"  onclick="setSpeed(4)">x4</button>
+    <button class="speed-btn" id="speed-8"  onclick="setSpeed(8)">x8</button>
+    <button class="speed-btn" id="speed-16" onclick="setSpeed(16)">x16</button>
+    <button class="speed-btn" id="speed-32" onclick="setSpeed(32)">x32</button>
+    <button class="speed-btn" id="speed-50" onclick="setSpeed(50)">x50</button>
+  </div>
+
+  <!-- ⑥ 右侧状态 -->
+  <div style="margin-left:auto;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+    <div class="status-item">
+      <div class="status-dot dot-gray" id="sim-dot"></div>
+      <span id="sim-status-label" style="color:#94a3b8;">推演未启动</span>
+    </div>
+    <div class="statusbar-divider" style="height:20px;"></div>
+    <div class="status-item" style="color:#64748b;">帧 <span id="frame-label" style="color:#94a3b8;">0</span></div>
+    <div class="status-item" style="color:#64748b;">活跃 <span id="active-label" style="color:#10b981;">0</span></div>
+    <div class="status-item" style="color:#64748b;">冲突 <span id="conflict-label" style="color:#ef4444;">0</span></div>
+    <!-- 隐藏的 WS 地址元素，供 connectWS() 读取 -->
+    <span id="ws-info" style="display:none;">ws://localhost:8765</span>
+  </div>
+</div>
+
+<!-- 单飞行器控制面板 -->
+<div id="uav-ctrl-panel">
+  <div id="uav-ctrl-title">
+    <span id="uav-ctrl-name">UAV-001</span>
+    <button onclick="closeUAVCtrl()">✕</button>
+  </div>
+  <div class="uav-ctrl-info" id="uav-ctrl-info">
+    状态：--<br>位置：--<br>高度：--
+  </div>
+
+  <!-- 方向控制 -->
+  <div class="uav-ctrl-section">
+    <div class="uav-ctrl-label">方向控制</div>
+    <div class="uav-dpad">
+      <div class="uav-dpad-row">
+        <span></span>
+        <button class="btn-dpad" onclick="ctrlUAV('move','forward')" title="前进（北）">▲</button>
+        <button class="btn-dpad btn-dpad-up" onclick="ctrlUAV('move','up')" title="上升">⬆</button>
+      </div>
+      <div class="uav-dpad-row">
+        <button class="btn-dpad" onclick="ctrlUAV('move','left')" title="左移（西）">◀</button>
+        <button class="btn-dpad btn-dpad-center" onclick="focusUAV(ctrlUAVId)" title="定位">⊙</button>
+        <button class="btn-dpad" onclick="ctrlUAV('move','right')" title="右移（东）">▶</button>
+      </div>
+      <div class="uav-dpad-row">
+        <span></span>
+        <button class="btn-dpad" onclick="ctrlUAV('move','backward')" title="后退（南）">▼</button>
+        <button class="btn-dpad btn-dpad-down" onclick="ctrlUAV('move','down')" title="下降">⬇</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-top:6px;">
+      <span style="font-size:10px;color:#64748b;">步长(m)</span>
+      <input id="uav-move-step" type="number" value="50" min="10" max="500" step="10"
+        style="width:60px;background:#111e35;border:1px solid #1e3a5f;color:#e2e8f0;padding:3px 5px;border-radius:4px;font-size:11px;">
+    </div>
+  </div>
+
+  <div class="uav-ctrl-section">
+    <div class="uav-ctrl-label">飞行控制</div>
+    <div class="uav-ctrl-row">
+      <button id="ctrl-btn-resume" class="btn btn-success" onclick="ctrlUAV('resume')">▶ 继续</button>
+      <button id="ctrl-btn-hover"  class="btn btn-warn"    onclick="ctrlUAV('hover')">⏸ 悬停</button>
+      <button id="ctrl-btn-land"   class="btn btn-danger"  onclick="ctrlUAV('land')">⬇ 落地</button>
+    </div>
+  </div>
+  <div class="uav-ctrl-section">
+    <div class="uav-ctrl-label">推演倍速（单机）</div>
+    <div class="uav-ctrl-row">
+      <button class="btn btn-gray" onclick="ctrlUAV('speed',0.5)">×0.5</button>
+      <button class="btn btn-gray" onclick="ctrlUAV('speed',1)">×1</button>
+      <button class="btn btn-gray" onclick="ctrlUAV('speed',2)">×2</button>
+      <button class="btn btn-gray" onclick="ctrlUAV('speed',4)">×4</button>
+    </div>
+  </div>
+  <div class="uav-ctrl-section">
+    <div class="uav-ctrl-label">跳转到位置</div>
+    <div style="display:flex;gap:5px;align-items:center;">
+      <input id="uav-goto-lon" type="number" step="0.0001" placeholder="经度" style="flex:1;background:#111e35;border:1px solid #1e3a5f;color:#e2e8f0;padding:4px 6px;border-radius:4px;font-size:11px;">
+      <input id="uav-goto-lat" type="number" step="0.0001" placeholder="纬度" style="flex:1;background:#111e35;border:1px solid #1e3a5f;color:#e2e8f0;padding:4px 6px;border-radius:4px;font-size:11px;">
+      <button class="btn btn-primary" onclick="ctrlUAV('goto')" style="font-size:11px;padding:4px 8px;">GO</button>
+    </div>
+  </div>
+</div>
+
+<!-- 态势推送设置面板 -->
+<div id="push-panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <span style="font-size:13px;font-weight:bold;color:#38bdf8;">📡 态势推送设置</span>
+    <button onclick="togglePushPanel()" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:16px;">✕</button>
+  </div>
+  <div class="push-row">
+    <label>推送开关</label>
+    <label class="toggle-switch">
+      <input type="checkbox" id="push-enable" onchange="onPushToggle()">
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+  <div class="push-row">
+    <label>目标地址</label>
+    <input type="text" id="push-url" value="http://localhost:9000/api/receive" placeholder="HTTP推送地址">
+  </div>
+  <div class="push-row">
+    <label>推送频率</label>
+    <select id="push-freq">
+      <option value="1">每帧推送</option>
+      <option value="2" selected>每2帧</option>
+      <option value="5">每5帧</option>
+      <option value="10">每10帧</option>
+    </select>
+  </div>
+  <div class="push-row">
+    <label>推送内容</label>
+    <select id="push-content">
+      <option value="full">全量（UAV+告警）</option>
+      <option value="uav">仅UAV位置</option>
+      <option value="alarm">仅告警</option>
+    </select>
+  </div>
+  <div style="margin-top:10px;display:flex;gap:6px;">
+    <button class="btn btn-primary" onclick="savePushConfig()" style="flex:1;font-size:12px;">保存配置</button>
+    <button class="btn btn-gray" onclick="testPushUrl()" style="flex:1;font-size:12px;">测试连通</button>
+  </div>
+  <div id="push-status" style="font-size:11px;color:#64748b;margin-top:8px;text-align:center;"></div>
+</div>
+
+<!-- 后端未启动引导弹窗 -->
+<div id="server-guide-overlay">
+  <div id="server-guide-box">
+    <div class="guide-icon">🚀</div>
+    <h2>后台服务未连接</h2>
+    <p>AirFogSim 需要后台服务支持推演计算和数据传输，<br>请按以下步骤操作：</p>
+    <div class="guide-step">
+      <div class="step-label">① 启动后台服务（任选一种）</div>
+      <code>双击：C:\mgs\lowfly_sim\启动服务.bat</code>
+    </div>
+    <div class="guide-step">
+      <div class="step-label">② 通过浏览器访问正确地址</div>
+      <code style="cursor:pointer;text-decoration:underline;" onclick="window.location.href='http://localhost:8080'">
+        http://localhost:8080
+      </code>
+      <div style="font-size:11px;color:#ef4444;margin-top:6px;">
+        ⚠ 不能直接双击打开 HTML 文件（file:// 协议无法访问后端）
+      </div>
+    </div>
+    <button class="btn-guide-retry" onclick="retryConnect()">🔄 已启动，重新检测</button>
+  </div>
+</div>
+
+<script>
+// ===================== 全局变量 =====================
+let viewer = null;
+let ws = null;
+let wsConnected = false;
+let simRunning = false;
+let simPaused = false;
+
+let sceneData = null;       // 当前想定完整数据
+let currentSceneName = "";
+let maxSimTime = 3600;
+let currentSimTime = 0;
+
+// Cesium Entity集合
+let uavEntities = {};       // uav_id -> entity
+let trailPositions = {};    // uav_id -> Cesium.SampledPositionProperty（平滑插值）
+let trailPolylines = {};    // uav_id -> trail entity
+let airspaceEntities = [];  // 空域entity列表
+let weatherEntities = [];   // 气象entity列表
+let routeEntities = [];     // 航线entity列表
+
+// 图层可见性
+let layerVis = {
+  nofly: true, limit: true, control: true,
+  weather: true, uav: true, route: true, trail: true,
+  label: false   // 无人机编号，默认不显示
+};
+
+// 告警历史
+let alarmHistory = [];
+
+// 冲突标志 entity 缓存（key=pairId，value={entity, timerId}）
+let conflictMarkers = {};
+
+// 回放数据
+let replayFrames = [];
+let replayIndex = 0;
+let replayTimer = null;
+
+// FPS计数
+let fpsFrames = 0;
+let fpsTimer = null;
+
+// 推演倍速（发给后端）
+let simSpeed = 1;
+
+// UAV平滑动画：最近两帧插值
+let lastFrameUAVs = {};     // uav_id -> {lon,lat,alt,status,...}
+let lastFrameTime = 0;      // 上一帧的sim_time
+let animFrameId = null;     // requestAnimationFrame id
+let interpProgress = 0;     // 当前帧内插值进度 [0,1]
+let interpDuration = 500;   // 两帧之间预期间隔ms（根据倍速动态调整）
+let lastWallTime = 0;       // 上一帧到达的真实时间
+
+// UAV颜色映射
+const STATUS_COLORS = {
+  flying:    Cesium.Color.fromCssColorString('#10b981'),
+  waiting:   Cesium.Color.fromCssColorString('#64748b'),
+  hovering:  Cesium.Color.fromCssColorString('#f59e0b'),
+  alarm:     Cesium.Color.fromCssColorString('#ef4444'),
+  completed: Cesium.Color.fromCssColorString('#3b82f6'),
+  grounded:  Cesium.Color.fromCssColorString('#7c3aed'),
+};
+
+// ===================== 初始化 =====================
+window.onload = async function () {
+  initCesium();
+  await checkBackend();
+  loadSafetyRules();   // 加载碰撞检测规则（离线时显示默认值）
+  initFPS();
+};
+
+// ===================== 碰撞检测规则加载 =====================
+async function loadSafetyRules() {
+  const el = document.getElementById('conflict-rules-body');
+  if (!el) return;
+
+  // 默认值（后台未启动时展示）
+  let cfg = {
+    conflict_check:  { horizontal_gap_m: 50, vertical_gap_m: 30, check_interval_s: 1.0 },
+    altitude_limits: { global_min_alt_m: 0,  global_max_alt_m: 400 },
+    weather_threshold: { wind_speed_max_ms: 15, rain_level_limit: 3, fog_visibility_m: 800, thunder_forbid: true }
+  };
+  let isOnline = false;
+
+  try {
+    const res = await fetch('/api/config/safety', { signal: AbortSignal.timeout(3000) });
+    if (res.ok) { cfg = await res.json(); isOnline = true; }
+  } catch (e) { /* 离线，用默认值 */ }
+
+  const cc  = cfg.conflict_check  || {};
+  const alt = cfg.altitude_limits || {};
+  const wx  = cfg.weather_threshold || {};
+
+  const badge = isOnline
+    ? '<span style="color:#10b981;font-size:9px;">● 实时</span>'
+    : '<span style="color:#475569;font-size:9px;">○ 默认</span>';
+
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <span style="font-size:10px;color:#475569;letter-spacing:.5px;">间距触发阈值</span>${badge}
+    </div>
+    <div class="rule-row">
+      <span class="rule-label">水平安全间距</span>
+      <span class="rule-val">${cc.horizontal_gap_m ?? 50} m</span>
+    </div>
+    <div class="rule-row">
+      <span class="rule-label">垂直安全间距</span>
+      <span class="rule-val">${cc.vertical_gap_m ?? 30} m</span>
+    </div>
+    <div class="rule-row">
+      <span class="rule-label">检测频率</span>
+      <span class="rule-val">${cc.check_interval_s ?? 1.0} s/次</span>
+    </div>
+    <div style="font-size:10px;color:#475569;letter-spacing:.5px;margin:7px 0 4px;">告警等级</div>
+    <div class="rule-row">
+      <span class="rule-label">⚠ 接近告警</span>
+      <span class="rule-val warn">Level 2</span>
+    </div>
+    <div class="rule-row">
+      <span class="rule-label">🚨 严重冲突（&lt;½阈值）</span>
+      <span class="rule-val danger">Level 4</span>
+    </div>
+    <div style="font-size:10px;color:#475569;letter-spacing:.5px;margin:7px 0 4px;">飞行高度限制</div>
+    <div class="rule-row">
+      <span class="rule-label">最低飞行高度</span>
+      <span class="rule-val">${alt.global_min_alt_m ?? 0} m</span>
+    </div>
+    <div class="rule-row">
+      <span class="rule-label">最高飞行高度</span>
+      <span class="rule-val">${alt.global_max_alt_m ?? 400} m</span>
+    </div>
+    <div style="font-size:10px;color:#475569;letter-spacing:.5px;margin:7px 0 4px;">气象管制阈值</div>
+    <div class="rule-row">
+      <span class="rule-label">大风限制</span>
+      <span class="rule-val warn">&gt; ${wx.wind_speed_max_ms ?? 15} m/s</span>
+    </div>
+    <div class="rule-row">
+      <span class="rule-label">降雨等级</span>
+      <span class="rule-val warn">≥ ${wx.rain_level_limit ?? 3} 级</span>
+    </div>
+    <div class="rule-row">
+      <span class="rule-label">能见度</span>
+      <span class="rule-val warn">&lt; ${wx.fog_visibility_m ?? 800} m</span>
+    </div>
+    <div class="rule-row">
+      <span class="rule-label">雷暴禁飞</span>
+      <span class="rule-val danger">${wx.thunder_forbid ? '是' : '否'}</span>
+    </div>`;
+}
+
+// 检测后端是否在线
+async function checkBackend() {
+  try {
+    const res = await fetch('/api/sim/status', { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      await fetchSceneList();
+      return true;
+    }
+  } catch (e) { /* 忽略 */ }
+  showServerGuide();
+  return false;
+}
+
+// 显示/隐藏引导弹窗
+function showServerGuide() {
+  document.getElementById('server-guide-overlay').classList.add('show');
+}
+function hideServerGuide() {
+  document.getElementById('server-guide-overlay').classList.remove('show');
+}
+
+// 点击"已启动，重新检测"
+async function retryConnect() {
+  const btn = document.querySelector('.btn-guide-retry');
+  btn.textContent = '检测中...';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/sim/status', { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      hideServerGuide();
+      await fetchSceneList();
+      showToastMsg('info', '✓ 服务已连接', '后台服务运行正常，可以开始推演');
+      return;
+    }
+  } catch (e) { /* 继续等待 */ }
+  btn.textContent = '🔄 已启动，重新检测';
+  btn.disabled = false;
+  showToastMsg('warn', '仍未检测到服务', '请确认 server.py 已成功运行');
+}
+
+function initCesium() {
+  Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlYTJjZGQzNS1iYmI4LTRiMDgtYTI4MC01YTZjNDg4ZGViZDQiLCJpZCI6MjkwMTQ3LCJpYXQiOjE3NDMxMjM3OTB9.dummy';
+
+  viewer = new Cesium.Viewer('cesiumContainer', {
+    animation: false,
+    timeline: false,
+    baseLayerPicker: false,
+    geocoder: false,
+    homeButton: false,
+    sceneModePicker: false,
+    navigationHelpButton: false,
+    fullscreenButton: false,
+    infoBox: false,
+    selectionIndicator: false,
+  });
+
+  // 移除默认底图，换高德卫星影像（纯影像，无注记）
+  viewer.imageryLayers.removeAll();
+  viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({
+    url: 'https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+    minimumLevel: 1,
+    maximumLevel: 18,
+    credit: '高德卫星影像'
+  }));
+
+  viewer.scene.globe.enableLighting = false;
+  viewer.scene.skyBox.show = false;
+  viewer.scene.backgroundColor = new Cesium.Color(0.05, 0.08, 0.12, 1.0);
+
+  // 鼠标悬停 tooltip
+  const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+  handler.setInputAction(onMouseMove, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+  handler.setInputAction(onLeftClick, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  console.log('[Cesium] 初始化完成');
+}
+
+// ===================== 想定管理 =====================
+async function fetchSceneList() {
+  try {
+    const res = await fetch('/api/scenes');
+    const scenes = await res.json();
+    const sel = document.getElementById('scene-select');
+    scenes.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.name;
+      opt.textContent = `${s.name}  (${s.uav_count}架)`;
+      sel.appendChild(opt);
+    });
+    console.log(`[API] 加载${scenes.length}个想定`);
+  } catch (e) {
+    console.warn('[API] 无法获取想定列表，使用离线模式', e);
+    // 离线时添加示例选项
+    const sel = document.getElementById('scene-select');
+    ['scene_01_常规城区_白天无气象','scene_02_机场周边_大风管制',
+     'scene_03_城市核心_百机密集','scene_04_赛事活动_临时禁飞'].forEach(n => {
+      const opt = document.createElement('option');
+      opt.value = n; opt.textContent = n;
+      sel.appendChild(opt);
+    });
+  }
+}
+
+async function onSceneChange() {
+  const sel = document.getElementById('scene-select');
+  currentSceneName = sel.value;
+  if (!currentSceneName) return;
+
+  try {
+    const res = await fetch(`/api/scenes/${currentSceneName}`);
+    sceneData = await res.json();
+    maxSimTime = sceneData.config?.max_sim_time_s || 3600;
+    initBottomProgress(maxSimTime);
+  } catch (e) {
+    console.warn('[API] 离线模式，将在推演时从WebSocket获取数据');
+    sceneData = null;
+  }
+
+  // 无论在线/离线，以下步骤都要执行
+  renderSceneInfo();         // null 安全，#scene-info 不存在时直接跳过
+  document.getElementById('btn-play-pause').disabled = false;
+
+  // 选定想定后立即加载空域到地图并飞行定位
+  loadSceneToMap();
+}
+
+function renderSceneInfo() {
+  const el = document.getElementById('scene-info');
+  if (!el) return;   // 元素已移除，跳过
+  const cfg = sceneData?.config || {};
+  const airCount = sceneData?.airspace?.length || 0;
+  const uavCount = sceneData?.uav_tasks?.length || 0;
+  const envCount = sceneData?.environment?.length || 0;
+  el.innerHTML = `
+    <div class="scene-card-title">${currentSceneName}</div>
+    <div class="scene-card-info">
+      步长：<span>${cfg.sim_step_s || 0.5}s</span> &nbsp; 时长：<span>${cfg.max_sim_time_s || 3600}s</span><br>
+      空域数：<span>${airCount}</span> &nbsp; UAV：<span>${uavCount}</span> &nbsp; 气象：<span>${envCount}</span><br>
+      <span style="color:#64748b">${cfg.scene_desc || ''}</span>
+    </div>`;
+}
+
+function renderSceneInfoOffline() {
+  const el = document.getElementById('scene-info');
+  if (!el) return;   // 元素已移除，跳过
+  el.innerHTML = `
+    <div class="scene-card-title">${currentSceneName}</div>
+    <div class="scene-card-info"><span>离线模式，数据将从推演服务器获取</span></div>`;
+}
+
+// ===================== 空域渲染 =====================
+// 各想定离线默认中心坐标（后台未启动时直接用于定位）
+const SCENE_DEFAULT_CENTER = {
+  'scene_01_常规城区_白天无气象': { lon: 120.13, lat: 30.28, alt: 25000 },
+  'scene_02_机场周边_大风管制':   { lon: 120.43, lat: 30.22, alt: 30000 },
+  'scene_03_城市核心_百机密集':   { lon: 120.15, lat: 30.28, alt: 35000 },
+  'scene_04_赛事活动_临时禁飞':   { lon: 120.20, lat: 30.25, alt: 28000 },
+};
+
+async function loadSceneToMap() {
+  if (!currentSceneName) { alert('请先选择想定'); return; }
+  clearAirspaceEntities();
+  clearWeatherEntities();
+  clearRouteEntities();
+
+  let data = sceneData;
+  if (!data) {
+    try {
+      const res = await fetch(`/api/scenes/${currentSceneName}`);
+      data = await res.json();
+      sceneData = data;
+    } catch (e) {
+      console.warn('[地图] 后台服务未启动，使用离线默认定位');
+      // 离线模式：无空域数据，但仍飞到想定默认坐标
+      const def = SCENE_DEFAULT_CENTER[currentSceneName];
+      if (def && viewer) {
+        viewer.camera.flyTo({
+          destination: Cesium.Cartesian3.fromDegrees(def.lon, def.lat, def.alt),
+          orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+          duration: 2
+        });
+      }
+      return;
+    }
+  }
+
+  // 渲染空域
+  const airspaceList = data.airspace || [];
+  airspaceList.forEach(area => drawAirspace(area));
+
+  // 渲染气象区
+  const envList = data.environment || [];
+  envList.forEach(env => drawWeather(env));
+
+  // 渲染航线
+  const uavTasks = data.uav_tasks || [];
+  uavTasks.forEach(task => drawRoute(task));
+
+  // 渲染无人机初始位置（推演开始前静态显示）
+  drawInitialUAVPositions(uavTasks);
+
+  // 飞到场景中心（无论数据是否为空都调用，flyToScene 内部有默认兜底）
+  flyToScene([...airspaceList, ...uavTasks]);
+
+  console.log(`[地图] 渲染 ${airspaceList.length} 个空域, ${envList.length} 个气象区, ${uavTasks.length} 条航线`);
+}
+
+function drawAirspace(area) {
+  const typeColors = {
+    no_fly:  { fill: Cesium.Color.fromCssColorString('#ef4444').withAlpha(0.25), outline: Cesium.Color.fromCssColorString('#ef4444') },
+    limit_h: { fill: Cesium.Color.fromCssColorString('#f59e0b').withAlpha(0.2),  outline: Cesium.Color.fromCssColorString('#f59e0b') },
+    control: { fill: Cesium.Color.fromCssColorString('#3b82f6').withAlpha(0.18), outline: Cesium.Color.fromCssColorString('#3b82f6') },
+    temp:    { fill: Cesium.Color.fromCssColorString('#a855f7').withAlpha(0.2),  outline: Cesium.Color.fromCssColorString('#a855f7') },
+  };
+  const colors = typeColors[area.area_type] || typeColors.control;
+  const minH = area.min_alt || 0;
+  const maxH = area.max_alt || 200;
+  let entity = null;
+
+  if (area.geo_shape === 'circle') {
+    const center = Cesium.Cartesian3.fromDegrees(area.center_lon, area.center_lat, (minH + maxH) / 2);
+    entity = viewer.entities.add({
+      name: area.area_name,
+      position: center,
+      cylinder: {
+        length: maxH - minH,
+        topRadius: area.radius_m,
+        bottomRadius: area.radius_m,
+        material: colors.fill,
+        outline: true,
+        outlineColor: colors.outline,
+        outlineWidth: 2,
+      },
+      properties: { area_data: area }
+    });
+  } else if (area.geo_shape === 'polygon') {
+    const pts = area.points;
+    const hierarchy = pts.map(p => Cesium.Cartesian3.fromDegrees(p[0], p[1], maxH));
+    entity = viewer.entities.add({
+      name: area.area_name,
+      polygon: {
+        hierarchy: new Cesium.PolygonHierarchy(hierarchy),
+        height: minH,
+        extrudedHeight: maxH,
+        material: colors.fill,
+        outline: true,
+        outlineColor: colors.outline,
+        outlineWidth: 2,
+      },
+      properties: { area_data: area }
+    });
+  }
+
+  if (entity) {
+    entity.show = layerVis.nofly || layerVis.limit || layerVis.control;
+    airspaceEntities.push({ entity, area_type: area.area_type });
+  }
+}
+
+function drawWeather(env) {
+  const minH = env.min_alt || 0;
+  const maxH = env.max_alt || 400;
+  let entity = null;
+  const fill = Cesium.Color.fromCssColorString('#06b6d4').withAlpha(0.15);
+  const outline = Cesium.Color.fromCssColorString('#06b6d4');
+
+  if (env.geo_shape === 'circle') {
+    entity = viewer.entities.add({
+      name: `气象-${env.env_type}`,
+      position: Cesium.Cartesian3.fromDegrees(env.center_lon, env.center_lat, (minH + maxH) / 2),
+      cylinder: {
+        length: maxH - minH,
+        topRadius: env.radius_m,
+        bottomRadius: env.radius_m,
+        material: fill,
+        outline: true,
+        outlineColor: outline,
+      },
+      properties: { env_data: env }
+    });
+  } else if (env.geo_shape === 'polygon') {
+    const hierarchy = env.points.map(p => Cesium.Cartesian3.fromDegrees(p[0], p[1], maxH));
+    entity = viewer.entities.add({
+      name: `气象-${env.env_type}`,
+      polygon: {
+        hierarchy: new Cesium.PolygonHierarchy(hierarchy),
+        height: minH, extrudedHeight: maxH,
+        material: fill, outline: true, outlineColor: outline,
+      }
+    });
+  } else if (env.geo_shape === 'global') {
+    // 全域气象用文字标注
+    entity = viewer.entities.add({
+      name: `全域气象-${env.env_type}`,
+      label: {
+        text: `⚠ 全域${env.env_type}告警 Lv${env.level}`,
+        font: '14px sans-serif',
+        fillColor: Cesium.Color.fromCssColorString('#06b6d4'),
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        outlineWidth: 2, outlineColor: Cesium.Color.BLACK,
+        verticalOrigin: Cesium.VerticalOrigin.TOP,
+        pixelOffset: new Cesium.Cartesian2(0, 10),
+      },
+      position: Cesium.Cartesian3.fromDegrees(120.15, 30.27, 300)
+    });
+  }
+  if (entity) {
+    entity.show = layerVis.weather;
+    weatherEntities.push(entity);
+  }
+}
+
+function drawRoute(task) {
+  if (!task.route || task.route.length < 2) return;
+  const positions = task.route.map(p => Cesium.Cartesian3.fromDegrees(p[0], p[1], p[2]));
+  const lineColor = Cesium.Color.fromCssColorString('#38bdf8');
+  const entity = viewer.entities.add({
+    name: `航线-${task.uav_id}`,
+    polyline: {
+      positions,
+      width: 1.5,
+      material: new Cesium.PolylineDashMaterialProperty({
+        color: lineColor.withAlpha(0.5),
+        dashLength: 16,
+      }),
+      clampToGround: false,
+    }
+  });
+  entity.show = layerVis.route;
+  routeEntities.push(entity);
+  // 起止点符号不显示，只保留航线折线
+}
+
+// ===================== UAV 平滑渲染 =====================
+// 每收到一帧，记录新旧位置，用rAF在帧间做线性插值
+function updateUAVs(uavFrames) {
+  const listEl = document.getElementById('uav-list');
+  let listHtml = '';
+  let flyCount = 0, hoverCount = 0, doneCount = 0;
+
+  const now = performance.now();
+  // 两帧之间的真实时间间隔（平滑插值窗口）
+  const elapsed = now - lastWallTime;
+  interpDuration = elapsed > 50 ? Math.min(elapsed * 1.1, 1000) : (500 / simSpeed);
+  lastWallTime = now;
+
+  uavFrames.forEach(uav => {
+    const color = STATUS_COLORS[uav.status] || STATUS_COLORS.flying;
+    const newPos = Cesium.Cartesian3.fromDegrees(uav.lon, uav.lat, uav.alt);
+
+    if (!uavEntities[uav.uav_id]) {
+      // 首次创建entity
+      uavEntities[uav.uav_id] = viewer.entities.add({
+        id: `uav_${uav.uav_id}`,
+        name: uav.uav_id,
+        position: newPos,
+        billboard: {
+          image: createUAVIcon(uav.status),
+          width: 22, height: 15,
+          verticalOrigin: Cesium.VerticalOrigin.CENTER,
+          scaleByDistance: new Cesium.NearFarScalar(500, 1.2, 3e5, 0.35),
+          heightReference: Cesium.HeightReference.NONE,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        },
+        label: {
+          text: uav.uav_id,
+          font: '11px Microsoft YaHei',
+          fillColor: Cesium.Color.WHITE,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 2,
+          style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          pixelOffset: new Cesium.Cartesian2(0, -26),
+          scaleByDistance: new Cesium.NearFarScalar(1e3, 1.0, 3e5, 0.3),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          show: layerVis.label,   // 默认不显示，图层开关控制
+        },
+        properties: { uav_data: uav }
+      });
+      lastFrameUAVs[uav.uav_id] = { ...uav, _pos: newPos };
+      trailPositions[uav.uav_id] = [];
+    } else {
+      // 保存上一帧位置用于插值
+      const old = lastFrameUAVs[uav.uav_id];
+      lastFrameUAVs[uav.uav_id] = {
+        ...uav,
+        _oldPos: old._pos || newPos,
+        _newPos: newPos,
+        _startTime: now,
+        _pos: newPos
+      };
+      // 更新billboard图标（状态变化时）
+      if (old.status !== uav.status) {
+        uavEntities[uav.uav_id].billboard.image = createUAVIcon(uav.status);
+        uavEntities[uav.uav_id].point.color = new Cesium.ConstantProperty(color);
+      }
+      uavEntities[uav.uav_id].properties.uav_data = uav;
+    }
+
+    uavEntities[uav.uav_id].show = layerVis.uav;
+
+    // 轨迹记录
+    if (uav.status === 'flying' || uav.status === 'alarm') {
+      if (!trailPositions[uav.uav_id]) trailPositions[uav.uav_id] = [];
+      trailPositions[uav.uav_id].push([uav.lon, uav.lat, uav.alt]);
+      if (trailPositions[uav.uav_id].length > 150) trailPositions[uav.uav_id].shift();
+      updateTrail(uav.uav_id);
+    }
+
+    // 统计
+    if (uav.status === 'flying' || uav.status === 'alarm') flyCount++;
+    if (uav.status === 'hovering') hoverCount++;
+    if (uav.status === 'completed') doneCount++;
+
+    // 侧栏列表
+    const dotClass = uav.status || 'waiting';
+    const stLabel = uavStatusZh(uav);
+    listHtml += `
+      <div class="uav-item" onclick="openUAVCtrl('${uav.uav_id}', event)" ondblclick="focusUAV('${uav.uav_id}')" title="单击弹出控制面板，双击定位">
+
+          <div class="uav-dot ${dotClass}"></div>
+          <div class="uav-info">
+            <div class="uav-id">${uav.uav_id}</div>
+            <div class="uav-pos">${uav.lon.toFixed(4)}, ${uav.lat.toFixed(4)}, ${uav.alt.toFixed(0)}m</div>
+          </div>
+          <div class="uav-status-tag" style="color:${stLabel.color};">${stLabel.text}</div>
+      </div>`;
+  });
+
+  listEl.innerHTML = listHtml;
+  document.getElementById('stat-flying').textContent = flyCount;
+  document.getElementById('stat-hover').textContent = hoverCount;
+  document.getElementById('stat-done').textContent = doneCount;
+  document.getElementById('active-label').textContent = flyCount + hoverCount;
+
+  // ── 若控制面板已打开，同步刷新坐标和状态
+  if (ctrlUAVId) {
+    const u = lastFrameUAVs[ctrlUAVId];
+    if (u) refreshCtrlPanel(u);
+  }
+
+  // 启动平滑动画循环
+  startInterpLoop();
+}
+
+// 飞机状态 → 中文标签映射（含颜色）
+const UAV_STATUS_ZH = {
+  waiting:   { text: '⏳ 待起飞', color: '#94a3b8' },
+  flying:    { text: '✈ 飞行中', color: '#10b981' },
+  climbing:  { text: '↑ 爬升中', color: '#34d399' },
+  descending:{ text: '↓ 下降中', color: '#60a5fa' },
+  hovering:  { text: '⏸ 悬停',   color: '#f59e0b' },
+  alarm:     { text: '🚨 告警',   color: '#ef4444' },
+  completed: { text: '✅ 完成',   color: '#3b82f6' },
+  grounded:  { text: '🛬 落地',   color: '#a78bfa' },
+};
+function uavStatusZh(uav) {
+  // 利用 v_speed 区分爬升/下降/平飞（阈值 0.3 m/帧，避免抖动）
+  if (uav.status === 'flying' && uav.v_speed != null) {
+    if (uav.v_speed > 0.3)  return UAV_STATUS_ZH.climbing;
+    if (uav.v_speed < -0.3) return UAV_STATUS_ZH.descending;
+  }
+  return UAV_STATUS_ZH[uav.status] || { text: uav.status, color: '#94a3b8' };
+}
+// 记录上一帧高度，用于判断是否正在缓降
+let _prevAlt = {};
+function refreshCtrlPanel(uavData) {
+  const infoEl = document.getElementById('uav-ctrl-info');
+  if (!infoEl) return;
+
+  // 判断是否正在缓降（状态 grounded 且高度 > 0）
+  const isLanding = uavData.status === 'grounded' && uavData.alt > 0.05;
+  const isLanded  = uavData.status === 'grounded' && uavData.alt <= 0.05;
+
+  let stLabel;
+  if (isLanding) {
+    stLabel = { text: '↓ 缓降中…', color: '#f59e0b' };
+  } else {
+    stLabel = uavStatusZh(uavData);
+  }
+  const altColor = isLanding ? '#f59e0b' : '';   // 缓降时高度显示橙色
+
+  infoEl.innerHTML =
+    `状态：<span style="color:${stLabel.color}">${stLabel.text}</span><br>` +
+    `经度：${(uavData.lon||0).toFixed(5)}<br>` +
+    `纬度：${(uavData.lat||0).toFixed(5)}<br>` +
+    `高度：<span style="color:${altColor||'inherit'}">${(uavData.alt||0).toFixed(1)} m</span>`;
+
+  // ── 按钮禁用逻辑 ──
+  const btnResume = document.getElementById('ctrl-btn-resume');
+  const btnHover  = document.getElementById('ctrl-btn-hover');
+  const btnLand   = document.getElementById('ctrl-btn-land');
+  if (btnResume && btnHover && btnLand) {
+    if (isLanding || isLanded) {
+      // 缓降中或已落地：三个按钮全部禁用（落地不可逆）
+      btnResume.disabled = true;
+      btnHover.disabled  = true;
+      btnLand.disabled   = true;
+      btnResume.title = isLanded ? '已落地，无法恢复飞行' : '正在缓降，请等待…';
+      btnLand.title   = isLanded ? '已落地' : '正在缓降…';
+    } else {
+      btnResume.disabled = false;
+      btnHover.disabled  = false;
+      btnLand.disabled   = false;
+      btnResume.title = '';
+      btnLand.title   = '';
+    }
+  }
+}
+
+// rAF平滑插值动画 —— 用 ConstantPositionProperty 正确更新Cesium Entity位置
+let _interpRunning = false;
+function startInterpLoop() {
+  if (_interpRunning) return;
+  _interpRunning = true;
+  function tick() {
+    if (!_interpRunning) return;
+    const now = performance.now();
+    Object.keys(lastFrameUAVs).forEach(id => {
+      const u = lastFrameUAVs[id];
+      if (!u._oldPos || !u._newPos || !uavEntities[id]) return;
+      const t = Math.min(1.0, (now - u._startTime) / interpDuration);
+      // Cesium内置线性插值
+      const interpolated = Cesium.Cartesian3.lerp(u._oldPos, u._newPos, t, new Cesium.Cartesian3());
+      // 必须用 ConstantPositionProperty 才能让Cesium重绘
+      uavEntities[id].position = new Cesium.ConstantPositionProperty(interpolated);
+    });
+    animFrameId = requestAnimationFrame(tick);
+  }
+  animFrameId = requestAnimationFrame(tick);
+}
+
+function stopInterpLoop() {
+  _interpRunning = false;
+  if (animFrameId) { cancelAnimationFrame(animFrameId); animFrameId = null; }
+}
+
+function updateTrail(uavId) {
+  const trail = trailPositions[uavId];
+  if (!trail || trail.length < 2) return;
+  const entId = `trail_${uavId}`;
+  const existing = viewer.entities.getById(entId);
+  if (existing) viewer.entities.remove(existing);
+
+  const positions = trail.slice(-100).map(t => Cesium.Cartesian3.fromDegrees(t[0], t[1], t[2]));
+  const ent = viewer.entities.add({
+    id: entId,
+    polyline: {
+      positions,
+      width: 1.5,
+      material: new Cesium.PolylineGlowMaterialProperty({
+        glowPower: 0.12,
+        color: Cesium.Color.fromCssColorString('#38bdf8').withAlpha(0.45)
+      }),
+    }
+  });
+  ent.show = layerVis.trail;
+}
+
+// ===================== WebSocket =====================
+let _wsConnectTimer = null;
+
+function connectWS() {
+  const wsInfoEl = document.getElementById('ws-info');
+  const wsUrl = (wsInfoEl && wsInfoEl.textContent.trim()) || 'ws://localhost:8765';
+  setWSDot('yellow', '连接中...');
+
+  try {
+    ws = new WebSocket(wsUrl);
+  } catch(e) {
+    setWSDot('red', '地址错误');
+    showToastMsg('error', 'WebSocket 地址错误', wsUrl);
+    return;
+  }
+
+  // 5秒连接超时
+  _wsConnectTimer = setTimeout(() => {
+    if (!wsConnected) {
+      ws.close();
+      setWSDot('red', '连接超时');
+      showToastMsg('warn', 'WebSocket 连接超时', '后端推演可能尚未就绪，稍后自动重试...');
+    }
+  }, 5000);
+
+  ws.onopen = () => {
+    wsConnected = true;
+    if (_wsConnectTimer) { clearTimeout(_wsConnectTimer); _wsConnectTimer = null; }
+    setWSDot('green', '已连接');
+    console.log('[WS] 连接成功');
+  };
+
+  ws.onclose = () => {
+    wsConnected = false;
+    setWSDot('gray', '已断开');
+    if (simRunning) {
+      setTimeout(connectWS, 3000); // 自动重连
+    }
+  };
+
+  ws.onerror = (e) => {
+    setWSDot('red', '连接错误');
+    console.warn('[WS] 错误', e);
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const frame = JSON.parse(event.data);
+      handleFrame(frame);
+    } catch (e) {
+      console.warn('[WS] 解析帧失败', e);
+    }
+  };
+}
+
+function setWSDot(color, label) {
+  const dot = document.getElementById('ws-dot');
+  dot.className = `status-dot dot-${color}`;
+  document.getElementById('ws-label').textContent = label;
+}
+
+// 通用消息Toast（非告警类）
+function showToastMsg(type, title, body) {
+  const container = document.getElementById('msg-toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  const cls = type === 'error' ? 'danger' : (type === 'warn' ? 'warn' : 'info');
+  toast.className = `msg-toast ${cls}`;
+  toast.style.cssText = `background:rgba(13,27,46,0.97);border:1px solid #3b82f6;border-left:4px solid #3b82f6;
+    border-radius:6px;padding:10px 14px;font-size:12px;color:#e2e8f0;pointer-events:all;
+    position:relative;animation:msgSlideIn 0.3s ease;box-shadow:0 4px 20px rgba(59,130,246,0.2);`;
+  if (cls === 'danger') toast.style.borderColor = '#ef4444';
+  if (cls === 'warn')   toast.style.borderColor = '#f59e0b';
+  toast.innerHTML = `
+    <div style="position:absolute;top:6px;right:8px;cursor:pointer;color:#64748b;font-size:14px;"
+         onclick="this.closest('.msg-toast').remove()">✕</div>
+    <div style="font-weight:bold;margin-bottom:3px;font-size:12px;color:${cls==='danger'?'#ef4444':cls==='warn'?'#f59e0b':'#60a5fa'};">${title}</div>
+    <div style="color:#94a3b8;font-size:11px;line-height:1.5;">${body}</div>
+  `;
+  if (container.children.length >= 4) {
+    const oldest = container.firstChild;
+    if (oldest) oldest.remove();
+  }
+  container.appendChild(toast);
+  setTimeout(() => { if (toast.parentNode) toast.remove(); }, 8000);
+}
+
+// ===================== 帧处理 =====================
+function handleFrame(frame) {
+  currentSimTime = frame.sim_time;
+  fpsFrames++;
+
+  // 更新时间进度
+  const pct = Math.min(100, (currentSimTime / maxSimTime) * 100);
+  // 旧进度条（左侧面板）
+  document.getElementById('sim-progress').style.width = pct + '%';
+  document.getElementById('sim-time-label').textContent = `${currentSimTime.toFixed(1)}s / ${maxSimTime}s`;
+  document.getElementById('frame-label').textContent = frame.frame || 0;
+  // 底部新控制条进度
+  updateBottomProgress(currentSimTime, maxSimTime, pct);
+
+  // 渲染UAV（平滑插值）
+  if (frame.uavs) updateUAVs(frame.uavs);
+
+  // 处理告警
+  if (frame.alarm_list && frame.alarm_list.length > 0) {
+    frame.alarm_list.forEach(alm => {
+      const item = { ...alm, wall_time: new Date().toLocaleTimeString() };
+      alarmHistory.unshift(item);
+      // 冲突告警 → 地图冲突点标志
+      if (alm.reason && alm.reason.startsWith('conflict_with_') &&
+          alm.mid_lon != null && alm.alarm_level >= 4) {
+        showConflictMarker(alm);
+      }
+    });
+    if (alarmHistory.length > 200) alarmHistory = alarmHistory.slice(0, 200);
+    renderAlarmList();
+    document.getElementById('stat-alarm').textContent = alarmHistory.length;
+  }
+
+  // 冲突数
+  document.getElementById('conflict-label').textContent = frame.conflict_count || 0;
+
+  // 保存到回放
+  replayFrames.push(frame);
+  if (replayFrames.length > 10000) replayFrames.shift();
+  const slider = document.getElementById('replay-slider');
+  slider.max = replayFrames.length - 1;
+
+  // 态势推送
+  tryPushFrame(frame);
+}
+
+// 告警原因英文→中文映射
+const ALARM_REASON_ZH = {
+  enter_no_fly_area:    '⛔ 违入禁飞区',
+  exceed_limit_height:  '⚠ 超出限高',
+  enter_control_area:   '⚠ 进入管制区',
+  enter_temp_area:      '⚠ 进入临时限制区',
+  weather_wind:         '🌬 大风管制',
+  weather_rain:         '🌧 降雨管制',
+  weather_fog:          '🌫 大雾管制',
+  weather_thunder:      '⚡ 雷暴管制',
+};
+// 支持 "weather_wind,rain" 和 "conflict_with_UAVXXX" 等动态原因
+function alarmReasonZh(reason, alarm) {
+  if (!reason) return '未知原因';
+  // 精确匹配
+  if (ALARM_REASON_ZH[reason]) return ALARM_REASON_ZH[reason];
+  // 冲突告警：conflict_with_UAV_XXX
+  if (reason.startsWith('conflict_with_')) {
+    const otherId = reason.replace('conflict_with_', '');
+    let detail = '';
+    if (alarm && alarm.h_dist_m != null) {
+      detail = `（水平${alarm.h_dist_m}m / 垂直${alarm.v_dist_m}m）`;
+    }
+    return `🚨 近距冲突 ${otherId}${detail}`;
+  }
+  // 前缀匹配 weather_xxx
+  if (reason.startsWith('weather_')) {
+    const types = reason.replace('weather_', '').split(',');
+    const parts = types.map(t => ALARM_REASON_ZH[`weather_${t}`] || t);
+    return parts.join(' / ');
+  }
+  return reason;
+}
+
+// 告警等级→中文标题
+function alarmLevelLabel(level) {
+  if (level >= 4) return '🚨 严重';
+  if (level >= 3) return '🔴 高危';
+  if (level >= 2) return '🟡 警告';
+  return 'ℹ 提示';
+}
+
+function renderAlarmList() {
+  const el = document.getElementById('right-alarm-list');
+  if (!el) return;
+  const html = alarmHistory.slice(0, 80).map(a => {
+    const reasonZh = alarmReasonZh(a.reason, a);
+    const areaStr = a.area_id ? `【${a.area_id}】` : '';
+    const lvLabel = alarmLevelLabel(a.alarm_level);
+    return `
+    <div class="alarm-item level-${a.alarm_level}" onclick="focusUAV('${a.uav_id}')" title="点击定位 ${a.uav_id}">
+      <span class="alarm-uav">${a.uav_id}</span>
+      <span class="alarm-time">${a.wall_time || ''}</span><br>
+      <span class="alarm-reason">${lvLabel} ${reasonZh}${areaStr}</span>
+    </div>`;
+  }).join('');
+  el.innerHTML = html;
+  // 新告警在顶部，始终滚回顶部保证可见
+  el.scrollTop = 0;
+  // 更新徽标
+  const badge = document.getElementById('alarm-count-badge');
+  if (badge) {
+    if (alarmHistory.length > 0) {
+      badge.style.display = 'inline';
+      badge.textContent = alarmHistory.length > 99 ? '99+' : alarmHistory.length;
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
+
+// ===================== 推演控制 =====================
+// 辅助：设置播放/暂停按钮外观
+function setPlayPauseBtn(state) {
+  const btn = document.getElementById('btn-play-pause');
+  if (!btn) return;
+  if (state === 'idle') {
+    btn.innerHTML = '&#9654;';
+    btn.title = '开始推演';
+    btn.className = 'ctrl-circle play';
+    btn.disabled = !currentSceneName;
+    document.getElementById('btn-stop').disabled = true;
+  } else if (state === 'playing') {
+    btn.innerHTML = '&#9646;&#9646;';
+    btn.title = '暂停';
+    btn.className = 'ctrl-circle pause';
+    btn.disabled = false;
+    document.getElementById('btn-stop').disabled = false;
+  } else if (state === 'paused') {
+    btn.innerHTML = '&#9654;';
+    btn.title = '继续';
+    btn.className = 'ctrl-circle play';
+    btn.disabled = false;
+    document.getElementById('btn-stop').disabled = false;
+  }
+}
+
+// 统一入口：未启动→开始；运行中→暂停/继续
+async function togglePlayPause() {
+  if (!simRunning) {
+    await startSim();
+  } else {
+    pauseSim();
+  }
+}
+
+async function startSim() {
+  if (!currentSceneName) { alert('请先选择想定'); return; }
+
+  // 清除上次推演的UAV实体和插值状态
+  Object.keys(uavEntities).forEach(id => {
+    const trail = viewer.entities.getById(`trail_${id}`);
+    if (trail) viewer.entities.remove(trail);
+    if (uavEntities[id]) viewer.entities.remove(uavEntities[id]);
+  });
+  uavEntities = {};
+  lastFrameUAVs = {};
+  trailPositions = {};
+  stopInterpLoop();
+  _interpRunning = false;
+
+  // 清除冲突标志
+  Object.values(conflictMarkers).forEach(m => {
+    if (m.timerId) clearTimeout(m.timerId);
+    if (m.entity) viewer.entities.remove(m.entity);
+  });
+  conflictMarkers = {};
+
+  simRunning = true;
+  simPaused = false;
+  alarmHistory = [];
+  replayFrames = [];
+
+  const ppBtn = document.getElementById('btn-play-pause');
+  if (ppBtn) { ppBtn.disabled = true; ppBtn.innerHTML = '…'; }
+  document.getElementById('btn-stop').disabled = true;
+
+  // 初始化底部进度条
+  initBottomProgress(maxSimTime);
+  setSimDot('yellow', '启动中...');
+  setWSDot('yellow', '等待后端...');
+
+  // 第一步：通知后端启动推演
+  try {
+    const resp = await fetch('/api/sim/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scene_name: currentSceneName })
+    });
+    const result = await resp.json();
+    if (result.status === 'ok') {
+      setSimDot('blue', `推演中 - ${result.scene || currentSceneName}`);
+      setPlayPauseBtn('playing');
+      console.log('[API] 后端推演已启动:', result);
+    } else {
+      showToastMsg('error', '推演启动失败', result.msg || '未知错误');
+      setSimDot('gray', '启动失败');
+      simRunning = false;
+      setPlayPauseBtn('idle');
+      return;
+    }
+  } catch(e) {
+    showServerGuide();
+    setSimDot('gray', '后端未启动');
+    simRunning = false;
+    setPlayPauseBtn('idle');
+    return;
+  }
+
+  // 第二步：连接 WebSocket 接收推演帧
+  connectWS();
+
+  // 第三步：加载地图空域数据
+  loadSceneToMap();
+}
+
+function pauseSim() {
+  simPaused = !simPaused;
+  setPlayPauseBtn(simPaused ? 'paused' : 'playing');
+  setSimDot(simPaused ? 'yellow' : 'blue', simPaused ? '已暂停' : '推演中');
+  fetch(`/api/sim/${simPaused ? 'pause' : 'resume'}`, { method: 'POST' }).catch(() => {});
+}
+
+function stopSim() {
+  simRunning = false;
+  simPaused = false;
+  if (ws) ws.close();
+  stopInterpLoop();
+
+  setPlayPauseBtn('idle');
+  setSimDot('gray', '已停止');
+  fetch(`/api/sim/stop`, { method: 'POST' }).catch(() => {});
+}
+
+function setSimDot(color, label) {
+  document.getElementById('sim-dot').className = `status-dot dot-${color}`;
+  document.getElementById('sim-status-label').textContent = label;
+}
+
+// ===================== 底部进度条辅助 =====================
+let _bottomTotalTime = 3600;
+let _sliderDragging = false;
+
+function secToHMS(s) {
+  s = Math.round(s);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function initBottomProgress(totalSec) {
+  _bottomTotalTime = totalSec || 3600;
+  const slider = document.getElementById('sim-slider');
+  if (slider) { slider.value = 0; slider.max = 100; }
+  const fill = document.getElementById('sim-progress-fill');
+  if (fill) fill.style.width = '0%';
+  const el = document.getElementById('sim-elapsed');
+  if (el) el.textContent = '00:00:00';
+  const es = document.getElementById('sim-elapsed-s');
+  if (es) es.textContent = '(T+0s)';
+  const tot = document.getElementById('sim-total-label');
+  if (tot) tot.textContent = secToHMS(_bottomTotalTime);
+}
+
+function updateBottomProgress(elapsed, total, pct) {
+  if (_sliderDragging) return;   // 拖拽时不强制更新
+  const fill = document.getElementById('sim-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+  const slider = document.getElementById('sim-slider');
+  if (slider) slider.value = pct;
+  const el = document.getElementById('sim-elapsed');
+  if (el) el.textContent = secToHMS(elapsed);
+  const es = document.getElementById('sim-elapsed-s');
+  if (es) es.textContent = `(T+${Math.round(elapsed)}s)`;
+  const tot = document.getElementById('sim-total-label');
+  if (tot) tot.textContent = secToHMS(total);
+}
+
+function onSimSliderInput(val) {
+  _sliderDragging = true;
+  const pct = parseFloat(val);
+  const fill = document.getElementById('sim-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+  const previewSec = (pct / 100) * _bottomTotalTime;
+  const el = document.getElementById('sim-elapsed');
+  if (el) el.textContent = secToHMS(previewSec);
+  const es = document.getElementById('sim-elapsed-s');
+  if (es) es.textContent = `(T+${Math.round(previewSec)}s)`;
+}
+
+function onSimSliderChange(val) {
+  _sliderDragging = false;
+  const pct = parseFloat(val);
+  const seekSec = (pct / 100) * _bottomTotalTime;
+  // 尝试跳转（需后端支持）
+  fetch('/api/sim/seek', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ time: seekSec })
+  }).catch(() => {});
+  // 同步到回放列表
+  const idx = replayFrames.findIndex(f => f.sim_time >= seekSec);
+  if (idx >= 0 && replayFrames[idx]) {
+    if (replayFrames[idx].uavs) updateUAVs(replayFrames[idx].uavs);
+  }
+}
+
+
+// ===================== 推演断点 =====================
+let breakpoints = [];
+function addBreakpoint() {
+  if (!simRunning) { alert('推演未在运行中'); return; }
+  const t = currentSimTime;
+  breakpoints.push(t);
+  showToastMsg && showToastMsg('info', '已添加断点', `时间点 T+${t.toFixed(0)}s`);
+  // 在进度条上渲染断点标记
+  renderBreakpoints();
+}
+
+function renderBreakpoints() {
+  const wrap = document.querySelector('.sim-slider-wrap');
+  if (!wrap) return;
+  document.querySelectorAll('.bp-marker').forEach(e => e.remove());
+  breakpoints.forEach(t => {
+    const pct = Math.min(100, (t / _bottomTotalTime) * 100);
+    const marker = document.createElement('div');
+    marker.className = 'bp-marker';
+    marker.style.cssText = `position:absolute;left:${pct}%;top:50%;transform:translate(-50%,-50%);
+      width:2px;height:10px;background:#f59e0b;border-radius:1px;pointer-events:none;z-index:2;`;
+    wrap.appendChild(marker);
+  });
+}
+
+// ===================== 倍速控制 =====================
+function setSpeed(x) {
+  simSpeed = x;
+  // 更新按钮高亮
+  [1,2,4,8,16,32,50].forEach(s => {
+    const btn = document.getElementById(`speed-${s}`);
+    if (btn) btn.className = s === x ? 'speed-btn active' : 'speed-btn';
+  });
+  const hint = document.getElementById('speed-hint');
+  if (hint) hint.textContent = `实时 ×${x}`;
+  // 调整插值窗口（倍速越高，两帧间隔越短）
+  interpDuration = 500 / x;
+  // 通知后端调速
+  fetch(`/api/sim/speed`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ speed: x })
+  }).catch(() => {});
+  console.log(`[倍速] 设置为 x${x}`);
+}
+
+// ===================== 告警弹窗 =====================
+let _toastQueue = [];    // 待显示队列
+let _toastActive = [];   // 当前显示中的toast
+const MAX_TOASTS = 4;    // 最多同时显示4个
+
+function showAlarmToast(alarm) {
+  // 确定级别样式
+  let cls = 'danger', title = '🚨 禁飞区违规';
+  if (alarm.alarm_level <= 1) { cls = 'info'; title = 'ℹ 信息告警'; }
+  else if (alarm.alarm_level <= 2) { cls = 'warn'; title = '⚠ 警告'; }
+  else if (alarm.alarm_level >= 4) { cls = 'danger'; title = '🚨 严重告警'; }
+
+  const reasonMap = {
+    enter_no_fly_area: '进入禁飞区',
+    weather_forbid: '气象禁飞',
+    conflict_h: '水平间距过近',
+    conflict_v: '垂直间距过近',
+    enter_limit_area: '超出限高',
+    enter_control_area: '进入管制区',
+  };
+  const reasonText = reasonMap[alarm.reason] || alarm.reason || '未知原因';
+
+  const container = document.getElementById('alarm-popup');
+  const toast = document.createElement('div');
+  toast.className = `alarm-toast ${cls}`;
+  toast.innerHTML = `
+    <div class="alarm-toast-close" onclick="closeToast(this)">✕</div>
+    <div class="alarm-toast-title">${title}</div>
+    <div class="alarm-toast-body">
+      <strong>${alarm.uav_id}</strong> ${reasonText}
+      ${alarm.area_id ? `<br>空域: ${alarm.area_id}` : ''}
+    </div>
+    <div class="alarm-toast-time">${alarm.wall_time}</div>
+  `;
+  // 点击toast聚焦该UAV
+  toast.addEventListener('click', (e) => {
+    if (e.target.classList.contains('alarm-toast-close')) return;
+    focusUAV(alarm.uav_id);
+  });
+
+  // 如果已满，移除最旧的
+  if (container.children.length >= MAX_TOASTS) {
+    const oldest = container.firstChild;
+    if (oldest) dismissToast(oldest);
+  }
+
+  container.appendChild(toast);
+  _toastActive.push(toast);
+
+  // 5秒后自动消失
+  setTimeout(() => dismissToast(toast), 5000);
+}
+
+function dismissToast(toast) {
+  if (!toast || !toast.parentNode) return;
+  toast.style.animation = 'fadeOut 0.3s ease forwards';
+  setTimeout(() => {
+    if (toast.parentNode) toast.parentNode.removeChild(toast);
+  }, 300);
+}
+
+function closeToast(closeBtn) {
+  dismissToast(closeBtn.closest('.alarm-toast'));
+}
+
+// ===================== 图层控制 =====================
+function toggleLayerPanel() {
+  const body  = document.getElementById('layer-ctrl-body');
+  const arrow = document.getElementById('layer-ctrl-arrow');
+  if (!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function toggleLayerVis(layer) {
+  layerVis[layer] = !layerVis[layer];
+  // 空域
+  if (layer === 'nofly' || layer === 'limit' || layer === 'control') {
+    airspaceEntities.forEach(item => {
+      if (layer === 'nofly' && item.area_type === 'no_fly') item.entity.show = layerVis[layer];
+      if (layer === 'limit' && item.area_type === 'limit_h') item.entity.show = layerVis[layer];
+      if (layer === 'control' && (item.area_type === 'control' || item.area_type === 'temp')) item.entity.show = layerVis[layer];
+    });
+  }
+  if (layer === 'weather') weatherEntities.forEach(e => { e.show = layerVis.weather; });
+  if (layer === 'uav') Object.values(uavEntities).forEach(e => { e.show = layerVis.uav; });
+  if (layer === 'label') {
+    // 动态推演中的 UAV entity
+    Object.values(uavEntities).forEach(e => {
+      if (e.label) e.label.show = layerVis.label;
+    });
+    // 初始位置静态标志（id 前缀 init_uav_）
+    viewer.entities.values.forEach(e => {
+      if (e.id && e.id.startsWith('init_uav_') && e.label) e.label.show = layerVis.label;
+    });
+  }
+  if (layer === 'route') routeEntities.forEach(e => { e.show = layerVis.route; });
+  if (layer === 'trail') {
+    viewer.entities.values.forEach(e => {
+      if (e.id && e.id.startsWith('trail_')) e.show = layerVis.trail;
+    });
+  }
+}
+
+// ===================== 回放 =====================
+function toggleReplayBar() {
+  const bar = document.getElementById('replay-bar');
+  bar.classList.toggle('visible');
+}
+
+function onReplaySeek(val) {
+  if (!replayFrames.length) return;
+  replayIndex = parseInt(val);
+  const frame = replayFrames[Math.min(replayIndex, replayFrames.length - 1)];
+  if (frame) {
+    document.getElementById('replay-time-label').textContent = frame.sim_time.toFixed(1) + 's';
+    if (frame.uavs) updateUAVs(frame.uavs);
+  }
+}
+
+function replayPlay() {
+  if (replayTimer) return;
+  replayTimer = setInterval(() => {
+    replayIndex++;
+    if (replayIndex >= replayFrames.length) {
+      replayPause(); return;
+    }
+    document.getElementById('replay-slider').value = replayIndex;
+    onReplaySeek(replayIndex);
+  }, 200);
+}
+
+function replayPause() {
+  if (replayTimer) { clearInterval(replayTimer); replayTimer = null; }
+}
+
+// ===================== 交互 =====================
+function focusUAV(uavId) {
+  const ent = uavEntities[uavId];
+  if (!ent) return;
+  viewer.flyTo(ent, { duration: 1.5, offset: new Cesium.HeadingPitchRange(0, -Cesium.Math.PI_OVER_FOUR, 2000) });
+}
+
+function onMouseMove(movement) {
+  const tooltip = document.getElementById('tooltip');
+  const picked = viewer.scene.pick(movement.endPosition);
+  if (picked && picked.id) {
+    const ent = picked.id;
+    const props = ent.properties;
+    let html = `<strong>${ent.name || ent.id}</strong><br>`;
+    if (props && props.uav_data) {
+      const u = props.uav_data.getValue();
+      html += `状态: ${u.status}<br>位置: ${u.lon.toFixed(5)}, ${u.lat.toFixed(5)}<br>高度: ${u.alt.toFixed(1)}m`;
+      if (u.alarm_type) html += `<br><span style="color:#ef4444">告警: ${alarmReasonZh(u.alarm_type)}</span>`;
+    }
+    if (props && props.area_data) {
+      const a = props.area_data.getValue();
+      html += `类型: ${a.area_type}<br>高度: ${a.min_alt}~${a.max_alt}m<br>优先级: ${a.priority}`;
+    }
+    tooltip.innerHTML = html;
+    tooltip.style.display = 'block';
+    tooltip.style.left = (movement.endPosition.x + 15) + 'px';
+    tooltip.style.top = (movement.endPosition.y + 15) + 'px';
+  } else {
+    tooltip.style.display = 'none';
+  }
+}
+
+function onLeftClick(click) {
+  const picked = viewer.scene.pick(click.position);
+  if (picked && picked.id && picked.id.properties) {
+    const props = picked.id.properties;
+    if (props.uav_data) focusUAV(picked.id.name);
+  }
+}
+
+// ===================== 清理 =====================
+function clearAirspaceEntities() {
+  airspaceEntities.forEach(item => viewer.entities.remove(item.entity));
+  airspaceEntities = [];
+}
+function clearWeatherEntities() {
+  weatherEntities.forEach(e => viewer.entities.remove(e));
+  weatherEntities = [];
+}
+function clearRouteEntities() {
+  routeEntities.forEach(e => viewer.entities.remove(e));
+  routeEntities = [];
+}
+
+// 渲染无人机初始位置（加载想定时立即显示，推演开始后由 clearRouteEntities 清理）
+function drawInitialUAVPositions(uavTasks) {
+  if (!viewer || !uavTasks || !uavTasks.length) return;
+  uavTasks.forEach(task => {
+    const startPt = task.route && task.route[0];
+    if (!startPt) return;
+    const [lon, lat, alt] = startPt;
+    // 使用与 createUAVIcon 相同的 waiting 颜色（灰色），表示待起飞
+    const entity = viewer.entities.add({
+      id: `init_uav_${task.uav_id}`,
+      name: `初始位置-${task.uav_id}`,
+      position: Cesium.Cartesian3.fromDegrees(lon, lat, alt),
+      billboard: {
+        image: createUAVIcon('waiting'),
+        width: 22, height: 15,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        scaleByDistance: new Cesium.NearFarScalar(500, 1.2, 3e5, 0.35),
+        heightReference: Cesium.HeightReference.NONE,
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: {
+        text: task.uav_id,
+        font: '11px sans-serif',
+        fillColor: Cesium.Color.fromCssColorString('#94a3b8'),
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        pixelOffset: new Cesium.Cartesian2(0, -12),
+        showBackground: true,
+        backgroundColor: Cesium.Color.fromCssColorString('rgba(15,23,42,0.7)'),
+        backgroundPadding: new Cesium.Cartesian2(3, 2),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        heightReference: Cesium.HeightReference.NONE,
+        show: layerVis.label,   // 跟随图层开关
+      },
+      show: layerVis.uav,
+    });
+    routeEntities.push(entity);   // 归入 routeEntities，推演开始时随 clearRouteEntities 一起清理
+  });
+}
+
+// ===================== 工具函数 =====================
+
+// ── 冲突点标志（地图上显示 ⚠ 闪烁标志，4 秒后自动消失）──
+function createConflictCanvas() {
+  const W = 48, H = 48;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  // 外圈红色光晕
+  const grd = ctx.createRadialGradient(W/2, H/2, 4, W/2, H/2, 22);
+  grd.addColorStop(0, 'rgba(239,68,68,0.6)');
+  grd.addColorStop(1, 'rgba(239,68,68,0)');
+  ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.arc(W/2, H/2, 22, 0, Math.PI*2); ctx.fill();
+  // 内圆背景
+  ctx.beginPath(); ctx.arc(W/2, H/2, 14, 0, Math.PI*2);
+  ctx.fillStyle = 'rgba(30,10,10,0.85)'; ctx.fill();
+  ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 2; ctx.stroke();
+  // ⚠ 文字
+  ctx.font = 'bold 18px sans-serif';
+  ctx.fillStyle = '#fbbf24';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('⚠', W/2, H/2 + 1);
+  return canvas.toDataURL();
+}
+const _conflictIcon = createConflictCanvas(); // 只生成一次
+
+function showConflictMarker(alm) {
+  if (!viewer) return;
+  // 同一对飞机的冲突复用同一个 entity（防止重复堆叠）
+  const pairArr = [alm.uav_id, alm.reason.replace('conflict_with_', '')].sort();
+  const pairId = pairArr.join('_vs_');
+
+  const pos = Cesium.Cartesian3.fromDegrees(alm.mid_lon, alm.mid_lat, alm.mid_alt + 30);
+
+  if (conflictMarkers[pairId]) {
+    // 已有 entity：刷新位置并重置定时器
+    conflictMarkers[pairId].entity.position = new Cesium.ConstantPositionProperty(pos);
+    clearTimeout(conflictMarkers[pairId].timerId);
+  } else {
+    // 新建 entity
+    const entity = viewer.entities.add({
+      id: `conflict_${pairId}`,
+      position: pos,
+      billboard: {
+        image: _conflictIcon,
+        width: 40, height: 40,
+        verticalOrigin: Cesium.VerticalOrigin.CENTER,
+        heightReference: Cesium.HeightReference.NONE,
+        scaleByDistance: new Cesium.NearFarScalar(500, 1.4, 5e4, 0.6),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      },
+      label: {
+        text: `冲突 ${pairArr[0]}↔${pairArr[1]}\n水平${alm.h_dist_m}m 垂直${alm.v_dist_m}m`,
+        font: '11px sans-serif',
+        fillColor: Cesium.Color.fromCssColorString('#fbbf24'),
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 2,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+        pixelOffset: new Cesium.Cartesian2(0, -26),
+        showBackground: true,
+        backgroundColor: Cesium.Color.fromCssColorString('rgba(30,10,10,0.75)'),
+        backgroundPadding: new Cesium.Cartesian2(4, 3),
+        disableDepthTestDistance: Number.POSITIVE_INFINITY,
+        heightReference: Cesium.HeightReference.NONE,
+      }
+    });
+    conflictMarkers[pairId] = { entity };
+  }
+
+  // 4 秒后淡出（直接 show=false 并删除）
+  const timerId = setTimeout(() => {
+    if (conflictMarkers[pairId]) {
+      viewer.entities.remove(conflictMarkers[pairId].entity);
+      delete conflictMarkers[pairId];
+    }
+  }, 4000);
+  conflictMarkers[pairId].timerId = timerId;
+}
+
+// 立体感四旋翼无人机图标（带透视阴影、渐变机身、桨叶）
+function createUAVIcon(status) {
+  // 画布尺寸缩小为原来的一半（原 48×32 → 24×16），保持清晰
+  const W = 24, H = 16;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+
+  // ── 状态颜色映射 ──
+  const palette = {
+    flying:    '#10b981',
+    waiting:   '#94a3b8',
+    hovering:  '#f59e0b',
+    alarm:     '#ef4444',
+    completed: '#3b82f6',
+    grounded:  '#a78bfa',
+  };
+  const mainColor = palette[status] || palette.flying;
+
+  // 所有坐标与尺寸均为原来的 0.5 倍
+  const cx = W / 2, cy = H / 2 - 0.5;
+
+  ctx.save();
+  ctx.fillStyle = mainColor;
+  ctx.strokeStyle = mainColor;
+
+  // ── ① 两侧横臂 ──
+  ctx.beginPath();
+  ctx.roundRect(cx - 11, cy - 1.25, 8, 2.5, 1);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.roundRect(cx + 3, cy - 1.25, 8, 2.5, 1);
+  ctx.fill();
+
+  // ── ② 机臂斜撑 ──
+  ctx.beginPath();
+  ctx.moveTo(cx - 3, cy - 2);
+  ctx.lineTo(cx - 4, cy - 3.5);
+  ctx.lineTo(cx - 1, cy - 3.5);
+  ctx.lineTo(cx - 0.5, cy - 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx + 3, cy - 2);
+  ctx.lineTo(cx + 4, cy - 3.5);
+  ctx.lineTo(cx + 1, cy - 3.5);
+  ctx.lineTo(cx + 0.5, cy - 2);
+  ctx.closePath();
+  ctx.fill();
+
+  // ── ③ 中心机身 ──
+  ctx.beginPath();
+  ctx.roundRect(cx - 2.75, cy - 3.5, 5.5, 7, 1.5);
+  ctx.fill();
+
+  // 机身高光竖纹
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  [-1, 0, 1].forEach(dx => {
+    ctx.fillRect(cx + dx - 0.35, cy - 2, 0.7, 3.5);
+  });
+  ctx.restore();
+
+  // ── ④ 电机座 ──
+  [cx - 11, cx + 7].forEach(mx => {
+    ctx.beginPath();
+    ctx.roundRect(mx - 0.5, cy - 2, 4.5, 4, 1);
+    ctx.fill();
+  });
+
+  // ── ⑤ 桨叶 ──
+  const drawBlades = (bx, by) => {
+    ctx.save();
+    ctx.translate(bx, by);
+    ctx.beginPath();
+    ctx.moveTo(-1, -0.5);
+    ctx.bezierCurveTo(-5.5, -2.5, -5.5, -5, -3.5, -4.5);
+    ctx.bezierCurveTo(-1.5, -4, 0, -2, 1, -0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(1, 0.5);
+    ctx.bezierCurveTo(5.5, 2.5, 5.5, 5, 3.5, 4.5);
+    ctx.bezierCurveTo(1.5, 4, 0, 2, -1, 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(0, 0, 1.1, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fill();
+    ctx.restore();
+  };
+
+  drawBlades(cx - 9, cy);
+  drawBlades(cx + 9, cy);
+
+  // ── ⑥ 起落架 ──
+  ctx.lineWidth = 0.75;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = mainColor;
+  ctx.beginPath(); ctx.moveTo(cx - 2, cy + 3.5); ctx.lineTo(cx - 2, cy + 6.5); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx,     cy + 3.5); ctx.lineTo(cx,     cy + 6.5); ctx.stroke();
+  ctx.lineWidth = 0.9;
+  ctx.beginPath(); ctx.moveTo(cx - 2.75, cy + 6.5); ctx.lineTo(cx + 0.75, cy + 6.5); ctx.stroke();
+
+  // ── ⑦ 吊舱 ──
+  ctx.fillStyle = mainColor;
+  ctx.beginPath();
+  ctx.roundRect(cx - 1.75, cy + 3.5, 3.5, 3, 0.75);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy + 5.75, 1.1, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy + 5.75, 0.55, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fill();
+
+  // ── ⑧ 告警感叹号 ──
+  if (status === 'alarm') {
+    ctx.save();
+    ctx.font = 'bold 4px sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('!', cx, cy);
+    ctx.restore();
+  }
+
+  ctx.restore();
+  return canvas.toDataURL();
+}
+
+function createMarkerCanvas(emoji, color, size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 24; canvas.height = 24;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = color;
+  ctx.fillRect(0, 0, 24, 24);
+  ctx.font = `${size}px sans-serif`;
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
+  ctx.fillText(emoji, 12, 18);
+  return canvas.toDataURL();
+}
+
+function flyToScene(items) {
+  // 计算包围盒，兼容多种坐标字段
+  let minLon = 999, maxLon = -999, minLat = 999, maxLat = -999;
+  const addPt = (lon, lat) => {
+    if (lon == null || lat == null) return;
+    minLon = Math.min(minLon, lon); maxLon = Math.max(maxLon, lon);
+    minLat = Math.min(minLat, lat); maxLat = Math.max(maxLat, lat);
+  };
+  items.forEach(item => {
+    // circle 空域
+    addPt(item.center_lon, item.center_lat);
+    // polygon 空域 —— points: [[lon,lat], ...]
+    if (item.points) item.points.forEach(p => addPt(p[0], p[1]));
+    // UAV 航线 —— route: [[lon,lat,alt], ...]
+    if (item.route) item.route.forEach(p => addPt(p[0], p[1]));
+  });
+  // 若完全没有有效坐标，使用默认中心
+  if (minLon === 999) { minLon = 120.08; maxLon = 120.22; minLat = 30.24; maxLat = 30.32; }
+  const cx = (minLon + maxLon) / 2;
+  const cy = (minLat + maxLat) / 2;
+  // 根据跨度自适应高度（最小 8km，最大 80km）
+  const spanDeg = Math.max(maxLon - minLon, maxLat - minLat);
+  const alt = Math.min(Math.max(spanDeg * 180000, 8000), 80000);
+  // pitch = -90° 正俯视，保证目标区域精确居中（-55° 会因倾斜导致内容偏向屏幕下方）
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(cx, cy, alt),
+    orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+    duration: 2
+  });
+}
+
+function initFPS() {
+  fpsTimer = setInterval(() => {
+    document.getElementById('fps-label').textContent = fpsFrames + '/s';
+    fpsFrames = 0;
+  }, 1000);
+}
+
+// ===================== 单飞行器控制面板 =====================
+let ctrlUAVId = null;
+
+function openUAVCtrl(uavId, event) {
+  ctrlUAVId = uavId;
+  const panel = document.getElementById('uav-ctrl-panel');
+  document.getElementById('uav-ctrl-name').textContent = uavId;
+
+  // 填充当前状态
+  const uavData = lastFrameUAVs[uavId];
+  if (uavData) {
+    refreshCtrlPanel(uavData);
+    // 预填跳转坐标
+    document.getElementById('uav-goto-lon').value = (uavData.lon||0).toFixed(5);
+    document.getElementById('uav-goto-lat').value = (uavData.lat||0).toFixed(5);
+  }
+
+  // 定位弹窗位置（跟随列表项）
+  if (event) {
+    const rect = event.currentTarget.getBoundingClientRect();
+    panel.style.top = Math.min(rect.top, window.innerHeight - 340) + 'px';
+    panel.style.right = (window.innerWidth - rect.left + 5) + 'px';
+    panel.style.left = 'auto';
+  }
+  panel.classList.add('show');
+}
+
+function closeUAVCtrl() {
+  document.getElementById('uav-ctrl-panel').classList.remove('show');
+  ctrlUAVId = null;
+}
+
+function ctrlUAV(action, value) {
+  if (!ctrlUAVId) return;
+
+  // ── 方向控制：前后左右+升降
+  if (action === 'move') {
+    const uavData = lastFrameUAVs[ctrlUAVId];
+    if (!uavData) { showToastMsg('warn', '无位置数据', '请等待推演数据到达'); return; }
+    const stepM = parseFloat(document.getElementById('uav-move-step')?.value || 50);
+    // 1度纬度 ≈ 111320m；1度经度 ≈ 111320*cos(lat)m
+    const dLat = stepM / 111320;
+    const dLon = stepM / (111320 * Math.cos(uavData.lat * Math.PI / 180));
+    const dAlt = stepM;
+    let newLon = uavData.lon, newLat = uavData.lat, newAlt = uavData.alt;
+    if (value === 'forward')  newLat += dLat;
+    if (value === 'backward') newLat -= dLat;
+    if (value === 'left')     newLon -= dLon;
+    if (value === 'right')    newLon += dLon;
+    if (value === 'up')       newAlt += dAlt;
+    if (value === 'down')     newAlt = Math.max(0, newAlt - dAlt);
+
+    // 前端立即更新位置（视觉反馈）
+    if (uavEntities[ctrlUAVId]) {
+      uavEntities[ctrlUAVId].position = new Cesium.ConstantPositionProperty(
+        Cesium.Cartesian3.fromDegrees(newLon, newLat, newAlt)
+      );
+    }
+    lastFrameUAVs[ctrlUAVId] = { ...uavData, lon: newLon, lat: newLat, alt: newAlt };
+
+    // 更新面板显示
+    refreshCtrlPanel(lastFrameUAVs[ctrlUAVId]);
+    document.getElementById('uav-goto-lon').value = newLon.toFixed(5);
+    document.getElementById('uav-goto-lat').value = newLat.toFixed(5);
+
+    // 发送goto指令到后端
+    fetch('/api/uav/ctrl', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uav_id: ctrlUAVId, action: 'goto', lon: newLon, lat: newLat, alt: newAlt })
+    }).catch(() => {});
+    return;
+  }
+
+  const payload = { uav_id: ctrlUAVId, action };
+  if (action === 'goto') {
+    payload.lon = parseFloat(document.getElementById('uav-goto-lon').value);
+    payload.lat = parseFloat(document.getElementById('uav-goto-lat').value);
+    if (isNaN(payload.lon) || isNaN(payload.lat)) {
+      showToastMsg('warn', '坐标无效', '请输入有效的经纬度');
+      return;
+    }
+  }
+  if (action === 'speed') payload.value = value;
+
+  // 发送指令到后端
+  fetch('/api/uav/ctrl', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(r => r.json()).then(res => {
+    const actionLabel = { resume:'恢复飞行', hover:'悬停', land:'强制落地', speed:'单机调速', goto:'跳转目标' }[action] || action;
+    if (res.status === 'ok') {
+      showToastMsg('info', `指令已执行`, `${ctrlUAVId} → ${actionLabel}`);
+    } else {
+      showToastMsg('warn', `指令失败`, res.msg || '未知错误');
+    }
+  }).catch(err => {
+    showToastMsg('warn', `发送失败`, `请确认推演已启动（${err.message || '网络错误'}）`);
+  });
+}
+
+// ===================== 态势推送 =====================
+let pushEnabled = false;
+let pushFrameCounter = 0;
+let pushConfig = { url: 'http://localhost:9000/api/receive', freq: 2, content: 'full' };
+
+function togglePushPanel() {
+  document.getElementById('push-panel').classList.toggle('show');
+}
+
+function onPushToggle() {
+  pushEnabled = document.getElementById('push-enable').checked;
+  document.getElementById('push-status').textContent = pushEnabled ? '推送已开启' : '推送已关闭';
+  document.getElementById('push-status').style.color = pushEnabled ? '#10b981' : '#64748b';
+}
+
+function savePushConfig() {
+  pushConfig.url = document.getElementById('push-url').value.trim();
+  pushConfig.freq = parseInt(document.getElementById('push-freq').value);
+  pushConfig.content = document.getElementById('push-content').value;
+  document.getElementById('push-status').textContent = '配置已保存';
+  document.getElementById('push-status').style.color = '#38bdf8';
+}
+
+async function testPushUrl() {
+  const url = document.getElementById('push-url').value.trim();
+  document.getElementById('push-status').textContent = '测试中...';
+  try {
+    const res = await fetch(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ test: true, from: 'AirFogSim' }),
+      signal: AbortSignal.timeout(3000)
+    });
+    document.getElementById('push-status').textContent = `连通成功 (HTTP ${res.status})`;
+    document.getElementById('push-status').style.color = '#10b981';
+  } catch (e) {
+    document.getElementById('push-status').textContent = '无法连接到目标地址';
+    document.getElementById('push-status').style.color = '#ef4444';
+  }
+}
+
+// 在 handleFrame 里调用此函数推送数据
+function tryPushFrame(frame) {
+  if (!pushEnabled) return;
+  pushFrameCounter++;
+  if (pushFrameCounter % pushConfig.freq !== 0) return;
+  let payload = {};
+  if (pushConfig.content === 'full') payload = frame;
+  else if (pushConfig.content === 'uav') payload = { sim_time: frame.sim_time, uavs: frame.uavs };
+  else if (pushConfig.content === 'alarm') payload = { sim_time: frame.sim_time, alarm_list: frame.alarm_list };
+  fetch(pushConfig.url, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(() => { /* 静默失败 */ });
+}
+
+// ===================== 推演报告 =====================
+function exportReport() {
+  if (alarmHistory.length === 0 && replayFrames.length === 0) {
+    showToastMsg('warn', '暂无推演数据', '请先运行一次推演再导出报告');
+    return;
+  }
+
+  // 统计摘要
+  const totalFrames = replayFrames.length;
+  const lastFrame = replayFrames[replayFrames.length - 1] || {};
+  const simDuration = lastFrame.sim_time || 0;
+  const alarmCount = alarmHistory.length;
+  const alarmByLevel = [0, 0, 0, 0, 0];
+  alarmHistory.forEach(a => { const l = Math.min(4, a.alarm_level || 1); alarmByLevel[l]++; });
+  const uavSet = new Set(alarmHistory.map(a => a.uav_id));
+
+  // 按告警类型分组
+  const reasonGroups = {};
+  alarmHistory.forEach(a => {
+    const r = a.reason || 'unknown';
+    reasonGroups[r] = (reasonGroups[r] || 0) + 1;
+  });
+
+  const report = {
+    report_time: new Date().toISOString(),
+    scene_name: currentSceneName,
+    summary: {
+      sim_duration_s: simDuration,
+      total_frames: totalFrames,
+      total_alarms: alarmCount,
+      involved_uavs: uavSet.size,
+      alarm_by_level: { lv1: alarmByLevel[1], lv2: alarmByLevel[2], lv3: alarmByLevel[3], lv4: alarmByLevel[4] },
+      alarm_by_reason: reasonGroups,
+    },
+    alarm_list: alarmHistory,
+  };
+
+  // 下载 JSON
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  a.download = `airfogsim_report_${currentSceneName}_${ts}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  // 同时导出 CSV 告警明细
+  const csvLines = ['时间,UAV编号,告警级别,原因,空域ID'];
+  alarmHistory.forEach(a => {
+    csvLines.push(`${a.wall_time || ''},${a.uav_id || ''},${a.alarm_level || ''},${a.reason || ''},${a.area_id || ''}`);
+  });
+  const csvBlob = new Blob(['\ufeff' + csvLines.join('\n')], { type: 'text/csv;charset=utf-8' });
+  const b = document.createElement('a');
+  b.href = URL.createObjectURL(csvBlob);
+  b.download = `airfogsim_alarms_${currentSceneName}_${ts}.csv`;
+  b.click();
+  URL.revokeObjectURL(b.href);
+
+  showToastMsg('info', '报告已导出', `JSON报告 + CSV告警明细 (${alarmCount}条)`);
+}
+</script>
+</body>
+</html>

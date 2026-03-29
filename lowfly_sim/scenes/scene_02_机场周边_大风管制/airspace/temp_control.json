@@ -1,0 +1,22 @@
+{
+  "airspace_list": [
+    {
+      "area_id": "AREA_APT_003",
+      "area_name": "机场西侧临时管制（航班密集时段）",
+      "area_type": "temp",
+      "priority": 2,
+      "min_alt": 0,
+      "max_alt": 300,
+      "time_mode": "period",
+      "start_time_s": 0,
+      "end_time_s": 7200,
+      "geo_shape": "polygon",
+      "points": [
+        [120.35, 30.21],
+        [120.42, 30.21],
+        [120.42, 30.27],
+        [120.35, 30.27]
+      ]
+    }
+  ]
+}

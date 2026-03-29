@@ -1,0 +1,39 @@
+{
+  "env_list": [
+    {
+      "env_id": "ENV_WIND_001",
+      "env_type": "wind",
+      "level": 4,
+      "wind_speed_ms": 18.5,
+      "wind_dir_deg": 270,
+      "forbid_fly": true,
+      "min_alt": 0,
+      "max_alt": 400,
+      "time_mode": "period",
+      "start_time_s": 600,
+      "end_time_s": 3600,
+      "geo_shape": "polygon",
+      "points": [
+        [120.34, 30.20],
+        [120.50, 30.20],
+        [120.50, 30.30],
+        [120.34, 30.30]
+      ]
+    },
+    {
+      "env_id": "ENV_WIND_002",
+      "env_type": "wind",
+      "level": 3,
+      "wind_speed_ms": 14.0,
+      "wind_dir_deg": 280,
+      "forbid_fly": false,
+      "min_alt": 0,
+      "max_alt": 200,
+      "time_mode": "always",
+      "geo_shape": "circle",
+      "center_lon": 120.380,
+      "center_lat": 30.245,
+      "radius_m": 2000
+    }
+  ]
+}

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>低空经济仿真验证平台 - 仿真推演态势显示模块</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #e2e8f0; overflow: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(8px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .active-tab { background: linear-gradient(90deg, rgba(56, 189, 248, 0.2) 0%, rgba(56, 189, 248, 0) 100%); border-left: 4px solid #38bdf8; color: #38bdf8; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        .radar-sweep { position: absolute; width: 100%; height: 100%; background: conic-gradient(from 0deg, rgba(56, 189, 248, 0.1) 0%, transparent 20%); animation: rotate 4s linear infinite; pointer-events: none; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+<!-- 1. 顶部导航栏 (Fixed) -->
+<header class="h-16 border-b border-slate-700 bg-slate-900/90 flex items-center justify-between px-6 z-50">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 bg-sky-500 rounded flex items-center justify-center shadow-lg shadow-sky-500/20">
+<span class="iconify text-2xl text-white" data-icon="material-symbols:airplanemode-active"></span>
+</div>
+<div>
+<h1 class="text-xl font-bold tracking-tight text-white">低空仿真验证平台</h1>
+<p class="text-[10px] text-slate-400 uppercase tracking-widest">Simulation Deduction &amp; Situation Display</p>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
+<span class="text-xs text-slate-400">当前想定:</span>
+<select class="bg-transparent text-sm font-medium text-sky-400 focus:outline-none">
+<option>高新园晨间末端配送 - 实例0227</option>
+<option>城市CBD应急避障演练 - v2.1</option>
+<option>物流枢纽全自动化测试 - v1.0</option>
+</select>
+</div>
+<div class="flex items-center gap-4 border-l border-slate-700 pl-6 text-slate-400">
+<button class="hover:text-white transition-colors flex items-center gap-1">
+<span class="iconify text-lg" data-icon="material-symbols:help-outline"></span>
+<span class="text-sm">帮助</span>
+</button>
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white border border-slate-600">AD</div>
+<span class="text-sm text-slate-300">管理员 (Admin)</span>
+</div>
+<button class="text-rose-400 hover:text-rose-300 transition-colors">
+<span class="iconify text-xl" data-icon="material-symbols:logout"></span>
+</button>
+</div>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<!-- 2. 左侧功能面板 (Collapsible) -->
+<aside class="w-64 border-r border-slate-800 bg-slate-900/50 flex flex-col pt-4">
+<nav class="flex-1 space-y-1 px-2">
+<button class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all active-tab" id="tab-vis" onclick="switchTab('vis')">
+<span class="iconify text-xl" data-icon="hugeicons:isometric"></span>
+                    仿真态势可视化
+                </button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 rounded-lg" id="tab-ctrl" onclick="switchTab('ctrl')">
+<span class="iconify text-xl" data-icon="material-symbols:slow-motion-video"></span>
+                    推演流程控制
+                </button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 rounded-lg" id="tab-drone" onclick="switchTab('drone')">
+<span class="iconify text-xl" data-icon="material-symbols:settings-remote"></span>
+                    单飞行器控制
+                </button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 rounded-lg" id="tab-env" onclick="switchTab('env')">
+<span class="iconify text-xl" data-icon="material-symbols:cloud-sync-outline"></span>
+                    空域环境调整
+                </button>
+<button class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all text-slate-400 hover:bg-slate-800 rounded-lg" id="tab-push" onclick="switchTab('push')">
+<span class="iconify text-xl" data-icon="material-symbols:send-to-mobile"></span>
+                    跨系统数据推送
+                </button>
+</nav>
+<div class="p-4 border-t border-slate-800">
+<div class="bg-slate-800/50 rounded-lg p-3">
+<p class="text-[10px] text-slate-500 mb-2 font-bold">系统状态</p>
+<div class="flex items-center justify-between text-xs">
+<span>3D渲染引擎</span>
+<span class="text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 运行中</span>
+</div>
+<div class="flex items-center justify-between text-xs mt-2">
+<span>联调服务器</span>
+<span class="text-emerald-400 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> 已连接</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- 3. 中间主可视化区 -->
+<main class="flex-1 relative bg-[#010409]">
+<!-- 3D 占位图层 -->
+<div class="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+<div class="radar-sweep"></div>
+<!-- 网格线背景 -->
+<div class="h-full w-full" style="background-image: radial-gradient(circle, #1e293b 1px, transparent 1px); background-size: 40px 40px;"></div>
+</div>
+<!-- 3D 占位标注 -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="text-center">
+<span class="iconify text-8xl text-slate-700 block mx-auto mb-4" data-icon="mdi:cube-outline"></span>
+<p class="text-slate-600 font-bold uppercase tracking-[0.3em] text-xl">低空仿真态势 3D 展示区</p>
+<p class="text-slate-700 text-sm mt-2">[ 正在加载三维数字孪生场景... ]</p>
+</div>
+</div>
+<!-- 浮动视角控制组件 -->
+<div class="absolute bottom-6 left-6 flex flex-col gap-2">
+<div class="glass-panel rounded-lg p-1 flex flex-col gap-1 border border-slate-700/50">
+<button class="p-2 hover:bg-slate-700 rounded text-slate-300 transition" title="旋转视角"><span class="iconify text-xl" data-icon="material-symbols:rotate-left"></span></button>
+<button class="p-2 hover:bg-slate-700 rounded text-slate-300 transition" title="放大视角"><span class="iconify text-xl" data-icon="material-symbols:zoom-in"></span></button>
+<button class="p-2 hover:bg-slate-700 rounded text-slate-300 transition" title="缩小视角"><span class="iconify text-xl" data-icon="material-symbols:zoom-out"></span></button>
+<button class="p-2 hover:bg-slate-700 rounded text-slate-300 transition" title="重置视角"><span class="iconify text-xl" data-icon="material-symbols:center-focus-weak"></span></button>
+</div>
+<div class="glass-panel flex gap-1 p-1 rounded-lg border border-slate-700/50">
+<button class="px-3 py-1 text-[10px] bg-sky-500/20 text-sky-400 rounded border border-sky-500/30">全局</button>
+<button class="px-3 py-1 text-[10px] text-slate-400 hover:text-white">跟踪</button>
+<button class="px-3 py-1 text-[10px] text-slate-400 hover:text-white">聚焦</button>
+</div>
+</div>
+<!-- 图层控制悬浮框 -->
+<div class="absolute top-6 right-6 glass-panel rounded-xl p-4 w-48 transition-all hover:shadow-xl hover:shadow-sky-500/5">
+<h3 class="text-xs font-bold text-slate-400 mb-3 border-b border-slate-700 pb-2 flex items-center gap-2">
+<span class="iconify" data-icon="material-symbols:layers"></span> 图层控制
+                </h3>
+<div class="space-y-3">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-sky-500 focus:ring-sky-500" type="checkbox"/>
+<span class="text-sm text-slate-300 group-hover:text-white">飞行器图层</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-sky-500" type="checkbox"/>
+<span class="text-sm text-slate-300 group-hover:text-white">空域格网</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-sky-500" type="checkbox"/>
+<span class="text-sm text-slate-300 group-hover:text-white">环境气象云图</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="w-4 h-4 rounded border-slate-600 bg-slate-700 text-sky-500" type="checkbox"/>
+<span class="text-sm text-slate-300 group-hover:text-white">冲突告警标记</span>
+</label>
+</div>
+</div>
+<!-- 调试信息（特定模块显示） -->
+<div class="hidden absolute top-6 left-6 w-80 glass-panel rounded-xl p-5 border-l-4 border-l-amber-500" id="module-drone-panel">
+<div class="flex justify-between items-start mb-4">
+<h3 class="font-bold text-white flex items-center gap-2">
+<span class="iconify text-amber-500" data-icon="material-symbols:control-camera"></span> 飞行器精准操控
+                    </h3>
+<span class="text-[10px] bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded">操控锁定中</span>
+</div>
+<div class="mb-4">
+<label class="text-xs text-slate-400 block mb-2">选择飞行器</label>
+<select class="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white">
+<option>DRONE-CN-001 (物流中转)</option>
+<option>DRONE-CN-002 (安防巡逻)</option>
+<option>DRONE-CN-008 (外卖配送)</option>
+</select>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="space-y-2">
+<label class="text-xs text-slate-400">高度 (m)</label>
+<div class="flex gap-1">
+<input class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs" type="number" value="120"/>
+<button class="bg-slate-700 px-2 rounded hover:bg-slate-600"><span class="iconify" data-icon="material-symbols:add"></span></button>
+</div>
+</div>
+<div class="space-y-2">
+<label class="text-xs text-slate-400">速度 (m/s)</label>
+<div class="flex gap-1">
+<input class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs" type="number" value="15"/>
+<button class="bg-slate-700 px-2 rounded hover:bg-slate-600"><span class="iconify" data-icon="material-symbols:add"></span></button>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<button class="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white rounded text-sm font-bold transition">应用参数调整</button>
+<div class="grid grid-cols-2 gap-2 mt-2">
+<button class="py-2 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs">一键悬停</button>
+<button class="py-2 bg-rose-600/20 hover:bg-rose-600/40 text-rose-500 border border-rose-500/30 rounded text-xs font-bold">紧急返航</button>
+</div>
+</div>
+</div>
+<!-- 数据推送面板 -->
+<div class="hidden absolute top-6 left-6 w-96 glass-panel rounded-xl p-5 border-l-4 border-l-purple-500" id="module-push-panel">
+<h3 class="font-bold text-white mb-4 flex items-center gap-2">
+<span class="iconify text-purple-500" data-icon="material-symbols:upload-file-outline"></span> 跨系统推送配置
+                </h3>
+<div class="space-y-4">
+<div>
+<label class="text-xs text-slate-400 block mb-2">推送目标</label>
+<div class="grid grid-cols-2 gap-2">
+<label class="bg-slate-800/50 p-3 rounded-lg border border-slate-700 flex items-center gap-3 cursor-pointer">
+<input checked="" class="rounded border-slate-600" type="checkbox"/>
+<span class="text-xs">空域态势系统</span>
+</label>
+<label class="bg-slate-800/50 p-3 rounded-lg border border-slate-700 flex items-center gap-3 cursor-pointer">
+<input class="rounded border-slate-600" type="checkbox"/>
+<span class="text-xs">第三方仿真库</span>
+</label>
+</div>
+</div>
+<div>
+<label class="text-xs text-slate-400 block mb-2">推送频率</label>
+<div class="flex gap-2 text-xs">
+<button class="flex-1 py-1.5 bg-purple-500/20 border border-purple-500 text-white rounded">实时推送</button>
+<button class="flex-1 py-1.5 bg-slate-800 border border-slate-700 text-slate-400 rounded">手动触发</button>
+</div>
+</div>
+<div class="bg-slate-900 rounded p-3 border border-slate-700">
+<p class="text-[10px] text-slate-500 mb-1">推送地址配置</p>
+<input class="w-full bg-transparent text-xs text-sky-400 focus:outline-none" type="text" value="ws://10.24.1.18:8080/situation/v1"/>
+</div>
+<button class="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-purple-500/20">开始数据推送流</button>
+</div>
+</div>
+<!-- 环境调节面板 -->
+<div class="hidden absolute top-6 left-6 w-80 glass-panel rounded-xl p-5 border-l-4 border-l-cyan-500" id="module-env-panel">
+<h3 class="font-bold text-white mb-4 flex items-center gap-2">
+<span class="iconify text-cyan-500" data-icon="material-symbols:partly-cloudy-day"></span> 环境参数实时调节
+                </h3>
+<div class="mb-4">
+<p class="text-xs text-slate-400 mb-3 font-semibold">快速模板</p>
+<div class="grid grid-cols-2 gap-2">
+<button class="py-2 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700 hover:border-cyan-500 transition">晴朗 (Standard)</button>
+<button class="py-2 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700 hover:border-cyan-500 transition">大雾 (Foggy)</button>
+<button class="py-2 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700 hover:border-cyan-500 transition">大风 (Gale)</button>
+<button class="py-2 bg-slate-800 text-slate-300 text-xs rounded border border-slate-700 hover:border-cyan-500 transition">暴雨 (Storm)</button>
+</div>
+</div>
+<div class="space-y-4">
+<div>
+<div class="flex justify-between text-[11px] text-slate-400 mb-1">
+<span>实时风速 (m/s)</span>
+<span class="text-cyan-400 font-bold">4.2</span>
+</div>
+<input class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 focus:outline-none" type="range"/>
+</div>
+<div>
+<div class="flex justify-between text-[11px] text-slate-400 mb-1">
+<span>能见度 (km)</span>
+<span class="text-cyan-400 font-bold">15</span>
+</div>
+<input class="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500 focus:outline-none" type="range"/>
+</div>
+</div>
+<div class="flex gap-2 mt-6">
+<button class="flex-1 py-2 bg-cyan-600 text-white rounded text-sm font-bold">应用调整</button>
+<button class="px-4 py-2 bg-slate-700 text-white rounded text-sm"><span class="iconify" data-icon="material-symbols:refresh"></span></button>
+</div>
+</div>
+</main>
+<!-- 4. 右侧辅助面板 (可隐藏) -->
+<aside class="w-80 border-l border-slate-800 bg-slate-900/50 flex flex-col pt-4 overflow-y-auto">
+<!-- 态势数据 -->
+<section class="px-5 mb-6">
+<div class="flex justify-between items-center mb-4">
+<h2 class="text-sm font-bold text-white flex items-center gap-2">
+<span class="iconify text-sky-400" data-icon="material-symbols:bar-chart"></span> 核心态势数据
+                    </h2>
+<span class="text-[10px] text-slate-400">实时更新 0.5s</span>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-slate-800/40 p-3 rounded border border-slate-700/50">
+<p class="text-[10px] text-slate-500 uppercase">在线飞行器</p>
+<p class="text-xl font-bold text-white mt-1 counter">24 <span class="text-[10px] font-normal text-slate-400 ml-1">架</span></p>
+</div>
+<div class="bg-slate-800/40 p-3 rounded border border-slate-700/50">
+<p class="text-[10px] text-slate-500 uppercase">当前空域压力</p>
+<p class="text-xl font-bold text-amber-500 mt-1">42%</p>
+</div>
+<div class="bg-slate-800/40 p-3 rounded border border-slate-700/50">
+<p class="text-[10px] text-slate-500 uppercase">平均地速</p>
+<p class="text-xl font-bold text-white mt-1">12.5 <span class="text-[10px] font-normal text-slate-400 ml-1">m/s</span></p>
+</div>
+<div class="bg-slate-800/40 p-3 rounded border border-slate-700/50">
+<p class="text-[10px] text-slate-500 uppercase">推演加速比</p>
+<p class="text-xl font-bold text-sky-400 mt-1">2.0X</p>
+</div>
+</div>
+</section>
+<!-- 冲突事件 -->
+<section class="px-5 mb-6">
+<h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+<span class="iconify text-rose-500" data-icon="material-symbols:warning-outline"></span> 冲突事件列表 (3)
+                </h2>
+<div class="space-y-2">
+<div class="p-3 bg-rose-500/10 border border-rose-500/20 rounded relative overflow-hidden group hover:border-rose-500/50 transition">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-bold text-rose-100">高度空间冲突</span>
+<span class="text-[10px] text-rose-400">09:42:01</span>
+</div>
+<p class="text-[11px] text-rose-200/70">DRONE-001 &amp; 003 间距过近 (&lt; 5m)</p>
+<button class="mt-2 text-[10px] text-white bg-rose-500 px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">快速定位</button>
+</div>
+<div class="p-3 bg-slate-800/50 border border-slate-700 rounded">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-bold text-amber-100">偏离预定航线</span>
+<span class="text-[10px] text-slate-500">09:41:45</span>
+</div>
+<p class="text-[11px] text-slate-400">DRONE-022 超出航线边界 3.2m</p>
+</div>
+<div class="p-3 bg-slate-800/50 border border-slate-700 rounded">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-bold text-amber-100">强对流天气预警</span>
+<span class="text-[10px] text-slate-500">09:38:22</span>
+</div>
+<p class="text-[11px] text-slate-400">区域 SE-4 风力等级升高过快</p>
+</div>
+</div>
+</section>
+<!-- 推送状态/日志 -->
+<section class="px-5 flex-1 min-h-0 flex flex-col">
+<h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+<span class="iconify text-slate-400" data-icon="material-symbols:list-alt"></span> 推演操作简报
+                </h2>
+<div class="flex-1 bg-black/30 border border-slate-800 rounded p-3 overflow-y-auto font-mono text-[10px] text-slate-500 leading-relaxed">
+<p class="text-emerald-500 tracking-tighter cursor-default underline decoration-emerald-800 mb-1">[2026-02-27 15:30:00] 系统启动成功</p>
+<p>[INFO] 加载数字孪生基座数据: DONE</p>
+<p>[INFO] 环境配置: 晴朗(23℃, 风速2.1m/s)</p>
+<p class="text-sky-400">[CMD] 接收来自想定编辑系统的实例消息: SIT_0227_A</p>
+<p>[INFO] 飞行器 DRONE-001 准备起飞...</p>
+<p>[INFO] 数据推送流已开启 -&gt; IP: 10.24.1.18</p>
+<p class="text-amber-500">[WARN] DRONE-001 速度响应延迟监测 (45ms)</p>
+<p>[INFO] 触发模拟断点: STEP_TAKE_OFF</p>
+<p>[DEBUG] 变量 $wind_force 更新为 4.5</p>
+<p class="text-rose-500">[ERROR] 无人驾驶监管系统心跳丢失(0.2s) - 已自动重连</p>
+</div>
+</section>
+</aside>
+</div>
+<!-- 5. 底部操控栏 (Fixed) -->
+<footer class="h-20 glass-panel border-t border-slate-700 px-6 flex items-center gap-10 z-50">
+<!-- 核心推演控制 -->
+<div class="flex items-center gap-4">
+<button class="p-3 bg-sky-500 hover:bg-sky-400 text-white rounded-full shadow-lg shadow-sky-500/20 transform hover:scale-105 transition active:scale-95" title="启动推演">
+<span class="iconify text-2xl" data-icon="material-symbols:play-arrow"></span>
+</button>
+<button class="p-3 bg-slate-700 hover:bg-slate-600 text-white rounded-full transition" title="暂停推演">
+<span class="iconify text-xl" data-icon="material-symbols:pause"></span>
+</button>
+<button class="p-3 bg-slate-700 hover:bg-slate-600 text-white rounded-full transition" title="终止推演">
+<span class="iconify text-xl" data-icon="material-symbols:stop"></span>
+</button>
+<div class="h-10 w-px bg-slate-700 mx-2"></div>
+<button class="p-3 bg-rose-600 hover:bg-rose-500 text-white rounded-lg shadow-lg shadow-rose-600/20 flex items-center gap-2 group transition" onclick="showEmergencyModal()">
+<span class="iconify text-2xl animate-pulse group-hover:scale-110" data-icon="material-symbols:emergency"></span>
+<span class="font-bold text-sm">紧急制动</span>
+</button>
+</div>
+<!-- 进度条 -->
+<div class="flex-1 flex flex-col gap-2">
+<div class="flex justify-between text-[11px] font-mono text-slate-400">
+<span class="text-sky-400">已推演 00:12:45 (T+750s)</span>
+<div class="flex items-center gap-4">
+<span class="flex items-center gap-1 cursor-pointer hover:text-white"><span class="iconify" data-icon="material-symbols:add-bookmark"></span> 添加断点</span>
+<span>预计时长 00:45:00</span>
+</div>
+</div>
+<div class="relative h-2 bg-slate-800 rounded-full group cursor-pointer">
+<div class="absolute inset-y-0 left-0 w-1/4 bg-sky-500 rounded-full shadow-[0_0_10px_rgba(56,189,248,0.5)]"></div>
+<!-- 断点标记 -->
+<div class="absolute top-[-4px] left-[15%] w-1 h-4 bg-amber-400 rounded-full border border-slate-900" title="断点: 起飞阶段结束"></div>
+<div class="absolute top-[-4px] left-[40%] w-1 h-4 bg-amber-400 rounded-full border border-slate-900 opacity-50"></div>
+<!-- 拖动滑块 -->
+<div class="absolute top-[-6px] left-[25%] w-3.5 h-3.5 bg-white rounded-full shadow-lg border-2 border-sky-500 scale-0 group-hover:scale-100 transition"></div>
+</div>
+</div>
+<!-- 辅助控制器 -->
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="text-[10px] text-slate-400">倍速</span>
+<div class="bg-slate-800 p-1 rounded-lg flex border border-slate-700">
+<button class="px-2 py-1 text-[10px] bg-slate-700 text-white rounded">x1.0</button>
+<button class="px-2 py-1 text-[10px] hover:text-white">x2.0</button>
+<button class="px-2 py-1 text-[10px] hover:text-white text-slate-500">x4.0</button>
+</div>
+</div>
+<button class="flex items-center gap-1 text-slate-400 hover:text-white transition group">
+<span class="iconify text-xl group-hover:rotate-12 transition" data-icon="material-symbols:history"></span>
+<span class="text-xs">推演回退</span>
+</button>
+</div>
+</footer>
+<!-- 弹窗预留 (断点/确认弹窗) -->
+<div class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm" id="modal-confirm">
+<div class="glass-panel w-[400px] p-6 rounded-2xl border-2 border-rose-500 shadow-2xl shadow-rose-500/10">
+<div class="flex items-center gap-4 text-rose-500 mb-4">
+<span class="iconify text-4xl" data-icon="material-symbols:warning"></span>
+<h3 class="text-xl font-bold italic tracking-wide text-white uppercase">确认终止推演</h3>
+</div>
+<p class="text-sm text-slate-300 leading-relaxed">
+                当前推演实例正处于 <span class="text-amber-400">“区域冲突测试”</span> 关键任务阶段，终止推演将清空所有未保存的实时数据推送。是否确认并保留历史推演日志？
+            </p>
+<div class="flex justify-end gap-3 mt-8">
+<button class="px-5 py-2 text-sm text-slate-400 hover:text-white transition" onclick="hideModal()">取消操作</button>
+<button class="px-6 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded text-sm font-bold shadow-lg shadow-rose-600/20" onclick="hideModal()">确认终止</button>
+</div>
+</div>
+</div>
+<script>
+        function switchTab(mod) {
+            // 移除所有激活样式
+            const tabs = ['vis', 'ctrl', 'drone', 'env', 'push'];
+            tabs.forEach(t => {
+                document.getElementById('tab-' + t).classList.remove('active-tab');
+                document.getElementById('tab-' + t).classList.add('text-slate-400');
+            });
+
+            // 隐藏所有面板
+            document.getElementById('module-drone-panel').classList.add('hidden');
+            document.getElementById('module-env-panel').classList.add('hidden');
+            document.getElementById('module-push-panel').classList.add('hidden');
+
+            // 激活特定标签
+            document.getElementById('tab-' + mod).classList.add('active-tab');
+            document.getElementById('tab-' + mod).classList.remove('text-slate-400');
+
+            // 显示对应面板
+            if (mod === 'drone') document.getElementById('module-drone-panel').classList.remove('hidden');
+            if (mod === 'env') document.getElementById('module-env-panel').classList.remove('hidden');
+            if (mod === 'push') document.getElementById('module-push-panel').classList.remove('hidden');
+
+            // 业务提示弹窗（示例）
+            if(mod === 'ctrl') {
+                console.log("进入推演控制流程 - 已锁定当前进度条操作权限");
+            }
+        }
+
+        function showEmergencyModal() {
+            document.getElementById('modal-confirm').classList.remove('hidden');
+        }
+
+        function hideModal() {
+            document.getElementById('modal-confirm').classList.add('hidden');
+        }
+
+        // 默认进入态势图
+        switchTab('vis');
+    </script>
+</body>
+</html>

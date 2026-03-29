@@ -1,0 +1,51 @@
+{
+   "crs" : {
+      "properties" : {
+         "name" : "urn:ogc:def:crs:EPSG::4490"
+      },
+      "type" : "name"
+   },
+   "features" : [
+      {
+         "geometry" : {
+            "coordinates" : [ 119.904785156250, 30.53860787885457 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "监视雷达-1"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9657893180847, 30.51820247638195 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "监视雷达-2"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 120.0446891784668, 30.50134260771591 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "监视雷达-3"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 120.0156784057617, 30.56433032003468 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "监视雷达-4"
+         },
+         "type" : "Feature"
+      }
+   ],
+   "type" : "FeatureCollection"
+}

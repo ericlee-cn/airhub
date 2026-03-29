@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>低空仿真系统规则配置平台</title>
+    
+    <!-- 引入必要的库 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: #030a1c;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* 统一顶部导航栏样式 */
+        .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1) !important; }
+        a.nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1) !important; }
+        
+        .glass-panel { 
+            background: rgba(15, 23, 42, 0.85); 
+            border: 1px solid rgba(0, 170, 255, 0.2); 
+            backdrop-filter: blur(12px); 
+        }
+        
+        .rule-grid { 
+            background: radial-gradient(#334155 1px, transparent 1px); 
+            background-size: 20px 20px; 
+            opacity: 0.15; 
+        }
+        
+        .section-title { 
+            font-size: 12px; 
+            font-weight: bold; 
+            color: #f97316; 
+            text-transform: uppercase; 
+            margin-bottom: 12px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            border-bottom: 1px solid rgba(249, 115, 22, 0.2); 
+            padding-bottom: 4px; 
+        }
+        
+        .tree-category { cursor: pointer; transition: all 0.2s; }
+        .tree-category:hover { background: rgba(249, 115, 22, 0.1); }
+        
+        .tree-item { 
+            cursor: pointer; 
+            border-left: 1px solid rgba(249, 115, 22, 0.3); 
+            margin-left: 20px; 
+            transition: all 0.2s; 
+        }
+        .tree-item:hover { background: rgba(0, 170, 255, 0.1); color: #00aaff; }
+        .tree-item.active { background: rgba(249, 115, 22, 0.15); border-left: 2px solid #f97316; color: #f97316; }
+        
+        .rotate-90 { transform: rotate(90deg); }
+        .animate-spin { animation: spin 1s linear infinite; }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 状态提示样式 */
+        .status-info { 
+            background: rgba(59, 130, 246, 0.1); 
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-left: 4px solid #3b82f6;
+        }
+        .status-success { 
+            background: rgba(34, 197, 94, 0.1); 
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-left: 4px solid #22c55e;
+        }
+        .status-error { 
+            background: rgba(239, 68, 68, 0.1); 
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-left: 4px solid #ef4444;
+        }
+        .status-warning { 
+            background: rgba(245, 158, 11, 0.1); 
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-left: 4px solid #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script>
+        const { createApp, ref, onMounted } = Vue;
+        
+        // 主应用组件
+        const App = {
+            template: `
+                <div class="flex flex-col h-screen">
+                    <!-- 导航栏 -->
+                    <header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+                        <div class="flex items-center gap-3">
+                            <span class="iconify text-3xl text-blue-400" data-icon="lucide:gavel"></span>
+                            <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真基础模型管理系统</h1>
+                        </div>
+                        <nav class="flex gap-1 h-full justify-center">
+                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../terrain.html">
+                                <span class="iconify mr-2" data-icon="lucide:map"></span>地理环境</a>
+                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../electromagnetic/electromagnetic.html">
+                                <span class="iconify mr-2" data-icon="lucide:waves"></span>电磁环境</a>
+                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../weather/weather_cesium.html">
+                                <span class="iconify mr-2" data-icon="lucide:cloud-sun"></span>气象环境</a>
+                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../airspace/index.html">
+                                <span class="iconify mr-2" data-icon="lucide:layers"></span>空域航路</a>
+                            <a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="index.html">
+                                <span class="iconify mr-2" data-icon="lucide:gavel"></span>飞行规则</a>
+                            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../assets/index.html">
+                                <span class="iconify mr-2" data-icon="lucide:database"></span>装备库</a>
+                        </nav>
+                    </header>
+                    
+                    <div class="flex flex-1 overflow-hidden">
+                        <!-- 左侧规则树 -->
+                        <div class="w-80 glass-panel border-r border-slate-800 overflow-y-auto p-4">
+                            <!-- 数据源状态 -->
+                            <div class="mb-6">
+                                <div class="section-title">
+                                    <span class="iconify" data-icon="mdi:database"></span>
+                                    数据源状态
+                                </div>
+                                
+                                <div class="space-y-3">
+                                    <!-- 加载状态 -->
+                                    <div v-if="loading" class="p-3 status-info rounded">
+                                        <div class="flex items-center gap-2">
+                                            <span class="iconify animate-spin text-blue-400" data-icon="mdi:loading"></span>
+                                            <span class="text-blue-300">正在自动加载 rules.csv 文件...</span>
+                                        </div>
+                                        <p class="text-xs text-slate-400 mt-2">正在读取同目录下的规则配置文件</p>
+                                    </div>
+
+                                    <!-- 规则统计 -->
+                                    <div v-if="!loading && rulesLoaded" class="p-3 status-success rounded">
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div class="text-center p-2 bg-slate-800/50 rounded">
+                                                <p class="text-xs text-slate-400">规则维度</p>
+                                                <p class="text-lg font-bold text-white">{{ Object.keys(groupedRules).length }} 类</p>
+                                            </div>
+                                            <div class="text-center p-2 bg-slate-800/50 rounded">
+                                                <p class="text-xs text-slate-400">配置参数</p>
+                                                <p class="text-lg font-bold text-white">{{ totalRules }} 条</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- 加载失败 -->
+                                    <div v-if="!loading && error" class="p-3 status-error rounded">
+                                        <div class="flex items-center gap-2">
+                                            <span class="iconify text-red-400" data-icon="mdi:alert-circle"></span>
+                                            <span class="text-red-300">{{ error }}</span>
+                                        </div>
+                                        <div class="mt-2 text-xs text-slate-400">
+                                            <p class="mb-1">请检查以下问题：</p>
+                                            <ul class="list-disc pl-4 space-y-1">
+                                                <li>确保 rules.csv 文件与当前页面在同一目录</li>
+                                                <li>检查文件编码是否为 UTF-8</li>
+                                                <li>确认文件格式符合规范（包含规则维度、规则名称、参数名、参数值、配置要求/说明等列）</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 规则树 -->
+                            <div>
+                                <div class="section-title flex justify-between items-center">
+                                    <div class="flex items-center gap-2">
+                                        <span class="iconify" data-icon="mdi:sitemap"></span>
+                                        规则分类导航
+                                    </div>
+                                    <button 
+                                        v-if="rulesLoaded && Object.keys(groupedRules).length > 0"
+                                        @click="toggleAllCategories"
+                                        class="text-xs text-slate-400 hover:text-slate-300"
+                                    >
+                                        {{ allExpanded ? '全部收起' : '全部展开' }}
+                                    </button>
+                                </div>
+                                
+                                <!-- 无数据提示 -->
+                                <div v-if="!loading && !rulesLoaded && !error" class="p-4 text-center">
+                                    <span class="iconify text-4xl text-slate-500 mx-auto mb-3" data-icon="mdi:database-import"></span>
+                                    <p class="text-slate-400">等待加载规则数据...</p>
+                                </div>
+                                
+                                <!-- 规则树内容 -->
+                                <div v-if="rulesLoaded && Object.keys(groupedRules).length > 0" class="space-y-2">
+                                    <div 
+                                        v-for="(rules, category) in groupedRules" 
+                                        :key="category"
+                                        class="tree-category"
+                                    >
+                                        <div 
+                                            class="flex items-center gap-2 p-2 rounded hover:bg-slate-800 cursor-pointer"
+                                            @click="toggleCategory(category)"
+                                        >
+                                            <span 
+                                                class="iconify transition-transform"
+                                                :class="{ 'rotate-90': expandedCategories[category] }"
+                                                data-icon="mdi:chevron-right"
+                                            ></span>
+                                            <span class="text-orange-400 font-semibold">{{ category }}</span>
+                                            <span class="text-xs bg-slate-700 px-2 py-1 rounded-full ml-auto">
+                                                {{ getRuleCountInCategory(category) }}
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- 子规则列表 -->
+                                        <div v-show="expandedCategories[category]" class="ml-6 space-y-1">
+                                            <div 
+                                                v-for="(ruleItems, ruleName) in getRulesByCategory(category)"
+                                                :key="ruleName"
+                                                class="tree-item p-2 rounded"
+                                                :class="{ 'active': selectedRule && selectedRule.name === ruleName && selectedRule.category === category }"
+                                                @click="selectRule(category, ruleName, ruleItems)"
+                                            >
+                                                <div class="flex items-center gap-2">
+                                                    <span class="iconify text-blue-400" data-icon="mdi:cog"></span>
+                                                    <span class="text-sm truncate">{{ ruleName }}</span>
+                                                    <span class="text-xs bg-slate-600 px-1.5 py-0.5 rounded ml-auto">
+                                                        {{ ruleItems.length }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 空数据提示 -->
+                                <div v-if="rulesLoaded && Object.keys(groupedRules).length === 0" class="p-4 text-center">
+                                    <span class="iconify text-4xl text-slate-500 mx-auto mb-3" data-icon="mdi:database-remove"></span>
+                                    <p class="text-slate-400">rules.csv 文件中未找到规则数据</p>
+                                    <p class="text-slate-500 text-xs mt-1">请检查CSV文件格式是否正确</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 主内容区 -->
+                        <div class="flex-1 relative overflow-y-auto">
+                            <!-- 网格背景 -->
+                            <div class="rule-grid absolute inset-0"></div>
+                            
+                            <!-- 规则详情面板 -->
+                            <div v-if="selectedRule" class="glass-panel m-6 p-6">
+                                <div class="flex justify-between items-start mb-6">
+                                    <div>
+                                        <h2 class="text-2xl font-bold text-orange-400">{{ selectedRule.name }}</h2>
+                                        <p class="text-slate-400 text-sm">{{ selectedRule.category }} · {{ selectedRule.items.length }} 个配置参数</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <button 
+                                            @click="exportSelectedRule"
+                                            class="px-4 py-2 rounded border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 flex items-center gap-2"
+                                        >
+                                            <span class="iconify" data-icon="mdi:download"></span>
+                                            导出当前规则
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- 参数配置表 -->
+                                <div class="overflow-x-auto">
+                                    <table class="w-full border-collapse">
+                                        <thead>
+                                            <tr class="bg-slate-800/50">
+                                                <th class="p-3 text-left text-slate-300 font-semibold border-b border-slate-700">参数名</th>
+                                                <th class="p-3 text-left text-slate-300 font-semibold border-b border-slate-700">参数值</th>
+                                                <th class="p-3 text-left text-slate-300 font-semibold border-b border-slate-700">配置要求/说明</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr 
+                                                v-for="(item, index) in selectedRule.items" 
+                                                :key="index"
+                                                class="border-b border-slate-800 hover:bg-slate-800/30 transition-colors"
+                                            >
+                                                <td class="p-3 text-slate-300">
+                                                    <div class="font-medium">{{ item.参数名 }}</div>
+                                                </td>
+                                                <td class="p-3">
+                                                    <div class="text-emerald-400 font-mono">{{ item.参数值 }}</div>
+                                                </td>
+                                                <td class="p-3 text-slate-400 text-sm">
+                                                    {{ item['配置要求/说明'] }}
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- 无选中规则时的提示 -->
+                            <div v-else-if="rulesLoaded" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                                <span class="iconify text-6xl text-slate-500 mx-auto mb-4" data-icon="mdi:airplane-takeoff"></span>
+                                <p class="text-slate-400 text-lg">请从左侧选择一条规则查看详细配置</p>
+                                <p class="text-slate-500 text-sm mt-2">系统已加载 {{ totalRules }} 条规则配置参数</p>
+                            </div>
+                            
+                            <!-- 等待数据加载 -->
+                            <div v-else-if="loading" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                                <span class="iconify animate-spin text-6xl text-slate-500 mx-auto mb-4" data-icon="mdi:loading"></span>
+                                <p class="text-slate-400 text-lg">正在加载规则数据...</p>
+                                <p class="text-slate-500 text-sm mt-2">请稍候</p>
+                            </div>
+                            
+                            <!-- 加载失败提示 -->
+                            <div v-else class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
+                                <span class="iconify text-6xl text-orange-500 mx-auto mb-4" data-icon="mdi:alert-circle-outline"></span>
+                                <p class="text-slate-400 text-lg">无法加载规则数据</p>
+                                <p class="text-slate-500 text-sm mt-2">{{ error || '请检查 rules.csv 文件是否存在' }}</p>
+                                <button 
+                                    @click="loadLocalCSV"
+                                    class="mt-4 px-6 py-2 rounded bg-orange-600 hover:bg-orange-500 text-white font-semibold"
+                                >
+                                    重试加载
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            
+            setup() {
+                // 响应式数据
+                const rulesData = ref([]);
+                const groupedRules = ref({});
+                const selectedRule = ref(null);
+                const loading = ref(true);
+                const error = ref(null);
+                const rulesLoaded = ref(false);
+                const expandedCategories = ref({});
+                const allExpanded = ref(true);
+                const lastUpdateTime = ref('');
+                const currentFileName = ref('rules.csv');
+                const fileSize = ref('');
+                const totalRules = ref(0);
+                
+                // 加载本地CSV文件
+                const loadLocalCSV = () => {
+                    loading.value = true;
+                    error.value = null;
+                    
+                    // 使用fetch加载同目录下的rules.csv
+                    fetch('./rules.csv')
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`文件加载失败 (${response.status}): ${response.statusText}`);
+                            }
+                            
+                            // 获取文件大小
+                            const contentLength = response.headers.get('content-length');
+                            if (contentLength) {
+                                const sizeInKB = Math.round(parseInt(contentLength) / 1024 * 100) / 100;
+                                fileSize.value = `${sizeInKB} KB`;
+                            } else {
+                                fileSize.value = '未知大小';
+                            }
+                            
+                            return response.text();
+                        })
+                        .then(csvText => {
+                            if (!csvText || csvText.trim().length === 0) {
+                                throw new Error('CSV文件为空');
+                            }
+                            
+                            // 更新最后更新时间
+                            lastUpdateTime.value = new Date().toLocaleString('zh-CN');
+                            
+                            Papa.parse(csvText, {
+                                header: true,
+                                skipEmptyLines: true,
+                                complete: (results) => {
+                                    if (results.errors.length > 0) {
+                                        error.value = `CSV解析错误: ${results.errors[0].message}`;
+                                        rulesLoaded.value = false;
+                                    } else if (results.data.length === 0) {
+                                        error.value = 'CSV文件中没有数据';
+                                        rulesLoaded.value = false;
+                                    } else {
+                                        processRulesData(results.data);
+                                        rulesLoaded.value = true;
+                                        
+                                        // 如果没有选中规则，默认选中第一个
+                                        if (!selectedRule.value && results.data.length > 0) {
+                                            setTimeout(() => {
+                                                const firstCategory = Object.keys(groupedRules.value)[0];
+                                                if (firstCategory) {
+                                                    const firstRule = Object.keys(getRulesByCategory(firstCategory))[0];
+                                                    if (firstRule) {
+                                                        selectRule(firstCategory, firstRule, getRulesByCategory(firstCategory)[firstRule]);
+                                                    }
+                                                }
+                                            }, 100);
+                                        }
+                                    }
+                                    loading.value = false;
+                                },
+                                error: (err) => {
+                                    error.value = `解析失败: ${err.message}`;
+                                    rulesLoaded.value = false;
+                                    loading.value = false;
+                                }
+                            });
+                        })
+                        .catch(err => {
+                            error.value = `加载文件失败: ${err.message}`;
+                            rulesLoaded.value = false;
+                            loading.value = false;
+                        });
+                };
+                
+                // 处理规则数据
+                const processRulesData = (data) => {
+                    rulesData.value = data;
+                    totalRules.value = data.length;
+                    
+                    // 按规则维度分组
+                    const grouped = {};
+                    data.forEach(item => {
+                        const category = item.规则维度 || '未分类';
+                        if (!grouped[category]) {
+                            grouped[category] = [];
+                        }
+                        grouped[category].push(item);
+                    });
+                    
+                    groupedRules.value = grouped;
+                    
+                    // 初始化展开状态
+                    Object.keys(grouped).forEach(category => {
+                        expandedCategories.value[category] = true;
+                    });
+                    
+                    allExpanded.value = true;
+                };
+                
+                // 刷新数据
+                const refreshData = () => {
+                    loadLocalCSV();
+                };
+                
+                // 获取分类中的规则数量
+                const getRuleCountInCategory = (category) => {
+                    const rules = groupedRules.value[category] || [];
+                    const ruleNames = new Set();
+                    rules.forEach(rule => ruleNames.add(rule.规则名称));
+                    return ruleNames.size;
+                };
+                
+                // 获取分类下的规则（按规则名称分组）
+                const getRulesByCategory = (category) => {
+                    const rules = groupedRules.value[category] || [];
+                    const grouped = {};
+                    
+                    rules.forEach(item => {
+                        const ruleName = item.规则名称 || '未命名规则';
+                        if (!grouped[ruleName]) {
+                            grouped[ruleName] = [];
+                        }
+                        grouped[ruleName].push(item);
+                    });
+                    
+                    return grouped;
+                };
+                
+                // 选择规则
+                const selectRule = (category, ruleName, ruleItems) => {
+                    selectedRule.value = {
+                        category,
+                        name: ruleName,
+                        items: ruleItems
+                    };
+                };
+                
+                // 切换分类展开状态
+                const toggleCategory = (category) => {
+                    expandedCategories.value[category] = !expandedCategories.value[category];
+                    updateAllExpandedState();
+                };
+                
+                // 切换所有分类
+                const toggleAllCategories = () => {
+                    const newState = !allExpanded.value;
+                    Object.keys(expandedCategories.value).forEach(category => {
+                        expandedCategories.value[category] = newState;
+                    });
+                    allExpanded.value = newState;
+                };
+                
+                // 更新全部展开状态
+                const updateAllExpandedState = () => {
+                    const categories = Object.keys(expandedCategories.value);
+                    allExpanded.value = categories.every(category => expandedCategories.value[category]);
+                };
+                
+                // 导出选中的规则
+                const exportSelectedRule = () => {
+                    if (!selectedRule.value) return;
+                    
+                    const csvData = selectedRule.value.items.map(item => ({
+                        规则维度: item.规则维度,
+                        规则名称: item.规则名称,
+                        参数名: item.参数名,
+                        参数值: item.参数值,
+                        '配置要求/说明': item['配置要求/说明']
+                    }));
+                    
+                    const csv = Papa.unparse(csvData);
+                    downloadCSV(csv, `${selectedRule.value.category}_${selectedRule.value.name}_配置.csv`);
+                };
+                
+                // 导出全部规则
+                const exportAllRules = () => {
+                    if (rulesData.value.length === 0) return;
+                    
+                    const csv = Papa.unparse(rulesData.value);
+                    downloadCSV(csv, `低空仿真系统规则配置_${new Date().toISOString().slice(0, 10)}.csv`);
+                };
+                
+                // 下载CSV文件
+                const downloadCSV = (csvContent, fileName) => {
+                    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                };
+                
+                // 组件挂载时自动加载CSV文件
+                onMounted(() => {
+                    loadLocalCSV();
+                });
+                
+                return {
+                    rulesData,
+                    groupedRules,
+                    selectedRule,
+                    loading,
+                    error,
+                    rulesLoaded,
+                    expandedCategories,
+                    allExpanded,
+                    lastUpdateTime,
+                    currentFileName,
+                    fileSize,
+                    totalRules,
+                    
+                    loadLocalCSV,
+                    refreshData,
+                    getRuleCountInCategory,
+                    getRulesByCategory,
+                    selectRule,
+                    toggleCategory,
+                    toggleAllCategories,
+                    exportSelectedRule,
+                    exportAllRules
+                };
+            }
+        };
+        
+        // 创建并挂载Vue应用
+        createApp(App).mount('#app');
+    </script>
+</body>
+</html>

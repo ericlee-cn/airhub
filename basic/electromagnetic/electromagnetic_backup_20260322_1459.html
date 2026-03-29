@@ -1,0 +1,2056 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>基础模型管理子系统 | 电磁环境</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/iconify/3.1.0/iconify.min.js"></script>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+  <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+  <style>
+    body { background-color: #030a1c; color: #e2e8f0; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; height: 100vh; overflow: hidden; }
+    .glass-panel { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 170, 255, 0.2); backdrop-filter: blur(12px); }
+    .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1); }
+
+    .side-panel {
+      width: 300px; min-width: 300px;
+      transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease;
+      overflow: hidden; flex-shrink: 0;
+    }
+    .side-panel.collapsed { width: 0 !important; min-width: 0 !important; opacity: 0; }
+
+    .panel-toggle-btn {
+      flex-shrink: 0; width: 14px; align-self: stretch;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(0, 170, 255, 0.25); color: #60a5fa;
+      font-size: 9px; transition: background 0.2s; z-index: 30; user-select: none;
+    }
+    .panel-toggle-btn:hover { background: rgba(0, 170, 255, 0.18); color: #fff; }
+
+    .tree-node { cursor: pointer; transition: all 0.2s; border-left: 2px solid transparent; }
+    .tree-node:hover { background: rgba(59, 130, 246, 0.1); border-left: 2px solid #3b82f6; }
+    .tree-node.active { background: rgba(59, 130, 246, 0.2); border-left: 2px solid #3b82f6; color: #60a5fa; }
+    .node-tag { font-size: 10px; padding: 1px 4px; border-radius: 2px; margin-left: auto; }
+
+    .section-content { transition: max-height 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease; overflow: hidden; }
+
+    #cesiumContainer { width: 100%; height: 100%; }
+    .cesium-viewer-bottom { display: none !important; }
+    .cesium-widget-credits { display: none !important; }
+
+    /* 高度层滑块 */
+    .alt-slider { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: rgba(59,130,246,0.3); outline: none; }
+    .alt-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #3b82f6; cursor: pointer; border: 2px solid #60a5fa; }
+
+    /* 图例 */
+    .legend-bar { height: 12px; border-radius: 4px; background: linear-gradient(to right, #1e3a8a, #2563eb, #22c55e, #facc15, #f97316, #ef4444); }
+
+    /* 信号强度色带 */
+    .sig-severe  { color: #ef4444; }
+    .sig-high    { color: #f97316; }
+    .sig-medium  { color: #eab308; }
+    .sig-low     { color: #22c55e; }
+
+    /* 脉冲动画 */
+    @keyframes pulse-ring { 0%{transform:scale(0.8);opacity:1} 100%{transform:scale(2.5);opacity:0} }
+
+    /* 标签样式 */
+    .bg-tag-red    { background: rgba(239,68,68,.2);  color: #ef4444; border: 1px solid rgba(239,68,68,.3); }
+    .bg-tag-orange { background: rgba(249,115,22,.2); color: #f97316; border: 1px solid rgba(249,115,22,.3); }
+    .bg-tag-green  { background: rgba(34,197,94,.2);  color: #22c55e; border: 1px solid rgba(34,197,94,.3); }
+    .bg-tag-blue   { background: rgba(59,130,246,.2); color: #3b82f6; border: 1px solid rgba(59,130,246,.3); }
+    .bg-tag-purple { background: rgba(168,85,247,.2); color: #a855f7; border: 1px solid rgba(168,85,247,.3); }
+    .bg-tag-cyan   { background: rgba(6,182,212,.2);  color: #06b6d4; border: 1px solid rgba(6,182,212,.3); }
+    .bg-tag-yellow { background: rgba(234,179,8,.2);  color: #eab308; border: 1px solid rgba(234,179,8,.3); }
+
+    /* 热力点 */
+    .heatmap-dot { position: absolute; border-radius: 50%; pointer-events: none; }
+
+    /* 复选框打钩标记 */
+    .layer-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 16px;
+      min-height: 16px;
+      line-height: 1;
+    }
+  </style>
+  <!-- Tailwind CDN (inline minimal) -->
+  <style>*,::before,::after{box-sizing:border-box}body{margin:0}button,input{font-family:inherit;font-size:100%;margin:0;padding:0}button{cursor:pointer}.flex{display:flex}.flex-col{flex-direction:column}.flex-1{flex:1 1 0%}.items-center{align-items:center}.justify-between{justify-content:space-between}.justify-center{justify-content:center}.h-full{height:100%}.h-16{height:4rem}.w-full{width:100%}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.relative{position:relative}.absolute{position:absolute}.inset-0{inset:0}.z-10{z-index:10}.z-20{z-index:20}.z-50{z-index:50}.gap-1{gap:.25rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.p-1{padding:.25rem}.p-2{padding:.5rem}.p-3{padding:.75rem}.p-4{padding:1rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-2{margin-bottom:.5rem}.mt-1{margin-top:.25rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.ml-4{margin-left:1rem}.ml-6{margin-left:1.5rem}.mr-2{margin-right:.5rem}.space-y-1>:not([hidden])~:not([hidden]){margin-top:.25rem}.space-y-2>:not([hidden])~:not([hidden]){margin-top:.5rem}.space-y-4>:not([hidden])~:not([hidden]){margin-top:1rem}.text-xs{font-size:.75rem;line-height:1rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[10px\]{font-size:10px}.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-mono{font-family:ui-monospace,monospace}.uppercase{text-transform:uppercase}.italic{font-style:italic}.tracking-widest{letter-spacing:.1em}.leading-relaxed{line-height:1.625}.text-right{text-align:right}.rounded{border-radius:.25rem}.rounded-lg{border-radius:.5rem}.rounded-full{border-radius:9999px}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-l{border-left-width:1px}.border-l-4{border-left-width:4px}.border-r{border-right-width:1px}.border-slate-700{border-color:rgb(51 65 85)}.border-slate-800{border-color:rgb(30 41 59)}.border-blue-500\/20{border-color:rgb(59 130 246/.2)}.border-blue-500\/40{border-color:rgb(59 130 246/.4)}.bg-slate-900\/40{background-color:rgb(15 23 42/.4)}.bg-slate-900\/60{background-color:rgb(15 23 42/.6)}.bg-blue-600\/20{background-color:rgb(37 99 235/.2)}.hover\:bg-blue-600\/40:hover{background-color:rgb(37 99 235/.4)}.bg-slate-800\/50{background-color:rgb(30 41 59/.5)}.hover\:bg-slate-800\/50:hover{background-color:rgb(30 41 59/.5)}.hover\:bg-slate-800:hover{background-color:rgb(30 41 59)}.hover\:bg-slate-700\/50:hover{background-color:rgb(51 65 85/.5)}.text-blue-400{color:rgb(96 165 250)}.text-blue-500{color:rgb(59 130 246)}.text-cyan-400{color:rgb(34 211 238)}.text-emerald-400{color:rgb(52 211 153)}.text-green-400{color:rgb(74 222 128)}.text-orange-400{color:rgb(251 146 60)}.text-purple-400{color:rgb(192 132 252)}.text-red-400{color:rgb(248 113 113)}.text-yellow-400{color:rgb(250 204 21)}.text-slate-300{color:rgb(203 213 225)}.text-slate-400{color:rgb(148 163 184)}.text-slate-500{color:rgb(100 116 139)}.text-transparent{color:transparent}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.bg-gradient-to-r{background-image:linear-gradient(to right,var(--tw-gradient-stops))}.from-blue-400{--tw-gradient-from:#60a5fa;--tw-gradient-stops:var(--tw-gradient-from),rgb(96 165 250/0)}.to-cyan-300{--tw-gradient-to:#67e8f9}.animate-pulse{animation:pulse 2s cubic-bezier(.4,0,.6,1) infinite}@keyframes pulse{50%{opacity:.5}}.transition{transition-property:color,background-color,border-color,opacity,box-shadow,transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:150ms}.grid{display:grid}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.col-span-2{grid-column:span 2/span 2}</style>
+</head>
+<body class="flex flex-col">
+
+<!-- 顶部导航 -->
+<header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+  <div class="flex items-center gap-3">
+    <span class="iconify text-3xl text-blue-400" data-icon="lucide:waves"></span>
+    <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真系统</h1>
+  </div>
+  <nav class="flex gap-1 h-full">
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="#">系统总览</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="#">
+      <span class="iconify mr-2" data-icon="lucide:map"></span>地理环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="#">
+      <span class="iconify mr-2" data-icon="lucide:waves"></span>电磁环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="#">
+      <span class="iconify mr-2" data-icon="lucide:cloud-sun"></span>气象环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="#">
+      <span class="iconify mr-2" data-icon="lucide:layers"></span>空域航路</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="#">
+      <span class="iconify mr-2" data-icon="lucide:gavel"></span>飞行规则</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="#">
+      <span class="iconify mr-2" data-icon="lucide:database"></span>装备库</a>
+  </nav>
+</header>
+
+<!-- 主体 -->
+<div class="flex-1 flex overflow-hidden">
+
+  <!-- 左侧：干扰源资源树 -->
+  <aside class="side-panel glass-panel border-r border-slate-700 flex flex-col z-20" id="leftPanel">
+    <div class="p-4 border-b border-slate-800 bg-slate-900/40">
+      <h2 class="font-bold flex items-center gap-2 text-blue-400">
+        <span class="iconify" data-icon="lucide:radio-tower"></span> 电磁干扰源
+      </h2>
+    </div>
+    <!-- 数据源选择 -->
+    <div class="p-3 border-b border-slate-800 bg-slate-900/30">
+      <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">数据源选择</div>
+      <select id="dataSourceSelect" class="w-full p-2 text-xs bg-slate-800 border border-slate-600 rounded text-slate-300 focus:border-blue-500 focus:outline-none" onchange="switchDataSource(this.value)">
+        <option value="template_001">模板001: 标准城市环境</option>
+      </select>
+    </div>
+    <div class="flex-1 overflow-y-auto p-2 space-y-1" id="resourceTree">
+
+      <!-- 仿真范围 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-blue-400 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-blue-400" data-icon="lucide:scan"></span>
+            电磁仿真范围
+          </div>
+          <button class="p-1 rounded hover:bg-slate-700/50" onclick="event.stopPropagation();toggleLayer('sim-boundary',this)">
+            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+          </button>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0">
+          <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="flyToSimBoundary()">
+            <span class="iconify text-blue-400" data-icon="lucide:map-pin"></span>
+            仿真区域（119.83~120.16°E）
+            <span class="node-tag bg-tag-blue ml-auto">80m格</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5G基站 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-emerald-400 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-emerald-400" data-icon="lucide:radio"></span>
+            5G基站 <span class="text-[10px] text-slate-500 ml-1">(8)</span>
+          </div>
+          <button class="p-1 rounded hover:bg-slate-700/50" onclick="event.stopPropagation();toggleSourceType('5g',this)">
+            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+          </button>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0" id="tree-5g"></div>
+      </div>
+
+      <!-- 监视雷达 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-purple-400 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-purple-400" data-icon="lucide:radar"></span>
+            监视雷达 <span class="text-[10px] text-slate-500 ml-1">(4)</span>
+          </div>
+          <button class="p-1 rounded hover:bg-slate-700/50" onclick="event.stopPropagation();toggleSourceType('radar',this)">
+            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+          </button>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0" id="tree-radar"></div>
+      </div>
+
+      <!-- CORS站 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-blue-400 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-blue-400" data-icon="lucide:compass"></span>
+            精准导航CORS站 <span class="text-[10px] text-slate-500 ml-1">(5)</span>
+          </div>
+          <button class="p-1 rounded hover:bg-slate-700/50" onclick="event.stopPropagation();toggleSourceType('cors',this)">
+            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+          </button>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0" id="tree-cors"></div>
+      </div>
+
+      <!-- UAV中继 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-cyan-400 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-cyan-400" data-icon="lucide:plane"></span>
+            无人机中继站 <span class="text-[10px] text-slate-500 ml-1">(3)</span>
+          </div>
+          <button class="p-1 rounded hover:bg-slate-700/50" onclick="event.stopPropagation();toggleSourceType('uav',this)">
+            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+          </button>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0" id="tree-uav"></div>
+      </div>
+
+      <!-- 仿真网格层 -->
+      <div class="mb-3">
+        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-all" onclick="toggleSection(this)">
+          <div class="flex items-center gap-2">
+            <span class="iconify text-orange-400 transition-all" data-icon="lucide:chevron-right" style="transform:rotate(0deg)"></span>
+            <span class="iconify text-orange-400" data-icon="lucide:grid-3x3"></span>
+            仿真网格热力图
+          </div>
+          <button class="p-1 rounded hover:bg-slate-700/50" onclick="event.stopPropagation();toggleLayer('heatmap',this)">
+            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+          </button>
+        </div>
+        <div class="ml-4 space-y-1 section-content" style="max-height:0;opacity:0">
+          <!-- 显示模式切换 -->
+          <div class="p-2 text-xs text-slate-400 mb-2">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold">显示模式</span>
+            </div>
+            <div class="flex gap-2 mb-3">
+              <button id="mode-single" class="flex-1 py-1 px-2 rounded text-xs font-bold transition bg-blue-600/20 text-blue-400 border border-blue-500/40" onclick="setDisplayMode('single')">
+                <span class="iconify mr-1" data-icon="lucide:layers"></span>单层
+              </button>
+              <button id="mode-stack" class="flex-1 py-1 px-2 rounded text-xs font-bold transition bg-slate-700/50 text-slate-500 border border-slate-600" onclick="setDisplayMode('stack')">
+                <span class="iconify mr-1" data-icon="lucide:box"></span>堆叠
+              </button>
+            </div>
+          </div>
+          <!-- 高度滑块（单层模式显示） -->
+          <div class="p-2 text-xs text-slate-400" id="singleLayerControl">
+            <div class="flex items-center justify-between mb-1">
+              <span>当前高度层</span>
+              <span class="text-orange-400 font-mono" id="curAltLabel">H0 · 0m</span>
+            </div>
+            <input type="range" min="0" max="5" value="0" class="alt-slider w-full mt-1"
+              id="altSlider" oninput="onAltChange(this.value)">
+            <div class="flex justify-between text-[10px] text-slate-600 mt-1">
+              <span>0m</span><span>200m</span><span>400m</span>
+            </div>
+          </div>
+          <!-- 堆叠控制（堆叠模式显示） -->
+          <div class="p-2 text-xs text-slate-400 hidden" id="stackLayerControl">
+            <div class="flex items-center justify-between mb-1">
+              <span>堆叠层数</span>
+              <span class="text-orange-400 font-mono" id="stackCountLabel">全6层</span>
+            </div>
+            <input type="range" min="1" max="6" value="6" class="alt-slider w-full mt-1"
+              id="stackSlider" oninput="onStackCountChange(this.value)">
+            <div class="flex justify-between text-[10px] text-slate-600 mt-1">
+              <span>1层</span><span>3层</span><span>6层</span>
+            </div>
+            <div class="mt-2 p-2 rounded" style="background:rgba(255,165,0,0.1);border:1px solid rgba(255,165,0,0.3)">
+              <div class="flex items-center gap-1 text-[10px] text-orange-300">
+                <span class="iconify" data-icon="lucide:info"></span>
+                <span>堆叠模式：同时显示多个高度层的立体网格</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <!-- 底部统计 -->
+    <div class="p-3 border-t border-slate-800 bg-slate-900/60 text-[10px] text-slate-500">
+      <div class="flex justify-between mb-2">
+        <span>干扰源总数: <span class="text-orange-400 font-bold">20</span></span>
+        <span>仿真格数: <span class="text-blue-400">32.6万</span></span>
+      </div>
+      <div class="flex justify-between gap-2">
+        <span>高度范围: <span class="text-blue-400 font-mono">0~400m</span></span>
+        <span>网格尺寸: <span class="text-emerald-400 font-mono">80m × 80m</span></span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="panel-toggle-btn" id="leftToggleBtn" onclick="togglePanel('left')" title="收起/展开左侧">&#10094;</div>
+
+  <!-- 中间：Cesium地图 -->
+  <main class="flex-1 relative overflow-hidden" style="background:#030a1c">
+    <div id="cesiumContainer"></div>
+
+    <!-- 地图状态通知 -->
+    <div id="mapNotification" class="absolute z-50 top-4 right-4 max-w-sm px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full opacity-0"
+         style="background:rgba(59,130,246,0.95);border:1px solid rgba(147,197,253,0.3)">
+      <div class="flex items-start gap-3">
+        <span class="iconify text-xl text-blue-200" data-icon="lucide:info"></span>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-white mb-1" id="notificationTitle">通知</p>
+          <p class="text-xs text-blue-100" id="notificationMessage">消息内容</p>
+        </div>
+        <button onclick="hideNotification()" class="text-blue-200 hover:text-white transition">
+          <span class="iconify" data-icon="lucide:x"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 地图上方图层控制栏 -->
+    <div class="absolute z-20" style="top:1rem;left:50%;transform:translateX(-50%)">
+      <div class="px-6 py-4 rounded-lg flex items-center gap-4" style="background:rgba(51,65,85,0.9);border:1px solid rgba(100,116,139,0.3)" id="layerControlBar">
+        <!-- 综合模式 -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="toggleSourceType('all',document.getElementById('btn-all'))">
+          <button id="btn-all" class="flex items-center justify-center w-8 h-8 rounded transition border-2 relative" title="综合模式：显示所有信号源叠加" style="background:rgba(59,130,246,0.3);border-color:rgba(59,130,246,0.6)">
+            <span class="text-lg font-bold text-white layer-badge" style="line-height:1">✓</span>
+          </button>
+          <div class="flex items-center justify-center w-10 h-10 rounded transition bg-slate-700 hover:bg-slate-600 border border-slate-600" title="综合模式：显示所有信号源叠加">
+            <span class="iconify text-blue-400 text-xl" data-icon="lucide:layers"></span>
+          </div>
+        </div>
+        <div class="w-px h-12 border-l-2 border-dashed border-slate-600"></div>
+        <!-- 信号源类型（互斥） -->
+        <div class="flex items-center gap-4">
+          <!-- 5G基站 -->
+          <div class="flex items-center gap-3 cursor-pointer" onclick="toggleSourceType('5g',document.getElementById('btn-5g'))">
+            <button id="btn-5g" class="flex items-center justify-center w-8 h-8 rounded transition border-2 relative" title="5G基站" style="background:rgba(71,85,105,0.3);border-color:rgba(71,85,105,0.5)">
+              <span class="text-lg font-bold text-slate-500 layer-badge" style="line-height:1"></span>
+            </button>
+            <div class="flex items-center justify-center w-10 h-10 rounded transition bg-slate-700 hover:bg-slate-600 border border-slate-600" title="5G基站">
+              <span class="iconify text-emerald-400 text-xl" data-icon="lucide:radio"></span>
+            </div>
+          </div>
+          <div class="w-px h-12 border-l-2 border-dashed border-slate-600"></div>
+          <!-- 监视雷达 -->
+          <div class="flex items-center gap-3 cursor-pointer" onclick="toggleSourceType('radar',document.getElementById('btn-radar'))">
+            <button id="btn-radar" class="flex items-center justify-center w-8 h-8 rounded transition border-2 relative" title="监视雷达" style="background:rgba(71,85,105,0.3);border-color:rgba(71,85,105,0.5)">
+              <span class="text-lg font-bold text-slate-500 layer-badge" style="line-height:1"></span>
+            </button>
+            <div class="flex items-center justify-center w-10 h-10 rounded transition bg-slate-700 hover:bg-slate-600 border border-slate-600" title="监视雷达">
+              <span class="iconify text-purple-400 text-xl" data-icon="lucide:radar"></span>
+            </div>
+          </div>
+          <div class="w-px h-12 border-l-2 border-dashed border-slate-600"></div>
+          <!-- CORS站 -->
+          <div class="flex items-center gap-3 cursor-pointer" onclick="toggleSourceType('cors',document.getElementById('btn-cors'))">
+            <button id="btn-cors" class="flex items-center justify-center w-8 h-8 rounded transition border-2 relative" title="CORS站" style="background:rgba(71,85,105,0.3);border-color:rgba(71,85,105,0.5)">
+              <span class="text-lg font-bold text-slate-500 layer-badge" style="line-height:1"></span>
+            </button>
+            <div class="flex items-center justify-center w-10 h-10 rounded transition bg-slate-700 hover:bg-slate-600 border border-slate-600" title="CORS站">
+              <span class="iconify text-blue-400 text-xl" data-icon="lucide:compass"></span>
+            </div>
+          </div>
+          <div class="w-px h-12 border-l-2 border-dashed border-slate-600"></div>
+          <!-- UAV中继 -->
+          <div class="flex items-center gap-3 cursor-pointer" onclick="toggleSourceType('uav',document.getElementById('btn-uav'))">
+            <button id="btn-uav" class="flex items-center justify-center w-8 h-8 rounded transition border-2 relative" title="UAV中继" style="background:rgba(71,85,105,0.3);border-color:rgba(71,85,105,0.5)">
+              <span class="text-lg font-bold text-slate-500 layer-badge" style="line-height:1"></span>
+            </button>
+            <div class="flex items-center justify-center w-10 h-10 rounded transition bg-slate-700 hover:bg-slate-600 border border-slate-600" title="UAV中继">
+              <span class="iconify text-cyan-400 text-xl" data-icon="lucide:plane"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部图例 -->
+    <div class="absolute z-10" style="bottom:1.5rem;left:1rem;right:1rem">
+      <div class="glass-panel px-4 py-2 rounded-lg flex items-center gap-4" style="width:fit-content;min-width:520px" id="legendPanel">
+        <span class="text-[10px] text-slate-400 font-bold uppercase">信号强度</span>
+        <div style="flex:1;min-width:200px">
+          <div style="height:12px;border-radius:4px;background:linear-gradient(to right,#1e3a8a,#06b6d4,#4ade80,#f97316,#ef4444)" id="legendGradient"></div>
+          <div class="flex justify-between text-[10px] text-slate-500 mt-1" id="legendScale">
+            <span>-118 dBm</span><span>-110 dBm</span><span>-100 dBm</span><span>-88 dBm</span><span>-80 dBm</span>
+          </div>
+        </div>
+        <div class="flex gap-3 text-[10px]" id="legendColors">
+          <span style="color:#4ade80">● LOW &lt;-108</span>
+          <span style="color:#facc15">● MED &lt;-100</span>
+          <span style="color:#f97316">● HIGH &lt;-90</span>
+          <span style="color:#ef4444">● SEVERE</span>
+        </div>
+        <div class="border-l border-slate-700 pl-3 text-[10px] text-slate-400 font-mono">
+          BDS格网 · <span class="text-blue-400">80m</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="panel-toggle-btn" id="rightToggleBtn" onclick="togglePanel('right')" title="收起/展开右侧">&#10095;</div>
+
+  <!-- 右侧：详情面板 -->
+  <aside class="side-panel glass-panel border-l border-slate-700 flex flex-col z-20" id="rightPanel">
+    <div class="p-4 border-b border-slate-800 bg-slate-900/40 font-bold flex items-center justify-between">
+      <span class="flex items-center gap-2">
+        <span class="iconify text-blue-400" data-icon="lucide:info"></span> 节点详情
+      </span>
+      <span class="text-[10px] text-slate-500 font-mono" id="detailTime">--</span>
+    </div>
+    <div class="flex-1 overflow-y-auto p-4 space-y-4" id="detailContent">
+
+      <!-- 默认提示 -->
+      <div id="defaultHint" class="text-center text-slate-500 text-sm mt-8">
+        <span class="iconify text-3xl mb-2 block mx-auto" data-icon="lucide:mouse-pointer-click"></span>
+        点击地图上的干扰源<br>查看电磁参数详情
+      </div>
+
+      <!-- 详情区（隐藏） -->
+      <div id="detailMain" style="display:none">
+        <div class="flex items-center gap-3 mb-3">
+          <div id="detailIconBox" class="w-10 h-10 rounded-full flex items-center justify-center" style="background:rgba(59,130,246,.2)">
+            <span class="iconify text-blue-400" data-icon="lucide:radio" id="detailIcon"></span>
+          </div>
+          <div>
+            <div class="font-bold text-sm" id="detailName">--</div>
+            <div class="text-[10px] text-slate-500" id="detailType">--</div>
+          </div>
+          <span class="node-tag ml-auto" id="detailBadge">--</span>
+        </div>
+
+        <!-- 基础参数 -->
+        <div class="space-y-2 text-xs mb-3">
+          <div class="flex justify-between py-1 border-b border-slate-800">
+            <span class="text-slate-400">坐标</span>
+            <span class="font-mono text-emerald-400" id="detailCoord">--</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-800">
+            <span class="text-slate-400">高度</span>
+            <span class="font-mono text-blue-400" id="detailAlt">--</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-800">
+            <span class="text-slate-400">发射功率</span>
+            <span class="font-mono text-orange-400" id="detailPower">--</span>
+          </div>
+          <div class="flex justify-between py-1 border-b border-slate-800">
+            <span class="text-slate-400">工作频率</span>
+            <span class="font-mono text-cyan-400" id="detailFreq">--</span>
+          </div>
+        </div>
+
+        <!-- 近场电磁数据（来自仿真网格） -->
+        <div class="p-3 rounded" style="background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.15)">
+          <div class="text-[10px] text-slate-500 uppercase mb-2 font-bold">近场仿真数据（最近格点）</div>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="text-center p-2 rounded" style="background:rgba(0,0,0,.3)">
+              <div class="text-slate-500 text-[10px]">总信号强度</div>
+              <div class="font-mono font-bold mt-1" id="nearSig" style="color:#60a5fa">-- dBm</div>
+            </div>
+            <div class="text-center p-2 rounded" style="background:rgba(0,0,0,.3)">
+              <div class="text-slate-500 text-[10px]">干扰等级</div>
+              <div class="font-mono font-bold mt-1" id="nearLevel">--</div>
+            </div>
+            <div class="text-center p-2 rounded" style="background:rgba(0,0,0,.3)">
+              <div class="text-slate-500 text-[10px]">电场强度</div>
+              <div class="font-mono font-bold mt-1 text-emerald-400" id="nearEField">-- V/m</div>
+            </div>
+            <div class="text-center p-2 rounded" style="background:rgba(0,0,0,.3)">
+              <div class="text-slate-500 text-[10px]">北斗格码</div>
+              <div class="font-mono text-[10px] mt-1 text-yellow-400 break-all" id="nearGridCode">--</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 各源贡献（来自选中格点） -->
+        <div class="mt-3" id="sourceContribBox" style="display:none">
+          <div class="text-[10px] text-slate-500 uppercase mb-2 font-bold">各干扰源贡献 (dBm)</div>
+          <div id="sourceContribList" class="space-y-1"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧底部：全局统计 -->
+    <div class="p-3 border-t border-slate-800 bg-slate-900/60">
+      <div class="text-[10px] text-slate-500 uppercase mb-2">当前高度层统计</div>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="text-center p-2 rounded" style="background:rgba(0,0,0,.3)">
+          <div class="text-slate-500 text-[10px]">格点总数</div>
+          <div class="font-mono font-bold text-blue-400 mt-1" id="statTotal">2,788</div>
+        </div>
+        <div class="text-center p-2 rounded" style="background:rgba(0,0,0,.3)">
+          <div class="text-slate-500 text-[10px]">MEDIUM+</div>
+          <div class="font-mono font-bold text-orange-400 mt-1" id="statMedium">12</div>
+        </div>
+        <div class="text-center p-2 rounded" style="background:rgba(0,0,0,.3)">
+          <div class="text-slate-500 text-[10px]">最强信号</div>
+          <div class="font-mono font-bold text-red-400 mt-1" id="statMax">-- dBm</div>
+        </div>
+        <div class="text-center p-2 rounded" style="background:rgba(0,0,0,.3)">
+          <div class="text-slate-500 text-[10px]">平均信号</div>
+          <div class="font-mono font-bold text-green-400 mt-1" id="statMean">-- dBm</div>
+        </div>
+      </div>
+      <button class="w-full py-2 mt-3 rounded text-xs font-bold transition bg-slate-700 hover:bg-slate-600 border border-slate-600 text-slate-200"
+        onclick="exportCurrentLayer()">
+        <span class="iconify mr-1" data-icon="lucide:download"></span>导出当前层数据
+      </button>
+    </div>
+  </aside>
+</div>
+
+<script>
+// =====================================================================
+// 干扰源数据
+// =====================================================================
+const EM_SOURCES = {
+  '5g': {
+    label: '5G基站', icon: 'lucide:radio', color: '#10b981', freq: '3500 MHz', power: '50 W', alt: 30,
+    items: [
+      {name:'5G基站-1', lon:119.9712967977313, lat:30.52355836887861},
+      {name:'5G基站-2', lon:119.9624061139184, lat:30.51517207893123},
+      {name:'5G基站-3', lon:119.9762522651380, lat:30.51426268892555},
+      {name:'5G基站-4', lon:119.9591012335834, lat:30.52901861304756},
+      {name:'5G基站-5', lon:119.9185180664063, lat:30.55856553798283},
+      {name:'5G基站-6', lon:119.8819541931152, lat:30.59846854371451},
+      {name:'5G基站-7', lon:120.0372219085693, lat:30.52910807064572},
+      {name:'5G基站-8', lon:120.0234031677246, lat:30.54688710949595},
+    ]
+  },
+  'radar': {
+    label: '监视雷达', icon: 'lucide:radar', color: '#a855f7', freq: '3000 MHz', power: '2000 W', alt: 30,
+    items: [
+      {name:'监视雷达-1', lon:119.904785156250,  lat:30.53860787885457},
+      {name:'监视雷达-2', lon:119.9657893180847, lat:30.51820247638195},
+      {name:'监视雷达-3', lon:120.0446891784668, lat:30.50134260771591},
+      {name:'监视雷达-4', lon:120.0156784057617, lat:30.56433032003468},
+    ]
+  },
+  'cors': {
+    label: '精准导航CORS站', icon: 'lucide:compass', color: '#3b82f6', freq: '1575.42 MHz', power: '10 W', alt: 10,
+    items: [
+      {name:'CORS-1', lon:119.9030685424805, lat:30.57999697131928},
+      {name:'CORS-2', lon:119.9806594848633, lat:30.56078280238087},
+      {name:'CORS-3', lon:119.9349975585938, lat:30.54156482797521},
+      {name:'CORS-4', lon:119.9967956542969, lat:30.49128445210019},
+      {name:'CORS-5', lon:120.0771331787109, lat:30.52116004661714},
+    ]
+  },
+  'uav': {
+    label: '无人机中继站', icon: 'lucide:plane', color: '#06b6d4', freq: '2400 MHz', power: '5 W', alt: '280~420',
+    items: [
+      {name:'UAV中继-1', lon:119.9200, lat:30.5400, alt:280},
+      {name:'UAV中继-2', lon:120.0600, lat:30.5200, alt:350},
+      {name:'UAV中继-3', lon:119.9900, lat:30.5000, alt:400},  // 调整为30.5000，确保在范围内
+    ]
+  }
+};
+
+// 高度层配置（0-400米，间隔80米）
+const ALT_LAYERS = [0, 80, 160, 240, 320, 400];
+
+// 仿真范围（范围1）
+const SIM_BBOX = { lonMin: 119.83406, lonMax: 120.1609, latMin: 30.47767, latMax: 30.62491 };
+const SIM_POLYGON = [
+  [119.8484802246094, 30.62491370405477],
+  [120.0661468505859, 30.60127591448606],
+  [120.1609039306641, 30.58590825748558],
+  [120.1602172851563, 30.48891767612684],
+  [119.9658966064453, 30.47767470417627],
+  [119.8986053466797, 30.51790671440854],
+  [119.8340606689453, 30.59654766421063]
+];
+
+// =====================================================================
+// 仿真数据生成（内嵌简化模型，与 gen_em_data_v2.py 一致）
+// =====================================================================
+const ALL_SRC_LIST = [
+  ...EM_SOURCES['5g'].items.map(s=>({...s,power_w:50,freq_mhz:3500,alt:30})),
+  ...EM_SOURCES['radar'].items.map(s=>({...s,power_w:2000,freq_mhz:3000,alt:30})),
+  ...EM_SOURCES['cors'].items.map(s=>({...s,power_w:10,freq_mhz:1575.42,alt:10})),
+  {name:'UAV中继-1',lon:119.9200,lat:30.5400,alt:280,power_w:5,freq_mhz:2400},
+  {name:'UAV中继-2',lon:120.0600,lat:30.5200,alt:350,power_w:5,freq_mhz:2400},
+  {name:'UAV中继-3',lon:119.9900,lat:30.5000,alt:400,power_w:5,freq_mhz:2400},  // 更新为30.5000和400m
+];
+
+function fspl(dist, freq_mhz) {
+  dist = Math.max(dist, 1);
+  return 20*Math.log10(dist) + 20*Math.log10(freq_mhz) + 27.55;
+}
+// 计算信号强度：sourceFilter为null时返回综合场强，否则只返回指定源的信号
+function calcSignal(lon, lat, alt, sourceFilter = null) {
+  const perSrc = {};
+  let totalMw = 0;
+  for (const s of ALL_SRC_LIST) {
+    const dx = (lon-s.lon)*96000, dy = (lat-s.lat)*111000, dz = alt-s.alt;
+    const dist = Math.sqrt(dx*dx+dy*dy+dz*dz);
+    const loss = fspl(dist, s.freq_mhz);
+    const txDbm = 10*Math.log10(s.power_w*1000);
+    const rxDbm = txDbm - loss;
+    perSrc[s.name] = Math.round(rxDbm*10)/10;
+    if (sourceFilter === null || sourceFilter === s.name) {
+      totalMw += Math.pow(10, rxDbm/10);
+    }
+  }
+  const totalDbm = 10*Math.log10(Math.max(totalMw, 1e-30));
+  return { dbm: Math.round(totalDbm*10)/10, perSrc };
+}
+function interferenceLevel(dbm, sourceType = activeSourceType) {
+  // 类型特定阈值配置（基于新的双斜率模型数据，范围-200 ~ -70 dBm）
+  const thresholds = {
+    'all': { severe: -80, high: -100, medium: -130 },
+    '5g': { severe: -100, high: -130, medium: -160 },
+    'radar': { severe: -80, high: -100, medium: -130 },
+    'cors': { severe: -100, high: -130, medium: -160 },
+    'uav': { severe: -120, high: -140, medium: -160 }
+  };
+
+  const t = thresholds[sourceType] || thresholds['all'];
+  if (dbm > t.severe) return 'SEVERE';
+  if (dbm > t.high) return 'HIGH';
+  if (dbm > t.medium) return 'MEDIUM';
+  return 'LOW';
+}
+function bdsGridCode(lon, lat, alt, GRID=0.0008, GALT=80) {
+  const lonDeg = Math.floor(lon), lonGrid = Math.round((lon-lonDeg)/GRID);
+  const latDeg = Math.floor(lat), latGrid = Math.round((lat-latDeg)/GRID);
+  const altLayer = Math.floor(alt/GALT);
+  return `G${String(lonDeg).padStart(3,'0')}${String(lonGrid).padStart(4,'0')}${String(latDeg).padStart(2,'0')}${String(latGrid).padStart(4,'0')}H${String(altLayer).padStart(3,'0')}`;
+}
+function eFieldMag(dbm) {
+  const rx = Math.max(Math.pow(10,dbm/10)*1e-3, 1e-20);
+  return Math.sqrt(rx/(4*Math.PI)*377).toFixed(5);
+}
+
+// 生成单高度层热力点（从独立JSON文件加载数据）
+function genLayerPoints(layerIdx, sourceFilter = null) {
+  // 在互斥模式下，不再实时计算，直接从已加载的数据返回
+  // 保留此函数用于兼容旧代码
+  const alt = ALT_LAYERS[layerIdx];
+  const GRID = 0.0008, STEP = 4;
+  const nLon = Math.floor((SIM_BBOX.lonMax-SIM_BBOX.lonMin)/GRID);
+  const nLat = Math.floor((SIM_BBOX.latMax-SIM_BBOX.latMin)/GRID);
+  const pts = [];
+  for (let i = 0; i < nLon; i += STEP) {
+    const lon = SIM_BBOX.lonMin + (i+0.5)*GRID;
+    for (let j = 0; j < nLat; j += STEP) {
+      const lat = SIM_BBOX.latMin + (j+0.5)*GRID;
+
+      // 处理筛选逻辑
+      let { dbm, perSrc } = calcSignal(lon, lat, alt, null);  // 先算所有源
+      if (sourceFilter !== null) {
+        if (typeof sourceFilter === 'string') {
+          // 单源筛选
+          dbm = perSrc[sourceFilter] || -200;
+        } else if (sourceFilter.sources) {
+          // 类型筛选：取该类型所有源的平均
+          const srcs = sourceFilter.sources;
+          let totalMw = 0, count = 0;
+          srcs.forEach(name => {
+            if (perSrc[name] !== undefined) {
+              totalMw += Math.pow(10, perSrc[name]/10);
+              count++;
+            }
+          });
+          dbm = count > 0 ? 10 * Math.log10(Math.max(totalMw/count, 1e-30)) : -200;
+        }
+      }
+      dbm = Math.round(dbm * 10) / 10;
+
+      pts.push({ lon, lat, alt, dbm, level: interferenceLevel(dbm), gridCode: bdsGridCode(lon,lat,alt), perSrc, sourceFilter });
+    }
+  }
+  return pts;
+}
+
+// 从JSON数据构建点集（用于可视化）
+function buildPointsFromData(data) {
+  if (!data || !data.data) return [];
+  const STEP = 4;
+  const pts = [];
+  for (let i = 0; i < data.data.length; i += STEP) {
+    const p = data.data[i];
+    pts.push({
+      lon: p.lon,
+      lat: p.lat,
+      alt: p.alt_m,
+      dbm: p.signal_dbm,
+      level: p.level,
+      gridCode: p.grid_code,
+      perSrc: p.per_src || {},
+      sourceFilter: null
+    });
+  }
+  return pts;
+}
+
+// 生成多层网格点（用于垂直堆叠显示）
+// 注意：现在这个函数已废弃，数据直接从JSON加载
+function genMultiLayerPoints(centerLayerIdx, layerSpan=2, sourceFilter = null) {
+  const pts = [];
+  const start = Math.max(0, centerLayerIdx - layerSpan);
+  const end = Math.min(ALT_LAYERS.length-1, centerLayerIdx + layerSpan);
+  for (let layer = start; layer <= end; layer++) {
+    const layerPts = genLayerPoints(layer, sourceFilter);
+    layerPts.forEach(pt => {
+      pt.layerIdx = layer;
+      pt.isCenter = (layer === centerLayerIdx);
+    });
+    pts.push(...layerPts);
+  }
+  return { pts, centerLayerIdx, start, end, sourceFilter };
+}
+
+// =====================================================================
+// UI 工具函数
+// =====================================================================
+function togglePanel(side) {
+  const panel = document.getElementById(side==='left'?'leftPanel':'rightPanel');
+  const btn   = document.getElementById(side==='left'?'leftToggleBtn':'rightToggleBtn');
+  const collapsed = panel.classList.toggle('collapsed');
+  btn.innerHTML = side==='left' ? (collapsed?'&#10095;':'&#10094;') : (collapsed?'&#10094;':'&#10095;');
+}
+
+function toggleSection(header) {
+  const content = header.nextElementSibling;
+  const icon = header.querySelector('.iconify[data-icon="lucide:chevron-right"]');
+  if (!content) return;
+  const isCollapsed = content.dataset.collapsed === 'true' || content.style.maxHeight === '0px';
+  if (isCollapsed) {
+    content.dataset.collapsed = 'false';
+    content.style.overflow = 'hidden';
+    content.style.maxHeight = content.scrollHeight + 'px';
+    content.style.opacity = '1';
+    if (icon) icon.style.transform = 'rotate(90deg)';
+    content.addEventListener('transitionend', function cb() {
+      if (content.dataset.collapsed === 'false') { content.style.maxHeight = 'none'; content.style.overflow = ''; }
+      content.removeEventListener('transitionend', cb);
+    });
+  } else {
+    content.dataset.collapsed = 'true';
+    content.style.overflow = 'hidden';
+    content.style.maxHeight = content.scrollHeight + 'px';
+    content.offsetHeight;
+    content.style.maxHeight = '0px';
+    content.style.opacity = '0';
+    if (icon) icon.style.transform = 'rotate(0deg)';
+  }
+}
+
+// =====================================================================
+// 颜色映射（基于实际信号分布范围 -200 ~ -70 dBm 做归一化）
+// =====================================================================
+// 实际信号统计（新模型）：Min≈-200, P25≈-160, P50≈-155, P75≈-140, P90≈-130, Max≈-70
+// 使用双斜率路径损耗模型后，信号衰减更快，出现明显的信号盲区
+// 用分位数阈值分4档，确保每档都有可见面积
+const SIG_MIN = -200;  // 冷色底端（盲区）
+const SIG_MAX = -70;   // 热色顶端（强信号）
+
+function sigNorm(dbm) {
+  return Math.max(0, Math.min(1, (dbm - SIG_MIN) / (SIG_MAX - SIG_MIN)));
+}
+
+// 颜色插值：蓝 -> 青 -> 黄绿 -> 橙 -> 红（叠加模式用）
+function lerp(a, b, t) { return a + (b - a) * t; }
+function sigRgb(dbm) {
+  const t = sigNorm(dbm);
+  // 5色段：蓝(0) -> 青(0.25) -> 绿(0.5) -> 橙(0.75) -> 红(1)
+  const palette = [
+    [30, 58, 138],   // 深蓝 (最弱)
+    [6, 182, 212],   // 青色
+    [74, 222, 128],  // 绿色
+    [251, 146, 60],  // 橙色
+    [239, 68, 68],   // 红色 (最强)
+  ];
+  const seg = Math.min(3, Math.floor(t * 4));
+  const tt = (t * 4) - seg;
+  const c0 = palette[seg], c1 = palette[seg + 1];
+  return [lerp(c0[0],c1[0],tt), lerp(c0[1],c1[1],tt), lerp(c0[2],c1[2],tt)];
+}
+
+// 单源色系定义（单源模式用）
+const SOURCE_COLOR_PALETTE = {
+  '5g':    { r: 16,  g: 185, b: 74,  label: '5G基站' },     // 绿色
+  'radar':  { r: 168, g: 85,  b: 247, label: '监视雷达' },   // 紫色
+  'cors':   { r: 59,  g: 130, b: 246, label: 'CORS站' },    // 蓝色
+  'uav':    { r: 6,   g: 182, b: 212, label: 'UAV中继' }    // 青色
+};
+
+// 当前渲染模式：'overlay'=5色渐变, 'single'=单源色系
+let renderMode = 'overlay';
+
+function getRenderMode() {
+  if (activeSourceType === 'all') return 'overlay';
+  return 'single';
+}
+
+function sigColor(dbm) {
+  // 统一使用5色渐变（蓝→青→绿→橙→红），无论单源还是综合模式
+  const [r, g, b] = sigRgb(dbm);
+  const t = sigNorm(dbm);
+  const alpha = 0.25 + t * 0.65;  // 0.25~0.90
+  return new Cesium.Color(r/255, g/255, b/255, alpha);
+}
+function sigColorHex(dbm) {
+  // 统一使用5色渐变
+  const [r, g, b] = sigRgb(dbm);
+  return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+}
+
+// =====================================================================
+// Cesium 初始化
+// =====================================================================
+const tiandituTokens = [
+  '8601ffd31167ff069ef2ae1585df5e21',
+  '4bac064681a9f35b4a7dc86368470e73',
+  'bae7709a89b8287beac232afc75fed73',
+  '4bed22704923895e2282a12713173bf9',
+  '901258d3f2950a2b0ddec5b0a1a73fe2'
+];
+let tokenIdx = 0;
+function getTiandituToken() {
+  const t = tiandituTokens[tokenIdx];
+  tokenIdx = (tokenIdx+1) % tiandituTokens.length;
+  return t;
+}
+
+let viewer, sourceEntities = {}, heatmapEntities = [], boundaryEntity = null;
+let layerVisible = { '5g':true, 'radar':true, 'cors':true, 'uav':true, 'heatmap':true, 'sim-boundary':true };
+let currentLayerIdx = 0;
+let overlayMode = true;  // true=综合场强，false=单源独立（已废弃，现在互斥模式）
+let activeSourceType = 'all';  // 当前激活的信号源类型：'all', '5g', 'radar', 'cors', 'uav'
+let layerDataCache = {};  // 内存缓存：{ 'all': {...}, '5g': {...}, ... }
+let displayMode = 'single';  // 显示模式：'single'=单层模式, 'stack'=堆叠模式
+let stackLayerCount = 6;  // 堆叠模式下显示的层数
+let currentDataSource = 'template_001';  // 当前数据源编号
+const DATA_BASE_URL = './data_templates/';  // 数据源基础路径
+
+// ===== 性能优化配置 =====
+const PERF_CONFIG = {
+  // 渐进式加载：先加载低分辨率版本，再加载高分辨率
+  progressiveLoad: true,
+  // 预加载：提前加载相邻层
+  preloadAdjacent: true,
+  // 持久化缓存：使用LocalStorage缓存数据
+  usePersistentCache: true,
+  cacheVersion: 'v2',  // 缓存版本，数据更新时修改
+  // 简化渲染：降低线框复杂度
+  simplifyWireframe: true,
+  // 懒加载：只加载中心层数据，其他层延迟加载
+  lazyLoadLayers: true
+};
+
+// 持久化缓存管理
+const persistentCache = {
+  get: function(key) {
+    if (!PERF_CONFIG.usePersistentCache) return null;
+    try {
+      const item = localStorage.getItem(`em_cache_${PERF_CONFIG.cacheVersion}_${key}`);
+      return item ? JSON.parse(item) : null;
+    } catch(e) { return null; }
+  },
+  set: function(key, data) {
+    if (!PERF_CONFIG.usePersistentCache) return;
+    try {
+      // 限制缓存大小，只缓存必要的元数据
+      const cacheData = {
+        meta: data.meta,
+        sampleData: data.data.slice(0, 100)  // 只保存前100个点作为样本
+      };
+      localStorage.setItem(`em_cache_${PERF_CONFIG.cacheVersion}_${key}`, JSON.stringify(cacheData));
+    } catch(e) { console.warn('缓存写入失败:', e); }
+  }
+};
+
+try {
+  const tk = getTiandituToken();
+  let imgProvider;
+  let useTianditu = true;  // 标记是否使用天地图
+
+  try {
+    // 尝试使用天地图
+    imgProvider = new Cesium.WebMapTileServiceImageryProvider({
+      url: 'http://t0.tianditu.com/img_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk='+tk,
+      layer:'img', style:'default', format:'tiles', tileMatrixSetID:'w', maximumLevel:18, credit:'天地图',
+      // 添加错误处理
+      subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7']
+    });
+  } catch(e) {
+    useTianditu = false;
+    imgProvider = new Cesium.UrlTemplateImageryProvider({
+      url:'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png', maximumLevel:19, credit:'OSM'
+    });
+  }
+
+  // 监听瓦片加载错误，如果天地图限流则切换到OSM
+  const originalRequestImage = imgProvider.requestImage;
+  let errorCount = 0;
+  const maxErrors = 5;  // 连续5次错误后切换
+  let notificationShown = false;
+
+  imgProvider.requestImage = function(x, y, level, request) {
+    const promise = originalRequestImage.call(this, x, y, level, request);
+
+    promise.then(undefined, function(error) {
+      if (error && (error.statusCode === 429 || error.statusCode === 403)) {
+        errorCount++;
+        console.warn(`天地图瓦片加载失败 (${error.statusCode}): ${errorCount}/${maxErrors}`);
+
+        // 第一次错误时显示警告
+        if (errorCount === 1 && !notificationShown) {
+          showNotification(
+            '地图加载警告',
+            '天地图请求过于频繁，可能影响地图显示。如果持续出现问题，将自动切换到备用地图源。',
+            8000
+          );
+          notificationShown = true;
+        }
+
+        if (useTianditu && errorCount >= maxErrors) {
+          console.error('天地图请求过于频繁，切换到OpenStreetMap...');
+          useTianditu = false;
+
+          // 切换到OSM
+          const osmProvider = new Cesium.UrlTemplateImageryProvider({
+            url:'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            maximumLevel:19,
+            credit:'OSM'
+          });
+
+          // 替换影像层
+          viewer.imageryLayers.removeAll();
+          viewer.imageryLayers.addImageryProvider(osmProvider);
+
+          // 显示通知
+          showNotification(
+            '地图源已切换',
+            '天地图API请求过于频繁，已自动切换到OpenStreetMap地图源。请稍后再试天地图。',
+            10000
+          );
+        }
+      }
+    });
+
+    return promise;
+  };
+
+  viewer = new Cesium.Viewer('cesiumContainer', {
+    imageryProvider: imgProvider,
+    terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+    baseLayerPicker: false, geocoder: false, homeButton: false,
+    sceneModePicker: false, navigationHelpButton: false,
+    animation: false, timeline: false, fullscreenButton: false,
+    vrButton: false, infoBox: false, selectionIndicator: false,
+    shadows: false, shouldAnimate: false
+  });
+  viewer.imageryLayers.removeAll();
+  viewer.imageryLayers.addImageryProvider(imgProvider);
+  window.viewer = viewer;
+
+  // ===== 热力图（立体网格：多层堆叠 + 边界线框）=====
+  // 用两个 primitive：一个绘制填充面，一个绘制边界线
+  let heatFillPrimitive = null, heatWirePrimitive = null;
+  const LAYER_SPAN = 2;  // 当前层±2，共5层立体堆叠（单层模式）
+
+  // 定位到仿真区中心 - 垂直俯视视角
+  viewer.camera.setView({
+    destination: Cesium.Cartesian3.fromDegrees(119.9975, 30.5513, 50000),  // 仿真区域中心，高度50km
+    orientation: { heading: Cesium.Math.toRadians(0), pitch: Cesium.Math.toRadians(-90), roll: 0 }  // -90度为垂直俯视
+  });
+
+  // ===== 初始化热力图Primitive占位（确保在底层） =====
+  function initHeatmapPrimitives() {
+    // 创建空的填充面Primitive占位
+    heatFillPrimitive = new Cesium.Primitive({
+      geometryInstances: [],
+      appearance: new Cesium.PerInstanceColorAppearance({
+        translucent: true,
+        closed: false
+      }),
+      asynchronous: true,
+      allowPicking: true,
+      show: false
+    });
+    viewer.scene.primitives.add(heatFillPrimitive);
+
+    // 创建空的边界线Primitive占位
+    heatWirePrimitive = new Cesium.Primitive({
+      geometryInstances: [],
+      appearance: new Cesium.PolylineColorAppearance({
+        translucent: true
+      }),
+      asynchronous: true,
+      allowPicking: false,
+      show: false
+    });
+    viewer.scene.primitives.add(heatWirePrimitive);
+  }
+
+  // 初始化热力图Primitive占位（确保在底层）
+  initHeatmapPrimitives();
+
+  // ===== 绘制仿真范围边界 =====
+  function drawSimBoundary() {
+    const polygonCoords = SIM_POLYGON.flat(); // 展平成 [lon, lat, lon, lat, ...]
+    const positions = [];
+    for (let i = 0; i < polygonCoords.length; i += 2) {
+      positions.push(Cesium.Cartesian3.fromDegrees(polygonCoords[i], polygonCoords[i+1], 0));
+    }
+    // 外框线（亮蓝色，粗线，clampToGround）
+    boundaryEntity = viewer.entities.add({
+      name: '电磁仿真范围',
+      polyline: {
+        positions,
+        width: 3,
+        material: Cesium.Color.fromCssColorString('#60a5fa').withAlpha(0.9),
+        clampToGround: true,
+        classificationType: Cesium.ClassificationType.BOTH
+      }
+    });
+    // 半透明填充面
+    const polyPositions = positions.slice(0, -1); // 去掉重复的最后一个点
+    viewer.entities.add({
+      polygon: {
+        hierarchy: new Cesium.PolygonHierarchy(polyPositions),
+        material: Cesium.Color.fromCssColorString('#3b82f6').withAlpha(0.04),
+        height: 0,
+        outline: false
+      }
+    });
+  }
+  drawSimBoundary();
+
+  // ===== 绘制干扰源图标 =====
+  function createSourceIcon(type, color) {
+    const size = 56;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const cx = size/2, cy = size/2;
+    ctx.clearRect(0, 0, size, size);
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 2;
+
+    if (type === '5g') {
+      // 信号塔
+      ctx.beginPath(); ctx.moveTo(cx,10); ctx.lineTo(cx-9,42); ctx.lineTo(cx+9,42); ctx.closePath();
+      ctx.globalAlpha=0.2; ctx.fill(); ctx.globalAlpha=1; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx,10); ctx.lineTo(cx,4); ctx.lineWidth=2.5; ctx.stroke();
+      [11,17,23].forEach((r,i) => {
+        ctx.beginPath(); ctx.arc(cx,10,r,Math.PI*1.1,Math.PI*1.9);
+        ctx.globalAlpha=1-i*0.25; ctx.lineWidth=1.8; ctx.stroke();
+      }); ctx.globalAlpha=1;
+    } else if (type === 'radar') {
+      // 雷达扫描
+      [8,14,20].forEach((r,i) => {
+        ctx.beginPath(); ctx.arc(cx,cy,r,-Math.PI*0.9,Math.PI*0.9);
+        ctx.globalAlpha=1-i*0.2; ctx.lineWidth=1.5; ctx.stroke();
+      }); ctx.globalAlpha=1;
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,20,-Math.PI*0.2,Math.PI*0.2); ctx.closePath();
+      ctx.globalAlpha=0.4; ctx.fill(); ctx.globalAlpha=1; ctx.lineWidth=1.2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx-10,cy+20); ctx.lineTo(cx+10,cy+20); ctx.lineWidth=2.5; ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx,cy+20); ctx.lineWidth=1.5; ctx.stroke();
+    } else if (type === 'cors') {
+      // CORS定位
+      ctx.beginPath(); ctx.arc(cx,cy,19,0,Math.PI*2);
+      ctx.globalAlpha=0.15; ctx.fill(); ctx.globalAlpha=1;
+      ctx.lineWidth=1.5; ctx.setLineDash([3,3]); ctx.stroke(); ctx.setLineDash([]);
+      ctx.beginPath(); ctx.arc(cx,cy,11,0,Math.PI*2); ctx.lineWidth=1.8; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
+      ctx.lineWidth=1.5; ctx.globalAlpha=0.7;
+      [[cx,cy-23,cx,cy-13],[cx,cy+13,cx,cy+23],[cx-23,cy,cx-13,cy],[cx+13,cy,cx+23,cy]]
+        .forEach(([x1,y1,x2,y2])=>{ ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); });
+      ctx.globalAlpha=1;
+    } else if (type === 'uav') {
+      // 无人机（螺旋桨+机身）
+      ctx.beginPath(); ctx.arc(cx,cy,6,0,Math.PI*2);
+      ctx.globalAlpha=0.3; ctx.fill(); ctx.globalAlpha=1; ctx.lineWidth=2; ctx.stroke();
+      const arms = [[cx-16,cy-16],[cx+16,cy-16],[cx-16,cy+16],[cx+16,cy+16]];
+      arms.forEach(([ax,ay]) => {
+        ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(ax,ay); ctx.lineWidth=1.5; ctx.stroke();
+        ctx.beginPath(); ctx.arc(ax,ay,5,0,Math.PI*2); ctx.lineWidth=1.5; ctx.stroke();
+      });
+      // 高度标注（小字，UAV特有）
+      ctx.fillStyle=color; ctx.font='bold 8px sans-serif'; ctx.textAlign='center';
+      ctx.globalAlpha=0.85; ctx.fillText('UAV',cx,cy+20); ctx.globalAlpha=1;
+    }
+    return canvas;
+  }
+
+  // ===== 加载干扰源数据（从数据源） =====
+  async function loadInterferenceSources() {
+    console.log('[loadInterferenceSources] 开始加载干扰源数据...');
+    try {
+      const url = `${DATA_BASE_URL}${currentDataSource}/data/all/index.json`;
+      console.log(`[loadInterferenceSources] 请求URL: ${url}`);
+      
+      const indexResponse = await fetch(url);
+      if (!indexResponse.ok) {
+        throw new Error(`HTTP ${indexResponse.status}: ${indexResponse.statusText}`);
+      }
+      
+      const indexData = await indexResponse.json();
+      console.log(`[loadInterferenceSources] 成功加载index.json, 干扰源数量: ${indexData.sources.length}`);
+      
+      const sources = indexData.sources;
+
+      // 按类型分组
+      const sourcesByType = { '5g': [], 'radar': [], 'cors': [], 'uav': [] };
+      sources.forEach(src => {
+        if (sourcesByType[src.type]) {
+          sourcesByType[src.type].push(src);
+        }
+      });
+
+      console.log('[loadInterferenceSources] 干扰源分组结果:', {
+        '5g': sourcesByType['5g'].length,
+        'radar': sourcesByType['radar'].length,
+        'cors': sourcesByType['cors'].length,
+        'uav': sourcesByType['uav'].length
+      });
+
+      // 更新 EM_SOURCES 配置
+      Object.keys(sourcesByType).forEach(type => {
+        if (sourcesByType[type].length > 0) {
+          EM_SOURCES[type].items = sourcesByType[type];
+        }
+      });
+
+      // 清除旧的干扰源实体
+      Object.keys(sourceEntities).forEach(type => {
+        sourceEntities[type].forEach(e => viewer.entities.remove(e));
+        sourceEntities[type] = [];
+      });
+
+      // 重新创建干扰源实体
+      Object.keys(EM_SOURCES).forEach(type => {
+        const cfg = EM_SOURCES[type];
+        sourceEntities[type] = [];
+        const treeContainer = document.getElementById('tree-'+type);
+
+        if (!treeContainer) {
+          console.warn(`[loadInterferenceSources] 找不到tree-${type}容器`);
+          return;
+        }
+
+        // 清空树容器
+        treeContainer.innerHTML = '';
+
+        cfg.items.forEach(item => {
+      const alt = item.alt !== undefined ? item.alt : cfg.alt;
+      const pos = Cesium.Cartesian3.fromDegrees(item.lon, item.lat, typeof alt === 'number' ? alt : 0);
+      const iconCanvas = createSourceIcon(type, cfg.color);
+
+      // 地面~设备之间的垂直线（UAV用虚线）
+      const groundPos = Cesium.Cartesian3.fromDegrees(item.lon, item.lat, 0);
+      if (typeof alt === 'number' && alt > 5) {
+        const lineEntity = viewer.entities.add({
+          polyline: {
+            positions: [groundPos, pos],
+            width: type==='uav' ? 1.5 : 1,
+            material: type==='uav'
+              ? new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString(cfg.color).withAlpha(0.4), dashLength: 8 })
+              : Cesium.Color.fromCssColorString(cfg.color).withAlpha(0.25)
+          }
+        });
+        sourceEntities[type].push(lineEntity);
+      }
+
+      const entity = viewer.entities.add({
+        name: item.name, position: pos,
+        billboard: {
+          image: iconCanvas, width: 40, height: 40,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          scaleByDistance: new Cesium.NearFarScalar(500, 1.3, 100000, 0.7)
+        },
+        label: {
+          text: item.name, font: '11px sans-serif',
+          fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 2, style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+          verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+          pixelOffset: new Cesium.Cartesian2(0, -44),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY,
+          scaleByDistance: new Cesium.NearFarScalar(500, 1.0, 100000, 0.5)
+        },
+        properties: { srcType: type, srcItem: item, srcCfg: cfg }
+      });
+      sourceEntities[type].push(entity);
+
+      // 左侧树节点
+      const node = document.createElement('div');
+      node.className = 'tree-node p-2 text-xs flex items-center gap-2 rounded';
+      node.innerHTML = `<span class="iconify" style="color:${cfg.color}" data-icon="${cfg.icon}"></span>${item.name}
+        <span class="node-tag ml-auto" style="font-size:9px;background:rgba(0,0,0,.3);color:${cfg.color};border:1px solid ${cfg.color}40">${typeof alt==='number'?alt+'m':alt}</span>`;
+      node.onclick = () => { flyToSource(entity, item, type, cfg); };
+      treeContainer.appendChild(node);
+    });
+    console.log(`[loadInterferenceSources] ${type}类型: 创建了${sourceEntities[type].length}个实体`);
+  });
+    console.log('[loadInterferenceSources] 干扰源加载完成');
+    } catch (err) {
+      console.error('[loadInterferenceSources] 加载干扰源失败:', err);
+      document.getElementById('cesiumContainer').innerHTML =
+        `<div style="color:#ef4444;padding:2rem;text-align:center">干扰源数据加载失败: ${err.message}<br><br>请确保已启动本地HTTP服务器,不要使用file://协议打开页面</div>`;
+    }
+  }
+
+  async function drawHeatmapLayer(layerIdx) {
+    console.log(`[drawHeatmapLayer] activeSourceType=${activeSourceType}, layerIdx=${layerIdx}, layerVisible['heatmap']=${layerVisible['heatmap']}`);
+
+    // 清除旧实体和Primitive
+    heatmapEntities.forEach(e => viewer.entities.remove(e));
+    heatmapEntities = [];
+
+    // 不删除Primitive，而是更新geometryInstances（保持底层顺序）
+    if (!layerVisible['heatmap']) {
+      console.log(`[drawHeatmapLayer] 热力图开关已关闭，跳过渲染`);
+      if (heatFillPrimitive) heatFillPrimitive.show = false;
+      if (heatWirePrimitive) heatWirePrimitive.show = false;
+      return;
+    }
+
+    // 根据显示模式选择渲染方式
+    if (displayMode === 'stack') {
+      await drawStackedHeatmap();  // 堆叠模式
+    } else {
+      await drawSingleLayerHeatmap(layerIdx);  // 单层模式
+    }
+  }
+
+  // ===== 单层模式渲染 =====
+  async function drawSingleLayerHeatmap(layerIdx) {
+    console.log(`[drawSingleLayerHeatmap] 开始渲染单层热力图，activeSourceType=${activeSourceType}, layerIdx=${layerIdx}`);
+
+    // 清除旧实体
+    heatmapEntities.forEach(e => viewer.entities.remove(e));
+    heatmapEntities = [];
+
+    // 清除旧Primitive
+    if (heatFillPrimitive) { viewer.scene.primitives.remove(heatFillPrimitive); heatFillPrimitive = null; }
+    if (heatWirePrimitive) { viewer.scene.primitives.remove(heatWirePrimitive); heatWirePrimitive = null; }
+
+    if (!layerVisible['heatmap']) {
+      return;
+    }
+
+    // 加载当前类型的层数据
+    const layerData = await loadLayerData(activeSourceType, layerIdx);
+    if (!layerData) {
+      console.error(`无法加载 ${activeSourceType} 第${layerIdx}层数据`);
+      return;
+    }
+
+    console.log(`[drawSingleLayerHeatmap] 加载数据成功，点数=${layerData.data.length}`);
+
+    // 从JSON数据构建点集
+    const pts = buildPointsFromData(layerData);
+    console.log(`[drawSingleLayerHeatmap] 构建点集完成，pts.length=${pts.length}`);
+
+    // 构建多层堆叠点集
+    const multiLayerPts = [];
+    const centerLayerIdx = layerIdx;
+    const start = Math.max(0, centerLayerIdx - LAYER_SPAN);
+    const end = Math.min(ALT_LAYERS.length - 1, centerLayerIdx + LAYER_SPAN);
+
+    // 优化：懒加载非中心层数据
+    for (let layer = start; layer <= end; layer++) {
+      // 如果启用懒加载且不是中心层，跳过加载
+      if (PERF_CONFIG.lazyLoadLayers && layer !== centerLayerIdx) {
+        continue;
+      }
+
+      const data = await loadLayerData(activeSourceType, layer);
+      if (!data) continue;
+
+      const layerPts = buildPointsFromData(data);
+      layerPts.forEach(pt => {
+        pt.layerIdx = layer;
+        pt.isCenter = (layer === centerLayerIdx);
+      });
+      multiLayerPts.push(...layerPts);
+    }
+
+    const allPts = multiLayerPts;
+    console.log(`[drawSingleLayerHeatmap] 多层点集构建完成，allPts.length=${allPts.length}, centerLayerIdx=${centerLayerIdx}`);
+    const CELL = 0.0032;
+
+    // 批量构建填充面实例（每层不同透明度，中心层最亮）
+    const fillInstances = [];
+    allPts.forEach(pt => {
+      const baseAlpha = pt.isCenter ? 0.65 : 0.25;  // 中心层65%，其他层25%
+      const color = sigColor(pt.dbm);
+      const alpha = baseAlpha * color.alpha;
+      fillInstances.push(new Cesium.GeometryInstance({
+        geometry: new Cesium.RectangleGeometry({
+          rectangle: Cesium.Rectangle.fromDegrees(
+            pt.lon - CELL/2, pt.lat - CELL/2,
+            pt.lon + CELL/2, pt.lat + CELL/2
+          ),
+          height: pt.alt,
+          extrudedHeight: pt.alt + 40,
+          vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
+        }),
+        attributes: {
+          color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+            new Cesium.Color(color.red, color.green, color.blue, alpha)
+          )
+        },
+        id: { type: 'heatgrid', gridPt: pt }
+      }));
+    });
+
+    // 优化：批量构建边界线实例（简化渲染）
+    const wireInstances = [];
+    const wireStep = PERF_CONFIG.simplifyWireframe ? 2 : 1;  // 隔点渲染线框，减少50%的线框数量
+
+    allPts.forEach((pt, idx) => {
+      // 跳过一些点以减少线框数量
+      if (PERF_CONFIG.simplifyWireframe && !pt.isCenter && idx % wireStep !== 0) {
+        return;
+      }
+      const color = sigColor(pt.dbm);
+      const h1 = pt.alt, h2 = pt.alt + 40;
+      const x1 = pt.lon - CELL/2, x2 = pt.lon + CELL/2;
+      const y1 = pt.lat - CELL/2, y2 = pt.lat + CELL/2;
+
+      const alpha = pt.isCenter ? 0.6 : 0.2;
+      const lineColor = new Cesium.Color(
+        Math.min(1, color.red + 0.15),
+        Math.min(1, color.green + 0.15),
+        Math.min(1, color.blue + 0.15),
+        alpha
+      );
+
+      if (pt.isCenter) {
+        const lines = [
+          [x1,y1,h1, x2,y1,h1], [x2,y1,h1, x2,y2,h1], [x2,y2,h1, x1,y2,h1], [x1,y2,h1, x1,y1,h1],
+          [x1,y1,h2, x2,y1,h2], [x2,y1,h2, x2,y2,h2], [x2,y2,h2, x1,y2,h2], [x1,y2,h2, x1,y1,h2],
+          [x1,y1,h1, x1,y1,h2], [x2,y1,h1, x2,y1,h2], [x2,y2,h1, x2,y2,h2], [x1,y2,h1, x1,y2,h2],
+        ];
+        lines.forEach(([lon1,lat1,alt1,lon2,lat2,alt2]) => {
+          wireInstances.push(new Cesium.GeometryInstance({
+            geometry: new Cesium.PolylineGeometry({
+              positions: [
+                Cesium.Cartesian3.fromDegrees(lon1, lat1, alt1),
+                Cesium.Cartesian3.fromDegrees(lon2, lat2, alt2)
+              ],
+              width: 1.5,
+              vertexFormat: Cesium.PolylineColorAppearance.VERTEX_FORMAT
+            }),
+            attributes: {
+              color: Cesium.ColorGeometryInstanceAttribute.fromColor(lineColor)
+            }
+          }));
+        });
+      } else {
+        const lines = [
+          [x1,y1,h2, x2,y1,h2], [x2,y1,h2, x2,y2,h2], [x2,y2,h2, x1,y2,h2], [x1,y2,h2, x1,y1,h2]
+        ];
+        lines.forEach(([lon1,lat1,alt1,lon2,lat2,alt2]) => {
+          wireInstances.push(new Cesium.GeometryInstance({
+            geometry: new Cesium.PolylineGeometry({
+              positions: [
+                Cesium.Cartesian3.fromDegrees(lon1, lat1, alt1),
+                Cesium.Cartesian3.fromDegrees(lon2, lat2, alt2)
+              ],
+              width: 1.0,
+              vertexFormat: Cesium.PolylineColorAppearance.VERTEX_FORMAT
+            }),
+            attributes: {
+              color: Cesium.ColorGeometryInstanceAttribute.fromColor(lineColor)
+            }
+          }));
+        });
+      }
+    });
+
+    console.log(`[drawSingleLayerHeatmap] fillInstances.length=${fillInstances.length}, wireInstances.length=${wireInstances.length}`);
+
+    // 重新创建填充面 Primitive
+    if (fillInstances.length > 0) {
+      console.log(`[drawSingleLayerHeatmap] 创建heatFillPrimitive，instances=${fillInstances.length}`);
+      heatFillPrimitive = new Cesium.Primitive({
+        geometryInstances: fillInstances,
+        appearance: new Cesium.PerInstanceColorAppearance({
+          translucent: true,
+          closed: false
+        }),
+        asynchronous: true,
+        allowPicking: true,
+        show: true
+      });
+      viewer.scene.primitives.add(heatFillPrimitive);
+      console.log(`[drawSingleLayerHeatmap] heatFillPrimitive已添加到场景`);
+    }
+
+    // 重新创建边界线 Primitive
+    if (wireInstances.length > 0) {
+      console.log(`[drawSingleLayerHeatmap] 创建heatWirePrimitive，instances=${wireInstances.length}`);
+      heatWirePrimitive = new Cesium.Primitive({
+        geometryInstances: wireInstances,
+        appearance: new Cesium.PolylineColorAppearance({
+          translucent: true
+        }),
+        asynchronous: true,
+        allowPicking: false,
+        show: true
+      });
+      viewer.scene.primitives.add(heatWirePrimitive);
+      console.log(`[drawSingleLayerHeatmap] heatWirePrimitive已添加到场景`);
+    }
+
+    // 更新统计（只统计中心层）
+    const centerPts = allPts.filter(p => p.isCenter);
+    const signals = centerPts.map(p => p.dbm);
+    const medium = centerPts.filter(p => p.level !== 'LOW').length;
+    document.getElementById('statTotal').textContent = centerPts.length.toLocaleString();
+    document.getElementById('statMedium').textContent = medium;
+    document.getElementById('statMax').textContent = Math.max(...signals).toFixed(1) + ' dBm';
+    document.getElementById('statMean').textContent = (signals.reduce((a,b)=>a+b,0)/signals.length).toFixed(1) + ' dBm';
+
+    // 更新高度标签
+    const typeLabel = activeSourceType === 'all' ? '综合' : EM_SOURCES[activeSourceType].label;
+    const altLabel = `H${centerLayerIdx} · ${ALT_LAYERS[centerLayerIdx]}m (单层±${LAYER_SPAN}) · [${typeLabel}]`;
+    document.getElementById('curAltLabel').textContent = altLabel;
+
+    // 触发预加载相邻层
+    preloadAdjacentLayers(layerIdx);
+
+    // 更新图例
+    updateLegend();
+  }
+
+  // ===== 堆叠模式渲染 =====
+  async function drawStackedHeatmap() {
+    // 清除旧Primitive
+    if (heatFillPrimitive) { viewer.scene.primitives.remove(heatFillPrimitive); heatFillPrimitive = null; }
+    if (heatWirePrimitive) { viewer.scene.primitives.remove(heatWirePrimitive); heatWirePrimitive = null; }
+
+    if (!layerVisible['heatmap']) {
+      return;
+    }
+
+    // 堆叠模式：显示所有层或指定数量的层
+    const maxLayers = Math.min(stackLayerCount, ALT_LAYERS.length);
+    const multiLayerPts = [];
+
+    console.log(`[堆叠模式] 加载 ${maxLayers} 层数据`);
+
+    // 加载所有层数据
+    for (let layer = 0; layer < maxLayers; layer++) {
+      const data = await loadLayerData(activeSourceType, layer);
+      if (!data) continue;
+
+      const layerPts = buildPointsFromData(data);
+      layerPts.forEach(pt => {
+        pt.layerIdx = layer;
+        pt.isCenter = false;  // 堆叠模式没有中心层概念
+      });
+      multiLayerPts.push(...layerPts);
+    }
+
+    if (multiLayerPts.length === 0) {
+      console.warn('堆叠模式：没有加载到任何数据');
+      return;
+    }
+
+    const allPts = multiLayerPts;
+    const CELL = 0.0032;
+
+    // 批量构建填充面实例（每层透明度递增）
+    const fillInstances = [];
+    allPts.forEach(pt => {
+      // 高度层越高，透明度越高（避免上层遮挡下层）
+      const layerAlpha = 0.15 + (pt.layerIdx / maxLayers) * 0.35;  // 0.15 ~ 0.50
+      const color = sigColor(pt.dbm);
+      const alpha = layerAlpha * color.alpha;
+      fillInstances.push(new Cesium.GeometryInstance({
+        geometry: new Cesium.RectangleGeometry({
+          rectangle: Cesium.Rectangle.fromDegrees(
+            pt.lon - CELL/2, pt.lat - CELL/2,
+            pt.lon + CELL/2, pt.lat + CELL/2
+          ),
+          height: pt.alt,
+          extrudedHeight: pt.alt + 30,  // 堆叠模式下使用较小的厚度
+          vertexFormat: Cesium.PerInstanceColorAppearance.VERTEX_FORMAT
+        }),
+        attributes: {
+          color: Cesium.ColorGeometryInstanceAttribute.fromColor(
+            new Cesium.Color(color.red, color.green, color.blue, alpha)
+          )
+        },
+        id: { type: 'heatgrid', gridPt: pt }
+      }));
+    });
+
+    // 批量构建边界线实例（堆叠模式下只显示顶部线框）
+    const wireInstances = [];
+    const wireStep = PERF_CONFIG.simplifyWireframe ? 3 : 1;  // 堆叠模式下进一步简化
+
+    allPts.forEach((pt, idx) => {
+      if (PERF_CONFIG.simplifyWireframe && idx % wireStep !== 0) {
+        return;
+      }
+
+      const color = sigColor(pt.dbm);
+      const h2 = pt.alt + 30;
+      const x1 = pt.lon - CELL/2, x2 = pt.lon + CELL/2;
+      const y1 = pt.lat - CELL/2, y2 = pt.lat + CELL/2;
+
+      // 只绘制顶部线框
+      const alpha = 0.3 + (pt.layerIdx / maxLayers) * 0.3;  // 0.3 ~ 0.6
+      const lineColor = new Cesium.Color(
+        Math.min(1, color.red + 0.15),
+        Math.min(1, color.green + 0.15),
+        Math.min(1, color.blue + 0.15),
+        alpha
+      );
+
+      const lines = [
+        [x1,y1,h2, x2,y1,h2], [x2,y1,h2, x2,y2,h2], [x2,y2,h2, x1,y2,h2], [x1,y2,h2, x1,y1,h2]
+      ];
+      lines.forEach(([lon1,lat1,alt1,lon2,lat2,alt2]) => {
+        wireInstances.push(new Cesium.GeometryInstance({
+          geometry: new Cesium.PolylineGeometry({
+            positions: [
+              Cesium.Cartesian3.fromDegrees(lon1, lat1, alt1),
+              Cesium.Cartesian3.fromDegrees(lon2, lat2, alt2)
+            ],
+            width: 0.8,  // 堆叠模式下使用更细的线
+            vertexFormat: Cesium.PolylineColorAppearance.VERTEX_FORMAT
+          }),
+          attributes: {
+            color: Cesium.ColorGeometryInstanceAttribute.fromColor(lineColor)
+          }
+        }));
+      });
+    });
+
+    // 重新创建填充面 Primitive
+    if (fillInstances.length > 0) {
+      console.log(`[drawStackedHeatmap] 创建heatFillPrimitive，instances=${fillInstances.length}`);
+      heatFillPrimitive = new Cesium.Primitive({
+        geometryInstances: fillInstances,
+        appearance: new Cesium.PerInstanceColorAppearance({
+          translucent: true,
+          closed: false
+        }),
+        asynchronous: true,
+        allowPicking: true,
+        show: true
+      });
+      viewer.scene.primitives.add(heatFillPrimitive);
+    }
+
+    // 重新创建边界线 Primitive
+    if (wireInstances.length > 0) {
+      console.log(`[drawStackedHeatmap] 创建heatWirePrimitive，instances=${wireInstances.length}`);
+      heatWirePrimitive = new Cesium.Primitive({
+        geometryInstances: wireInstances,
+        appearance: new Cesium.PolylineColorAppearance({
+          translucent: true
+        }),
+        asynchronous: true,
+        allowPicking: false,
+        show: true
+      });
+      viewer.scene.primitives.add(heatWirePrimitive);
+    }
+
+    // 更新统计（堆叠模式统计所有层）
+    const allSignals = allPts.map(p => p.dbm);
+    const totalMedium = allPts.filter(p => p.level !== 'LOW').length;
+    document.getElementById('statTotal').textContent = allPts.length.toLocaleString();
+    document.getElementById('statMedium').textContent = totalMedium.toLocaleString();
+    document.getElementById('statMax').textContent = Math.max(...allSignals).toFixed(1) + ' dBm';
+    document.getElementById('statMean').textContent = (allSignals.reduce((a,b)=>a+b,0)/allSignals.length).toFixed(1) + ' dBm';
+
+    // 更新高度标签
+    const typeLabel = activeSourceType === 'all' ? '综合' : EM_SOURCES[activeSourceType].label;
+    const altLabel = `堆叠模式 · ${maxLayers}层 (0~${ALT_LAYERS[maxLayers-1]}m) · [${typeLabel}]`;
+    document.getElementById('curAltLabel').textContent = altLabel;
+
+    // 更新图例
+    updateLegend();
+  }
+
+  // 点击热力 Primitive
+  viewer.screenSpaceEventHandler.setInputAction(function(e) {
+    const picked = viewer.scene.pick(e.position);
+    if (!picked) return;
+
+    // Primitive 点击（填充面）
+    if (picked.id && picked.id.type === 'heatgrid') {
+      const pt = picked.id.gridPt;
+      showGridDetail(pt);
+      return;
+    }
+    // Entity 点击（干扰源）
+    if (picked.id && picked.id.properties) {
+      const entity = picked.id;
+      const props = entity.properties;
+      const srcItem = props.srcItem ? props.srcItem.getValue() : null;
+      const srcType = props.srcType ? props.srcType.getValue() : null;
+      const srcCfg  = props.srcCfg  ? props.srcCfg.getValue()  : null;
+      if (srcItem && srcType && srcCfg) {
+        showSourceDetail(srcItem, srcType, srcCfg);
+        document.querySelectorAll('.tree-node').forEach(n => {
+          n.classList.toggle('active', n.textContent.includes(srcItem.name));
+        });
+      }
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  function showGridDetail(pt) {
+    document.getElementById('defaultHint').style.display = 'none';
+    document.getElementById('detailMain').style.display = '';
+    document.getElementById('detailTime').textContent = new Date().toLocaleTimeString('zh-CN');
+    document.getElementById('detailName').textContent = pt.gridCode;
+    document.getElementById('detailType').textContent = `BDS立体网格 · H${Math.floor(pt.alt/80)} · ${pt.alt}m`;
+    document.getElementById('detailBadge').textContent = pt.level;
+    document.getElementById('detailBadge').className = 'node-tag bg-tag-' + ({'SEVERE':'red','HIGH':'orange','MEDIUM':'yellow','LOW':'green'}[pt.level]||'blue');
+    document.getElementById('detailIconBox').style.background = 'rgba(234,179,8,.2)';
+    document.getElementById('detailIcon').setAttribute('data-icon', 'lucide:grid-3x3');
+    document.getElementById('detailIcon').style.color = '#eab308';
+    document.getElementById('detailCoord').textContent = `${pt.lon.toFixed(4)}°E, ${pt.lat.toFixed(4)}°N`;
+    document.getElementById('detailAlt').textContent = pt.alt + 'm';
+    document.getElementById('detailPower').textContent = '--';
+    document.getElementById('detailFreq').textContent = '1575.42 MHz (参考)';
+    const colorMap = {'SEVERE':'#ef4444','HIGH':'#f97316','MEDIUM':'#eab308','LOW':'#22c55e'};
+    document.getElementById('nearSig').textContent = pt.dbm + ' dBm';
+    document.getElementById('nearSig').style.color = colorMap[pt.level] || '#60a5fa';
+    document.getElementById('nearLevel').textContent = pt.level;
+    document.getElementById('nearLevel').style.color = colorMap[pt.level] || '#60a5fa';
+    document.getElementById('nearEField').textContent = eFieldMag(pt.dbm) + ' V/m';
+    document.getElementById('nearGridCode').textContent = pt.gridCode;
+    const contrib = document.getElementById('sourceContribList');
+    contrib.innerHTML = '';
+    const sorted = Object.entries(pt.perSrc).sort((a,b)=>b[1]-a[1]).slice(0,10);
+    sorted.forEach(([name, val]) => {
+      const pct = Math.max(0, Math.min(100, sigNorm(val) * 100));
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-2';
+      div.innerHTML = `<span class="text-[10px] text-slate-400 w-20 truncate">${name}</span>
+        <div style="flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${sigColorHex(val)};border-radius:2px"></div>
+        </div>
+        <span class="font-mono text-[10px]" style="color:${sigColorHex(val)};min-width:50px;text-align:right">${val} dBm</span>`;
+      contrib.appendChild(div);
+    });
+    document.getElementById('sourceContribBox').style.display = '';
+  }
+
+  // 初始化图例
+  updateLegend();
+
+  // 异步初始化
+  (async function() {
+    // 加载干扰源
+    await loadInterferenceSources();
+
+    // 初始化数据源信息
+    await updateDataSourceInfo();
+
+    drawHeatmapLayer(0);
+  })();
+
+  // ===== 数据源切换 =====
+  window.switchDataSource = function(sourceId) {
+    if (currentDataSource === sourceId) return;
+
+    console.log(`[切换数据源] ${currentDataSource} → ${sourceId}`);
+    currentDataSource = sourceId;
+
+    // 清空所有缓存
+    layerDataCache = {};
+
+    // 清除所有实体和Primitive
+    heatmapEntities.forEach(e => viewer.entities.remove(e));
+    heatmapEntities = [];
+    if (heatFillPrimitive) { viewer.scene.primitives.remove(heatFillPrimitive); heatFillPrimitive = null; }
+    if (heatWirePrimitive) { viewer.scene.primitives.remove(heatWirePrimitive); heatWirePrimitive = null; }
+
+    // 清除干扰源实体
+    Object.keys(sourceEntities).forEach(type => {
+      sourceEntities[type].forEach(e => viewer.entities.remove(e));
+      sourceEntities[type] = [];
+    });
+
+    // 重新加载干扰源数据
+    loadInterferenceSources();
+
+    // 重新绘制热力图
+    drawHeatmapLayer(currentLayerIdx);
+
+    // 更新界面信息
+    updateDataSourceInfo();
+  };
+
+  // 更新数据源信息
+  async function updateDataSourceInfo() {
+    try {
+      const indexResponse = await fetch(`${DATA_BASE_URL}${currentDataSource}/data/all/index.json`);
+      const indexData = await indexResponse.json();
+
+      const meta = indexData.meta;
+
+      console.log(`[数据源信息] ${meta.source_count}个干扰源, ${meta.total_layers}层, ${meta.total_points}个格点`);
+    } catch (err) {
+      console.error('更新数据源信息失败:', err);
+    }
+  }
+
+  // ===== 信号源类型切换（互斥模式） =====
+  window.toggleSourceType = function(type, btn) {
+    // 如果点击已激活的，不做操作
+    if (activeSourceType === type) return;
+
+    console.log(`[切换类型] ${activeSourceType} → ${type}`);
+    console.log(`[当前状态] layerVisible['heatmap'] = ${layerVisible['heatmap']}`);
+    // 更新激活状态
+    activeSourceType = type;
+
+    // 更新所有按钮的勾选标记
+    const buttons = document.querySelectorAll('#layerControlBar button[id]');
+    buttons.forEach(b => {
+      if (b.id === 'btn-' + type) {
+        // 激活状态：蓝色背景 + 白色✓
+        b.style.background = 'rgba(59,130,246,0.3)';
+        b.style.borderColor = 'rgba(59,130,246,0.6)';
+        b.innerHTML = '<span class="text-lg font-bold text-white layer-badge" style="line-height:1">✓</span>';
+      } else {
+        // 非激活状态：灰色背景 + 空内容
+        b.style.background = 'rgba(71,85,105,0.3)';
+        b.style.borderColor = 'rgba(71,85,105,0.5)';
+        b.innerHTML = '<span class="text-lg font-bold text-slate-500 layer-badge" style="line-height:1"></span>';
+      }
+    });
+
+    // 更新干扰源图标的可见性
+    Object.keys(sourceEntities).forEach(t => {
+      const visible = (type === 'all' || t === type);
+      sourceEntities[t].forEach(e => e.show = visible);
+
+      // 更新左侧树中的图层开关(使用toggleSourceType)
+      const toggleBtn = document.querySelector(`button[onclick*="toggleSourceType('${t}'"]`);
+      if (toggleBtn) {
+        const icon = toggleBtn.querySelector('.iconify');
+        if (icon) {
+          icon.setAttribute('data-icon', visible ? 'lucide:eye' : 'lucide:eye-off');
+        }
+      }
+    });
+
+    // 自动打开热力图开关（确保热力图可见）
+    if (!layerVisible['heatmap']) {
+      layerVisible['heatmap'] = true;
+      const heatmapBtn = document.querySelector(`button[onclick*="toggleLayer('heatmap'"]`);
+      if (heatmapBtn) {
+        const icon = heatmapBtn.querySelector('.iconify');
+        if (icon) {
+          icon.setAttribute('data-icon', 'lucide:eye');
+        }
+      }
+    }
+
+    // 清空数据缓存，重新加载
+    layerDataCache = {};
+
+    // 重新加载并绘制热力图
+    drawHeatmapLayer(currentLayerIdx);
+
+    // 更新图例
+    updateLegend();
+  };
+
+  // ===== 加载类型层数据（从独立JSON文件） - 优化版 =====
+  async function loadLayerData(sourceType, layerIdx) {
+    const cacheKey = `${sourceType}_${layerIdx}`;
+
+    // 1. 检查内存缓存
+    if (layerDataCache[cacheKey]) {
+      console.log(`[loadLayerData] 缓存命中: ${cacheKey}`);
+      return layerDataCache[cacheKey];
+    }
+
+    // 2. 检查持久化缓存（先读取元数据快速显示）
+    const cachedMeta = persistentCache.get(cacheKey);
+    if (cachedMeta) {
+      console.log(`[loadLayerData] 持久化缓存命中: ${sourceType} 第${layerIdx}层元数据`);
+    }
+
+    try {
+      const layerFileName = `layer_${String(layerIdx).padStart(3,'0')}_alt${String(ALT_LAYERS[layerIdx]).padStart(4,'0')}m.json`;
+      const url = `${DATA_BASE_URL}${currentDataSource}/data/${sourceType}/${layerFileName}`;
+      console.log(`[loadLayerData] 请求URL: ${url}`);
+      
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      layerDataCache[cacheKey] = data;
+
+      // 3. 写入持久化缓存
+      persistentCache.set(cacheKey, data);
+
+      console.log(`[loadLayerData] ${sourceType} 第${layerIdx}层加载成功: ${data.meta?.point_count || data.data?.length || 0}点`);
+      return data;
+    } catch (err) {
+      console.error(`[loadLayerData] 加载 ${sourceType} 第${layerIdx}层数据失败:`, err);
+      return null;
+    }
+  }
+
+  // ===== 预加载相邻层数据 =====
+  function preloadAdjacentLayers(currentLayerIdx) {
+    if (!PERF_CONFIG.preloadAdjacent) return;
+
+    const preloadCount = 2;  // 预加载前后各2层
+    for (let i = 1; i <= preloadCount; i++) {
+      if (currentLayerIdx - i >= 0) {
+        loadLayerData(activeSourceType, currentLayerIdx - i);
+      }
+      if (currentLayerIdx + i < ALT_LAYERS.length) {
+        loadLayerData(activeSourceType, currentLayerIdx + i);
+      }
+    }
+  }
+
+// ===== 更新图例 =====
+  function updateLegend() {
+    const gradient = document.getElementById('legendGradient');
+    const scale = document.getElementById('legendScale');
+    const colors = document.getElementById('legendColors');
+
+    // 类型特定阈值配置（基于新的双斜率模型数据）
+    // 数据范围：-200 ~ -70 dBm
+    const typeThresholds = {
+      'all': { severe: -80, high: -100, medium: -130, colors: ['#1e3a8a', '#06b6d4', '#4ade80', '#f97316', '#ef4444'] },
+      '5g': { severe: -100, high: -130, medium: -160, colors: ['#4ade80'] },
+      'radar': { severe: -80, high: -100, medium: -130, colors: ['#a855f7'] },
+      'cors': { severe: -100, high: -130, medium: -160, colors: ['#3b82f6'] },
+      'uav': { severe: -120, high: -140, medium: -160, colors: ['#06b6d4'] }
+    };
+
+    const t = typeThresholds[activeSourceType] || typeThresholds['all'];
+
+    // 互斥模式：根据当前激活的类型显示对应的图例
+    if (activeSourceType === 'all') {
+      // 综合模式：5色渐变
+      gradient.style.background = 'linear-gradient(to right,#1e3a8a,#06b6d4,#4ade80,#f97316,#ef4444)';
+      scale.innerHTML = `<span>${t.medium} dBm</span><span>${t.high} dBm</span><span>${t.severe} dBm</span>`;
+      colors.innerHTML = '<span style="color:#4ade80">● LOW</span><span style="color:#facc15">● MED</span><span style="color:#f97316">● HIGH</span><span style="color:#ef4444">● SEVERE</span>';
+    } else {
+      // 单源模式：同样使用统一5色渐变（蓝→青→绿→橙→红）
+      gradient.style.background = 'linear-gradient(to right,#1e3a8a,#06b6d4,#4ade80,#f97316,#ef4444)';
+      scale.innerHTML = `<span>${t.medium} dBm</span><span>${t.high} dBm</span><span>${t.severe} dBm</span>`;
+      colors.innerHTML = '<span style="color:#1e3a8a">● LOW</span><span style="color:#4ade80">● MEDIUM</span><span style="color:#ef4444">● HIGH</span>';
+    }
+  }
+
+  // ===== 图层可见性（仅用于热力图和仿真边界，干扰源已改为类型切换） =====
+  window.toggleLayer = function(type, btn) {
+    if (type === 'sim-boundary' || type === 'heatmap') {
+      layerVisible[type] = !layerVisible[type];
+      const visible = layerVisible[type];
+
+      if (type === 'sim-boundary') {
+        if (boundaryEntity) boundaryEntity.show = visible;
+      } else if (type === 'heatmap') {
+        // 重新渲染热力图（不仅仅是显示/隐藏，因为可能需要加载数据）
+        drawHeatmapLayer(currentLayerIdx);
+      }
+
+      // 更新图标
+      if (btn) {
+        const icon = btn.querySelector('.iconify');
+        if (icon) {
+          icon.setAttribute('data-icon', visible ? 'lucide:eye' : 'lucide:eye-off');
+        }
+      }
+    }
+  };
+
+  // ===== 高度层切换（单层模式）=====
+  window.onAltChange = function(val) {
+    const idx = parseInt(val);
+    currentLayerIdx = idx;
+    const alt = ALT_LAYERS[idx];
+    if (displayMode === 'single') {
+      document.getElementById('curAltLabel').textContent = `H${idx} · ${alt}m`;
+    }
+    drawHeatmapLayer(idx);
+  };
+
+  // ===== 堆叠层数切换（堆叠模式）=====
+  window.onStackCountChange = function(val) {
+    const count = parseInt(val);
+    stackLayerCount = count;
+    const maxAlt = ALT_LAYERS[count - 1];
+    document.getElementById('stackCountLabel').textContent = `${count}层 (0~${maxAlt}m)`;
+    drawHeatmapLayer(currentLayerIdx);
+  };
+
+  // ===== 显示模式切换 =====
+  window.setDisplayMode = function(mode) {
+    displayMode = mode;
+    const singleBtn = document.getElementById('mode-single');
+    const stackBtn = document.getElementById('mode-stack');
+    const singleControl = document.getElementById('singleLayerControl');
+    const stackControl = document.getElementById('stackLayerControl');
+
+    if (mode === 'single') {
+      // 单层模式
+      singleBtn.className = 'flex-1 py-1 px-2 rounded text-xs font-bold transition bg-blue-600/20 text-blue-400 border border-blue-500/40';
+      stackBtn.className = 'flex-1 py-1 px-2 rounded text-xs font-bold transition bg-slate-700/50 text-slate-500 border border-slate-600';
+      singleControl.classList.remove('hidden');
+      stackControl.classList.add('hidden');
+      document.getElementById('curAltLabel').textContent = `H${currentLayerIdx} · ${ALT_LAYERS[currentLayerIdx]}m`;
+    } else {
+      // 堆叠模式
+      singleBtn.className = 'flex-1 py-1 px-2 rounded text-xs font-bold transition bg-slate-700/50 text-slate-500 border border-slate-600';
+      stackBtn.className = 'flex-1 py-1 px-2 rounded text-xs font-bold transition bg-blue-600/20 text-blue-400 border border-blue-500/40';
+      singleControl.classList.add('hidden');
+      stackControl.classList.remove('hidden');
+      const maxAlt = ALT_LAYERS[stackLayerCount - 1];
+      const typeLabel = activeSourceType === 'all' ? '综合' : EM_SOURCES[activeSourceType].label;
+      document.getElementById('curAltLabel').textContent = `堆叠模式 · ${stackLayerCount}层 (0~${maxAlt}m) · [${typeLabel}]`;
+    }
+
+    // 重新渲染
+    drawHeatmapLayer(currentLayerIdx);
+  };
+
+  // ===== 定位到仿真范围 =====
+  window.flyToSimBoundary = function() {
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(119.9975, 30.5513, 50000),
+      orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }  // 垂直俯视
+    });
+  };
+
+  // ===== 飞到干扰源 =====
+  function flyToSource(entity, item, type, cfg) {
+    const alt = item.alt !== undefined ? item.alt : cfg.alt;
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(item.lon, item.lat, 50000),  // 使用统一高度50km
+      orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 }  // 垂直俯视
+    });
+    showSourceDetail(item, type, cfg);
+    // 高亮树节点
+    document.querySelectorAll('.tree-node').forEach(n => {
+      n.classList.toggle('active', n.textContent.includes(item.name));
+    });
+  }
+
+  // ===== 右侧详情面板 =====
+  function showSourceDetail(item, type, cfg) {
+    document.getElementById('defaultHint').style.display = 'none';
+    document.getElementById('detailMain').style.display = '';
+    document.getElementById('detailTime').textContent = new Date().toLocaleTimeString('zh-CN');
+
+    // 计算近场数据（地面层 H0）
+    const altNum = typeof item.alt === 'number' ? item.alt : (typeof cfg.alt === 'number' ? cfg.alt : 30);
+    const { dbm, perSrc } = calcSignal(item.lon, item.lat, altNum+1);
+    const lvl = interferenceLevel(dbm);
+    const gc  = bdsGridCode(item.lon, item.lat, altNum+1);
+    const em  = eFieldMag(dbm);
+
+    const colorMap = { 'SEVERE':'#ef4444','HIGH':'#f97316','MEDIUM':'#eab308','LOW':'#22c55e' };
+    const badgeMap = { '5g':'bg-tag-green','radar':'bg-tag-purple','cors':'bg-tag-blue','uav':'bg-tag-cyan' };
+
+    document.getElementById('detailName').textContent = item.name;
+    document.getElementById('detailType').textContent = cfg.label;
+    document.getElementById('detailBadge').textContent = cfg.label;
+    document.getElementById('detailBadge').className = `node-tag ${badgeMap[type]}`;
+    document.getElementById('detailIcon').setAttribute('data-icon', cfg.icon);
+    document.getElementById('detailIconBox').style.background = cfg.color + '30';
+    document.getElementById('detailIcon').style.color = cfg.color;
+
+    document.getElementById('detailCoord').textContent = `${item.lon.toFixed(4)}°E, ${item.lat.toFixed(4)}°N`;
+    document.getElementById('detailAlt').textContent = typeof item.alt==='number' ? item.alt+'m' : cfg.alt+'m';
+    document.getElementById('detailPower').textContent = cfg.power;
+    document.getElementById('detailFreq').textContent = cfg.freq;
+
+    document.getElementById('nearSig').textContent = dbm + ' dBm';
+    document.getElementById('nearSig').style.color = colorMap[lvl] || '#60a5fa';
+    document.getElementById('nearLevel').textContent = lvl;
+    document.getElementById('nearLevel').style.color = colorMap[lvl] || '#60a5fa';
+    document.getElementById('nearEField').textContent = em + ' V/m';
+    document.getElementById('nearGridCode').textContent = gc;
+
+    // 各源贡献
+    const contrib = document.getElementById('sourceContribList');
+    contrib.innerHTML = '';
+    const sorted = Object.entries(perSrc).sort((a,b) => b[1]-a[1]).slice(0, 10);
+    sorted.forEach(([name, val]) => {
+      const pct = Math.max(0, Math.min(100, sigNorm(val) * 100));
+      const div = document.createElement('div');
+      div.className = 'flex items-center gap-2';
+      div.innerHTML = `
+        <span class="text-[10px] text-slate-400 w-20 truncate">${name}</span>
+        <div style="flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${sigColorHex(val)};border-radius:2px;transition:width .3s"></div>
+        </div>
+        <span class="font-mono text-[10px]" style="color:${sigColorHex(val)};min-width:50px;text-align:right">${val} dBm</span>`;
+      contrib.appendChild(div);
+    });
+    document.getElementById('sourceContribBox').style.display = '';
+  }
+
+  // ===== 点击地图事件（在 drawHeatmapLayer 中注册了Primitive点击，这里只处理entity）=====
+  // 已在 drawHeatmapLayer 内部统一处理
+
+  // ===== 显示通知 =====
+  function showNotification(title, message, duration = 5000) {
+    const notification = document.getElementById('mapNotification');
+    const titleEl = document.getElementById('notificationTitle');
+    const messageEl = document.getElementById('notificationMessage');
+
+    titleEl.textContent = title;
+    messageEl.textContent = message;
+
+    notification.classList.remove('translate-x-full', 'opacity-0');
+    notification.classList.add('translate-x-0', 'opacity-100');
+
+    if (duration > 0) {
+      setTimeout(hideNotification, duration);
+    }
+  }
+
+  function hideNotification() {
+    const notification = document.getElementById('mapNotification');
+    notification.classList.add('translate-x-full', 'opacity-0');
+    notification.classList.remove('translate-x-0', 'opacity-100');
+  }
+
+  // ===== 导出当前层 =====
+  window.exportCurrentLayer = function() {
+    const pts = genLayerPoints(currentLayerIdx);
+    const alt = ALT_LAYERS[currentLayerIdx];
+    const out = {
+      meta: { alt_m: alt, layer: currentLayerIdx, count: pts.length, generated_at: new Date().toISOString() },
+      data: pts.map(p => ({ grid_code: p.gridCode, lon: p.lon, lat: p.lat, alt_m: p.alt, signal_dbm: p.dbm, level: p.level }))
+    };
+    const blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `em_layer_${String(currentLayerIdx).padStart(2,'0')}_alt${String(alt).padStart(4,'0')}m.json`;
+    a.click();
+  };
+
+} catch(err) {
+  console.error('初始化失败:', err);
+  document.getElementById('cesiumContainer').innerHTML =
+    `<div style="color:#ef4444;padding:2rem;text-align:center">Cesium初始化失败: ${err.message}</div>`;
+}
+
+// 嵌入模式检测
+(function(){
+  try { if (window.self !== window.top) document.body.classList.add('embed-mode'); }
+  catch(e) { document.body.classList.add('embed-mode'); }
+})();
+</script>
+<style>
+  body.embed-mode > header { display:none !important; }
+  body.embed-mode > div.flex-1 { height:100vh !important; }
+</style>
+</body>
+</html>

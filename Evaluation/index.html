@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>仿真评估首页 - 低空经济仿真验证平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+        body { background-color: #0b1222; color: #94a3b8; font-family: "Inter", system-ui, sans-serif; }
+        .tech-card { background: rgba(13, 25, 48, 0.8); border: 1px solid #1e3a8a; backdrop-filter: blur(10px); position: relative; }
+        .tech-card::before { content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px; border-top: 2px solid #3b82f6; border-left: 2px solid #3b82f6; }
+        .nav-active { background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%); border-left: 4px solid #3b82f6; color: white; }
+        .glow-text { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+    </style>
+</head>
+<body class="overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- 左侧导航 -->
+<aside class="w-64 border-r border-blue-900/50 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<span class="iconify text-3xl text-blue-500" data-icon="solar:Widget-5-bold-duotone"></span>
+<h1 class="text-white font-bold tracking-wider">仿真评估子系统</h1>
+</div>
+<nav class="flex-1 mt-4">
+<a class="flex items-center px-6 py-4 nav-active" href="仿真评估首页.html">
+<span class="iconify mr-3 text-xl" data-icon="solar:home-2-bold"></span> 评估首页
+                </a>
+<a class="flex items-center px-6 py-4 hover:bg-blue-900/20 transition" href="仿真评估执行页.html">
+<span class="iconify mr-3 text-xl" data-icon="solar:play-bold"></span> 评估执行
+                </a>
+<a class="flex items-center px-6 py-4 hover:bg-blue-900/20 transition" href="评估模型管理页.html">
+<span class="iconify mr-3 text-xl" data-icon="solar:box-bold"></span> 模型管理
+                </a>
+<a class="flex items-center px-6 py-4 hover:bg-blue-900/20 transition" href="评估结果管理页.html">
+<span class="iconify mr-3 text-xl" data-icon="solar:document-bold"></span> 结果档案
+                </a>
+</nav>
+<div class="p-4 text-xs text-slate-500 border-t border-blue-900/30">
+                当前版本: V2.4.0 (2026.03.09)
+            </div>
+</aside>
+<!-- 主体 -->
+<main class="flex-1 flex flex-col overflow-auto">
+<!-- 顶部 -->
+<header class="h-16 border-b border-blue-900/50 flex items-center justify-between px-8 bg-[#0b1222]/50 backdrop-blur-md sticky top-0 z-10">
+<div class="flex items-center gap-2">
+<span class="text-blue-400">当前任务：</span>
+<span class="text-white">AS-20260309-001 莫干山物流航线冲突评估</span>
+</div>
+<div class="flex items-center gap-6">
+<div class="text-right">
+<div class="text-white text-sm">管理员 (Admin)</div>
+<div class="text-xs text-blue-400">2026-03-09 10:45:22</div>
+</div>
+<span class="iconify text-2xl cursor-pointer hover:text-white" data-icon="solar:bell-bold"></span>
+</div>
+</header>
+<!-- 内容 -->
+<div class="p-8">
+<!-- 统计行 -->
+<div class="grid grid-cols-4 gap-6 mb-8">
+<div class="tech-card p-6">
+<div class="text-sm">今日评估次数</div>
+<div class="text-3xl font-bold text-white mt-2 glow-text">128 <span class="text-sm text-green-500 font-normal">+12%</span></div>
+</div>
+<div class="tech-card p-6">
+<div class="text-sm">运行中任务</div>
+<div class="text-3xl font-bold text-blue-400 mt-2 glow-text">05</div>
+</div>
+<div class="tech-card p-6">
+<div class="text-sm">模型覆盖度</div>
+<div class="text-3xl font-bold text-white mt-2 glow-text">94.2%</div>
+</div>
+<div class="tech-card p-6">
+<div class="text-sm">历史总报告</div>
+<div class="text-3xl font-bold text-white mt-2 glow-text">1,240</div>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-8">
+<div class="col-span-2 tech-card p-6 min-h-[400px]">
+<h3 class="text-white font-bold mb-4 flex items-center">
+<span class="w-1 h-4 bg-blue-500 mr-2"></span> 评估频次趋势 (3月)
+                        </h3>
+<div class="w-full h-80" id="trendChart"></div>
+</div>
+<div class="tech-card p-6">
+<h3 class="text-white font-bold mb-4 flex items-center">
+<span class="w-1 h-4 bg-blue-500 mr-2"></span> 待评估任务列表
+                        </h3>
+<div class="space-y-4">
+<div class="bg-blue-900/20 p-4 border-l-2 border-yellow-500">
+<div class="flex justify-between text-white text-sm mb-1">
+<span>核心商圈物流投递-A</span>
+<span class="text-yellow-500">队列中</span>
+</div>
+<div class="text-xs">提交人: 王工 | 2026-03-09 09:20</div>
+</div>
+<div class="bg-blue-900/20 p-4 border-l-2 border-blue-500">
+<div class="flex justify-between text-white text-sm mb-1">
+<span>应急医疗血液配送评估</span>
+<span class="text-blue-500">运行中: 65%</span>
+</div>
+<div class="text-xs">提交人: 李工 | 2026-03-09 09:45</div>
+</div>
+<div class="bg-blue-900/20 p-4 border-l-2 border-green-500 opacity-70">
+<div class="flex justify-between text-white text-sm mb-1">
+<span>变电站无人机巡检-V2</span>
+<span class="text-green-500">已就绪</span>
+</div>
+<div class="text-xs">提交人: 系统自动 | 2026-03-09 08:00</div>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border border-blue-500/50 hover:bg-blue-500/10 text-blue-400 text-sm">查看全部</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+        const chart = echarts.init(document.getElementById('trendChart'));
+        chart.setOption({
+            backgroundColor: 'transparent',
+            tooltip: { trigger: 'axis' },
+            grid: { top: '10%', left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                data: ['03/01', '03/02', '03/03', '03/04', '03/05', '03/06', '03/07', '03/08', '03/09'],
+                axisLine: { lineStyle: { color: '#1e3a8a' } },
+                axisLabel: { color: '#94a3b8' }
+            },
+            yAxis: {
+                type: 'value',
+                splitLine: { lineStyle: { color: '#1e3a8a', type: 'dashed' } },
+                axisLabel: { color: '#94a3b8' }
+            },
+            series: [{
+                name: '评估次数',
+                type: 'line',
+                smooth: true,
+                data: [45, 52, 48, 70, 90, 85, 60, 110, 128],
+                itemStyle: { color: '#3b82f6' },
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(59, 130, 246, 0.4)' },
+                        { offset: 1, color: 'rgba(59, 130, 246, 0)' }
+                    ])
+                }
+            }]
+        });
+        window.onresize = chart.resize;
+    </script>
+</body>
+</html>

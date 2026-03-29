@@ -1,0 +1,8 @@
+{
+  "_comment": "场景01覆盖：常规城区白天，使用全局默认参数",
+  "sim_step_s": 0.5,
+  "horizontal_gap_m": 50,
+  "vertical_gap_m": 30,
+  "max_sim_time_s": 1800,
+  "scene_desc": "常规城区白天无气象推演，5架无人机，覆盖配送/巡检/巡逻任务"
+}

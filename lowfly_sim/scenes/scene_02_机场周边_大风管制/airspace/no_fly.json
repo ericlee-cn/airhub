@@ -1,0 +1,30 @@
+{
+  "airspace_list": [
+    {
+      "area_id": "AREA_APT_001",
+      "area_name": "萧山机场3km核心禁飞区",
+      "area_type": "no_fly",
+      "priority": 1,
+      "min_alt": 0,
+      "max_alt": 1000,
+      "time_mode": "always",
+      "geo_shape": "circle",
+      "center_lon": 120.430,
+      "center_lat": 30.235,
+      "radius_m": 3000
+    },
+    {
+      "area_id": "AREA_APT_002",
+      "area_name": "机场5km管制外圈",
+      "area_type": "control",
+      "priority": 2,
+      "min_alt": 0,
+      "max_alt": 500,
+      "time_mode": "always",
+      "geo_shape": "circle",
+      "center_lon": 120.430,
+      "center_lat": 30.235,
+      "radius_m": 5000
+    }
+  ]
+}

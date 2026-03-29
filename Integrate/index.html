@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=1920, user-scalable=no" name="viewport"/>
+<title>仿真系统综合管理平台 - 首页</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+        body { background-color: #121212; font-family: "Microsoft YaHei", sans-serif; color: #E5E7EB; }
+        .sidebar-active { background-color: #1677FF22; border-right: 3px solid #1677FF; color: #1677FF; }
+        .sidebar-item:hover { background-color: #ffffff0a; }
+        .card-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .border-custom { border-color: #2D2D2D; }
+    </style>
+</head>
+<body class="w-[1920px] h-[1080px] overflow-hidden flex">
+<!-- 左侧导航栏 -->
+<aside class="w-[240px] bg-[#1A1A1A] h-full border-r border-[#2D2D2D] flex flex-col flex-shrink-0">
+<div class="p-6 flex items-center gap-3 border-b border-[#2D2D2D]">
+<div class="w-8 h-8 bg-[#1677FF] rounded flex items-center justify-center">
+<span class="iconify text-white text-xl" data-icon="mdi:hubspot"></span>
+</div>
+<span class="text-lg font-bold text-white">仿真系统管理</span>
+</div>
+<nav class="flex-1 py-4">
+<a class="flex items-center px-6 py-4 sidebar-active" href="index.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:view-dashboard"></span>
+<span>首页概览</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="permission.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:shield-account"></span>
+<span>权限管控</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="log-audit.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:clipboard-text-clock"></span>
+<span>日志审计</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="microservice-monitor.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:monitor-dashboard"></span>
+<span>微服务监控</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="exception-handle.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:alert-box"></span>
+<span>应急处置</span>
+</a>
+</nav>
+<div class="p-4 border-t border-[#2D2D2D] text-sm text-gray-500">
+            V2.4.0 (2026-03-10)
+        </div>
+</aside>
+<!-- 主体区域 -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- 顶部通栏 -->
+<header class="h-16 bg-[#1A1A1A] border-b border-[#2D2D2D] flex items-center justify-between px-8">
+<h1 class="text-xl font-medium text-white">综合管理模块入口（当前日期：2026年03月10日）</h1>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="iconify text-xl text-gray-400" data-icon="mdi:bell-outline"></span>
+<span class="bg-red-500 text-white text-[10px] px-1.5 rounded-full -ml-3 mb-3">3</span>
+</div>
+<div class="flex items-center gap-3 border-l border-[#2D2D2D] pl-6">
+<img alt="Admin Avatar" class="w-8 h-8 rounded-full border border-[#444]" src="https://modao.cc/agent-py/media/generated_images/2026-03-10/f43bbf67fde8442a8067e58814d175d1.jpg"/>
+<span class="text-gray-300">超级管理员</span>
+<span class="iconify text-gray-500" data-icon="mdi:chevron-down"></span>
+</div>
+<button class="text-gray-500 hover:text-red-500">
+<span class="iconify text-xl" data-icon="mdi:logout"></span>
+</button>
+</div>
+</header>
+<!-- 内容滚动区 -->
+<div class="flex-1 p-8 overflow-y-auto">
+<!-- 核心数据卡片 -->
+<div class="grid grid-cols-3 gap-8 mb-8">
+<!-- 健康度 -->
+<div class="bg-[#1E1E1E] p-6 rounded-lg card-shadow h-[360px] flex flex-col">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-lg font-bold text-gray-200">系统健康度</h3>
+<span class="text-sm text-[#1677FF] cursor-pointer">查看详情</span>
+</div>
+<div class="flex-1 flex items-center justify-center gap-8">
+<div class="w-48 h-48" id="healthChart"></div>
+<div class="space-y-4">
+<div>
+<p class="text-gray-500 text-sm">可用率</p>
+<p class="text-2xl font-bold text-[#52C41A]">99.99%</p>
+</div>
+<div>
+<p class="text-gray-500 text-sm">权限合规</p>
+<p class="text-2xl font-bold text-[#1677FF]">100%</p>
+</div>
+<div>
+<p class="text-gray-500 text-sm">审计覆盖</p>
+<p class="text-2xl font-bold text-orange-400">99.8%</p>
+</div>
+</div>
+</div>
+</div>
+<!-- 实时告警 -->
+<div class="bg-[#1E1E1E] p-6 rounded-lg card-shadow h-[360px]">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-gray-200">当前实时告警</h3>
+<a class="text-sm text-gray-500 hover:text-[#1677FF]" href="microservice-monitor.html">查看记录</a>
+</div>
+<div class="grid grid-cols-3 gap-4 mb-6">
+<div class="bg-red-900/20 p-4 rounded-lg flex flex-col items-center border border-red-900/30">
+<span class="text-red-500 font-bold text-3xl">0</span>
+<span class="text-red-400 text-sm mt-1">一级告警</span>
+</div>
+<div class="bg-orange-900/20 p-4 rounded-lg flex flex-col items-center border border-orange-900/30">
+<span class="text-orange-500 font-bold text-3xl">1</span>
+<span class="text-orange-400 text-sm mt-1">二级告警</span>
+</div>
+<div class="bg-yellow-900/20 p-4 rounded-lg flex flex-col items-center border border-yellow-900/30">
+<span class="text-yellow-500 font-bold text-3xl">2</span>
+<span class="text-yellow-400 text-sm mt-1">三级告警</span>
+</div>
+</div>
+<div class="border-t border-[#2D2D2D] pt-4">
+<div class="flex items-center gap-3 p-3 bg-[#ffffff05] rounded mb-2 border-l-4 border-orange-500">
+<span class="iconify text-orange-500" data-icon="mdi:alert-outline"></span>
+<span class="text-sm text-gray-300 flex-1 truncate">资源使用率告警: 节点 node-05 CPU &gt; 85%</span>
+<span class="text-xs text-gray-500">14:20</span>
+</div>
+<div class="flex items-center gap-3 p-3 bg-[#ffffff05] rounded mb-2 border-l-4 border-yellow-500">
+<span class="iconify text-yellow-500" data-icon="mdi:alert-outline"></span>
+<span class="text-sm text-gray-300 flex-1 truncate">SSL证书到期提醒: app-gateway 剩余 7天</span>
+<span class="text-xs text-gray-500">12:05</span>
+</div>
+</div>
+</div>
+<!-- 快捷操作 -->
+<div class="bg-[#1E1E1E] p-6 rounded-lg card-shadow h-[360px]">
+<h3 class="text-lg font-bold text-gray-200 mb-6">快捷操作</h3>
+<div class="grid grid-cols-2 gap-4">
+<a class="flex items-center gap-4 border border-[#2D2D2D] p-5 rounded-lg hover:border-[#1677FF] hover:bg-[#1677FF11] transition-all group" href="permission.html">
+<div class="bg-blue-900/30 p-3 rounded group-hover:bg-[#1677FF]">
+<span class="iconify text-[#1677FF] text-2xl group-hover:text-white" data-icon="mdi:account-cog"></span>
+</div>
+<div>
+<p class="font-bold text-gray-200">用户管理</p>
+<p class="text-xs text-gray-500">权限分配与审核</p>
+</div>
+</a>
+<a class="flex items-center gap-4 border border-[#2D2D2D] p-5 rounded-lg hover:border-[#1677FF] hover:bg-[#1677FF11] transition-all group" href="log-audit.html">
+<div class="bg-purple-900/30 p-3 rounded group-hover:bg-[#1677FF]">
+<span class="iconify text-purple-400 text-2xl group-hover:text-white" data-icon="mdi:database-search"></span>
+</div>
+<div>
+<p class="font-bold text-gray-200">日志检索</p>
+<p class="text-xs text-gray-500">全量合规审计</p>
+</div>
+</a>
+<a class="flex items-center gap-4 border border-[#2D2D2D] p-5 rounded-lg hover:border-[#1677FF] hover:bg-[#1677FF11] transition-all group" href="microservice-monitor.html">
+<div class="bg-green-900/30 p-3 rounded group-hover:bg-[#1677FF]">
+<span class="iconify text-green-400 text-2xl group-hover:text-white" data-icon="mdi:gauge"></span>
+</div>
+<div>
+<p class="font-bold text-gray-200">服务监控</p>
+<p class="text-xs text-gray-500">大屏视图与拓扑</p>
+</div>
+</a>
+<a class="flex items-center gap-4 border border-[#2D2D2D] p-5 rounded-lg hover:border-[#1677FF] hover:bg-[#1677FF11] transition-all group" href="exception-handle.html">
+<div class="bg-red-900/30 p-3 rounded group-hover:bg-[#1677FF]">
+<span class="iconify text-red-400 text-2xl group-hover:text-white" data-icon="mdi:auto-fix"></span>
+</div>
+<div>
+<p class="font-bold text-gray-200">应急处置</p>
+<p class="text-xs text-gray-500">自愈规则与演练</p>
+</div>
+</a>
+</div>
+</div>
+</div>
+<!-- 最近操作日志 -->
+<div class="bg-[#1E1E1E] rounded-lg card-shadow p-6">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold text-gray-200">最近操作流水</h3>
+<button class="text-[#1677FF] text-sm">查看全量审计日志</button>
+</div>
+<table class="w-full text-left">
+<thead>
+<tr class="text-gray-500 border-b border-[#2D2D2D]">
+<th class="pb-4 font-medium">操作类型</th>
+<th class="pb-4 font-medium">操作用户</th>
+<th class="pb-4 font-medium">来源IP</th>
+<th class="pb-4 font-medium">操作时间</th>
+<th class="pb-4 font-medium">状态</th>
+<th class="pb-4 font-medium">详情</th>
+</tr>
+</thead>
+<tbody class="text-gray-400">
+<tr class="border-b border-[#2D2D2D] hover:bg-[#ffffff05]">
+<td class="py-4 text-gray-300">变更权限策略</td>
+<td class="py-4">super_admin</td>
+<td class="py-4">192.168.1.101</td>
+<td class="py-4">2026-03-10 15:30:21</td>
+<td class="py-4"><span class="bg-green-900/20 text-green-500 px-2 py-1 rounded text-xs">成功</span></td>
+<td class="py-4"><button class="text-[#1677FF]">查看</button></td>
+</tr>
+<tr class="border-b border-[#2D2D2D] hover:bg-[#ffffff05]">
+<td class="py-4 text-gray-300">启动演练任务</td>
+<td class="py-4">ops_user</td>
+<td class="py-4">192.168.1.152</td>
+<td class="py-4">2026-03-10 14:45:00</td>
+<td class="py-4"><span class="bg-green-900/20 text-green-500 px-2 py-1 rounded text-xs">成功</span></td>
+<td class="py-4"><button class="text-[#1677FF]">查看</button></td>
+</tr>
+<tr class="border-b border-[#2D2D2D] hover:bg-[#ffffff05]">
+<td class="py-4 text-gray-300">删除微服务实例</td>
+<td class="py-4">dev_leader</td>
+<td class="py-4">172.16.55.12</td>
+<td class="py-4">2026-03-10 13:20:15</td>
+<td class="py-4"><span class="bg-red-900/20 text-red-500 px-2 py-1 rounded text-xs">失败</span></td>
+<td class="py-4"><button class="text-[#1677FF]">查看详情</button></td>
+</tr>
+<tr class="border-b border-[#2D2D2D] hover:bg-[#ffffff05]">
+<td class="py-4 text-gray-300">导出日志数据</td>
+<td class="py-4">security_auditor</td>
+<td class="py-4">192.168.1.200</td>
+<td class="py-4">2026-03-10 11:10:44</td>
+<td class="py-4"><span class="bg-green-900/20 text-green-500 px-2 py-1 rounded text-xs">成功</span></td>
+<td class="py-4"><button class="text-[#1677FF]">查看</button></td>
+</tr>
+<tr class="hover:bg-[#ffffff05]">
+<td class="py-4 text-gray-300">登录系统</td>
+<td class="py-4">super_admin</td>
+<td class="py-4">192.168.1.101</td>
+<td class="py-4">2026-03-10 09:00:10</td>
+<td class="py-4"><span class="bg-green-900/20 text-green-500 px-2 py-1 rounded text-xs">成功</span></td>
+<td class="py-4"><button class="text-[#1677FF]">查看</button></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+<script>
+        const healthChart = echarts.init(document.getElementById('healthChart'));
+        healthChart.setOption({
+            series: [{
+                type: 'pie',
+                radius: ['70%', '90%'],
+                avoidLabelOverlap: false,
+                label: {
+                    show: true,
+                    position: 'center',
+                    formatter: '98\n分',
+                    fontSize: 40,
+                    fontWeight: 'bold',
+                    color: '#1677FF'
+                },
+                data: [
+                    { value: 98, itemStyle: { color: '#1677FF' } },
+                    { value: 2, itemStyle: { color: '#2D2D2D' } }
+                ]
+            }]
+        });
+    </script></body>
+</html>

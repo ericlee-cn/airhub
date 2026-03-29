@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>固定航线库 - 3D地图展示</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body, #cesiumContainer { width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        
+        /* 顶部导航栏 */
+        .top-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .title .iconify {
+            font-size: 24px;
+            color: #3b82f6;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 24px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+        
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .stat-item .count {
+            color: #60a5fa;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        /* 左侧航线列表 */
+        .route-list {
+            position: absolute;
+            top: 70px;
+            left: 16px;
+            width: 320px;
+            max-height: calc(100% - 90px);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            overflow-y: auto;
+            z-index: 50;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        
+        .route-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .route-list::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.8);
+        }
+        
+        .route-list::-webkit-scrollbar-thumb {
+            background: rgba(59, 130, 246, 0.5);
+            border-radius: 3px;
+        }
+        
+        .filter-section {
+            padding: 16px;
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .filter-title {
+            color: #e2e8f0;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .filter-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #94a3b8;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
+            color: #e2e8f0;
+        }
+        
+        .filter-btn.active {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: #3b82f6;
+            color: #60a5fa;
+        }
+        
+        .route-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .route-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        
+        .route-item.selected {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .route-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .route-id {
+            font-size: 14px;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+        
+        .route-priority {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+        
+        .route-priority.S {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        
+        .route-priority.A {
+            background: rgba(249, 115, 22, 0.2);
+            color: #fb923c;
+        }
+        
+        .route-priority.B {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+        }
+        
+        .route-priority.C {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+        
+        .route-name {
+            font-size: 13px;
+            color: #e2e8f0;
+            margin-bottom: 6px;
+        }
+        
+        .route-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 11px;
+            color: #94a3b8;
+        }
+        
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .meta-item .iconify {
+            font-size: 12px;
+        }
+        
+        .route-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        
+        .type-物资运输 {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+        
+        .type-应急医疗 {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+        
+        .type-农林植保 {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+        
+        .type-巡逻安防 {
+            background: rgba(234, 179, 8, 0.2);
+            color: #facc15;
+        }
+        
+        .type-应急救援 {
+            background: rgba(249, 115, 22, 0.2);
+            color: #fb923c;
+        }
+        
+        .type-测绘巡检 {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+        }
+        
+        /* 右侧详情面板 */
+        .detail-panel {
+            position: absolute;
+            top: 70px;
+            right: 16px;
+            width: 360px;
+            max-height: calc(100% - 90px);
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            overflow-y: auto;
+            z-index: 50;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            display: none;
+        }
+        
+        .detail-panel.show {
+            display: block;
+        }
+        
+        .detail-header {
+            padding: 16px;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            background: rgba(30, 41, 59, 0.5);
+        }
+        
+        .detail-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+        }
+        
+        .detail-id {
+            font-size: 14px;
+            color: #60a5fa;
+            font-weight: bold;
+        }
+        
+        .detail-content {
+            padding: 16px;
+        }
+        
+        .detail-section {
+            margin-bottom: 20px;
+        }
+        
+        .detail-section-title {
+            font-size: 13px;
+            font-weight: bold;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .detail-section-title .iconify {
+            font-size: 14px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        
+        .detail-label {
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .detail-label .iconify {
+            font-size: 14px;
+        }
+        
+        .detail-value {
+            font-size: 13px;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+        
+        .detail-value.highlight {
+            color: #60a5fa;
+        }
+        
+        /* 航路点列表 */
+        .waypoint-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .waypoint-item {
+            padding: 8px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(51, 65, 85, 0.5);
+        }
+        
+        .waypoint-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        
+        .waypoint-name {
+            font-size: 13px;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+        
+        .waypoint-coords {
+            font-size: 11px;
+            color: #94a3b8;
+            font-family: monospace;
+        }
+        
+        .waypoint-time {
+            font-size: 11px;
+            color: #60a5fa;
+        }
+        
+        /* 控制按钮 */
+        .control-buttons {
+            padding: 16px;
+            border-top: 1px solid rgba(51, 65, 85, 0.5);
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-btn {
+            flex: 1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(51, 65, 85, 0.8);
+            color: #94a3b8;
+            border: 1px solid rgba(71, 85, 105, 0.8);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(71, 85, 105, 0.8);
+            color: #e2e8f0;
+        }
+        
+        /* 图例面板 */
+        .legend-panel {
+            position: absolute;
+            bottom: 20px;
+            left: 356px;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 50;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            max-width: 280px;
+        }
+        
+        .legend-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #e2e8f0;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-items {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 4px;
+            border-radius: 2px;
+        }
+        
+        .legend-line-Ⅰ { background: #ef4444; }
+        .legend-line-Ⅱ { background: #f59e0b; }
+        .legend-line-Ⅲ { background: #10b981; }
+    </style>
+</head>
+<body>
+    <div id="cesiumContainer"></div>
+    
+    <!-- 顶部导航栏 -->
+    <div class="top-bar">
+        <div class="title">
+            <iconify-icon icon="lucide:map"></iconify-icon>
+            <span>固定航线库 - 3D地图展示</span>
+        </div>
+        <div class="stats">
+            <div class="stat-item">
+                <iconify-icon icon="lucide:route"></iconify-icon>
+                <span>航线总数: <span class="count" id="routeCount">0</span></span>
+            </div>
+            <div class="stat-item">
+                <iconify-icon icon="lucide:layers"></iconify-icon>
+                <span>任务类型: <span class="count">6</span></span>
+            </div>
+            <div class="stat-item">
+                <iconify-icon icon="lucide:map-pin"></iconify-icon>
+                <span>航路点: <span class="count" id="waypointCount">0</span></span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 左侧航线列表 -->
+    <div class="route-list">
+        <div class="filter-section">
+            <div class="filter-title">
+                <iconify-icon icon="lucide:filter"></iconify-icon>
+                <span>任务类型筛选</span>
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-type="all">全部</button>
+                <button class="filter-btn" data-type="物资运输">物资运输</button>
+                <button class="filter-btn" data-type="应急医疗">应急医疗</button>
+                <button class="filter-btn" data-type="农林植保">农林植保</button>
+                <button class="filter-btn" data-type="巡逻安防">巡逻安防</button>
+                <button class="filter-btn" data-type="应急救援">应急救援</button>
+                <button class="filter-btn" data-type="测绘巡检">测绘巡检</button>
+            </div>
+        </div>
+        <div id="routeListContent"></div>
+    </div>
+    
+    <!-- 右侧详情面板 -->
+    <div class="detail-panel" id="detailPanel">
+        <div class="detail-header">
+            <div class="detail-title" id="detailTitle"></div>
+            <div class="detail-id" id="detailId"></div>
+        </div>
+        <div class="detail-content">
+            <div class="detail-section">
+                <div class="detail-section-title">
+                    <iconify-icon icon="lucide:info"></iconify-icon>
+                    <span>基本信息</span>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:tag"></iconify-icon>
+                        <span>任务类型</span>
+                    </div>
+                    <div class="detail-value" id="detailType"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:flag"></iconify-icon>
+                        <span>优先级</span>
+                    </div>
+                    <div class="detail-value highlight" id="detailPriority"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:bar-chart-2"></iconify-icon>
+                        <span>航路级别</span>
+                    </div>
+                    <div class="detail-value highlight" id="detailLevel"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:map"></iconify-icon>
+                        <span>航线里程</span>
+                    </div>
+                    <div class="detail-value" id="detailDistance"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:clock"></iconify-icon>
+                        <span>预计用时</span>
+                    </div>
+                    <div class="detail-value" id="detailTime"></div>
+                </div>
+            </div>
+            
+            <div class="detail-section">
+                <div class="detail-section-title">
+                    <iconify-icon icon="lucide:activity"></iconify-icon>
+                    <span>飞行参数</span>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:arrow-up"></iconify-icon>
+                        <span>飞行高度</span>
+                    </div>
+                    <div class="detail-value" id="detailAltitude"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:gauge"></iconify-icon>
+                        <span>最大速度</span>
+                    </div>
+                    <div class="detail-value" id="detailSpeed"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:maximize-2"></iconify-icon>
+                        <span>航路半宽</span>
+                    </div>
+                    <div class="detail-value" id="detailWidth"></div>
+                </div>
+            </div>
+            
+            <div class="detail-section">
+                <div class="detail-section-title">
+                    <iconify-icon icon="lucide:map-pin"></iconify-icon>
+                    <span>起降点</span>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:play-circle"></iconify-icon>
+                        <span>起点</span>
+                    </div>
+                    <div class="detail-value" id="detailStart"></div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">
+                        <iconify-icon icon="lucide:stop-circle"></iconify-icon>
+                        <span>终点</span>
+                    </div>
+                    <div class="detail-value" id="detailEnd"></div>
+                </div>
+            </div>
+            
+            <div class="detail-section">
+                <div class="detail-section-title">
+                    <iconify-icon icon="lucide:list"></iconify-icon>
+                    <span>航路点 (<span id="waypointCountDetail">0</span>个)</span>
+                </div>
+                <div class="waypoint-list" id="waypointList"></div>
+            </div>
+            
+            <div class="control-buttons">
+                <button class="control-btn btn-primary" id="flyToRoute">
+                    <iconify-icon icon="lucide:eye"></iconify-icon>
+                    定位航线
+                </button>
+                <button class="control-btn btn-secondary" id="hideDetail">
+                    <iconify-icon icon="lucide:x"></iconify-icon>
+                    关闭
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 图例面板 -->
+    <div class="legend-panel">
+        <div class="legend-title">
+            <iconify-icon icon="lucide:legend"></iconify-icon>
+            <span>航路级别图例</span>
+        </div>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-color legend-line-Ⅰ"></div>
+                <span>Ⅰ级 - 主干航线</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-line-Ⅱ"></div>
+                <span>Ⅱ级 - 支线航线</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color legend-line-Ⅲ"></div>
+                <span>Ⅲ级 - 末端航线</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let viewer;
+        let routesData = [];
+        let currentRouteId = null;
+        let routeEntities = {};
+        let waypointEntities = {};
+        
+        // 天地图token
+        const tiandituToken = '4bac064681a9f35b4a7dc86368470e73';
+        
+        // 创建天地图卫星影像Provider
+        function createTiandituSatelliteProvider() {
+            return new Cesium.WebMapTileServiceImageryProvider({
+                url: 'http://t0.tianditu.com/img_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=img&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=' + tiandituToken,
+                layer: 'img',
+                style: 'default',
+                format: 'tiles',
+                tileMatrixSetID: 'w',
+                maximumLevel: 18,
+                credit: '天地图卫星影像'
+            });
+        }
+        
+        // 创建天地图矢量地图Provider
+        function createTiandituMapProvider() {
+            return new Cesium.WebMapTileServiceImageryProvider({
+                url: 'http://t0.tianditu.com/vec_w/wmts?service=wmts&request=GetTile&version=1.0.0&LAYER=vec&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}&style=default&format=tiles&tk=' + tiandituToken,
+                layer: 'vec',
+                style: 'default',
+                format: 'tiles',
+                tileMatrixSetID: 'w',
+                maximumLevel: 18,
+                credit: '天地图矢量地图'
+            });
+        }
+        
+        async function init() {
+            try {
+                const tiandituSatelliteProvider = createTiandituSatelliteProvider();
+                const tiandituMapProvider = createTiandituMapProvider();
+                
+                // 创建Viewer
+                viewer = new Cesium.Viewer('cesiumContainer', {
+                    imageryProvider: tiandituSatelliteProvider,
+                    terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+                    baseLayerPicker: false,
+                    geocoder: false,
+                    homeButton: true,
+                    sceneModePicker: false,
+                    navigationHelpButton: false,
+                    animation: false,
+                    timeline: false,
+                    fullscreenButton: true,
+                    infoBox: true,
+                    selectionIndicator: true
+                });
+                
+                // 清除默认图层，重新添加天地图
+                viewer.imageryLayers.removeAll();
+                viewer.imageryLayers.addImageryProvider(tiandituSatelliteProvider);
+                
+                console.log('天地图影像加载成功');
+                
+                // 设置德清县为初始视角
+                viewer.camera.setView({
+                    destination: Cesium.Cartesian3.fromDegrees(119.995842, 30.382550, 50000),
+                    orientation: {
+                        heading: Cesium.Math.toRadians(0),
+                        pitch: Cesium.Math.toRadians(-45),
+                        roll: 0
+                    }
+                });
+                
+                console.log('Cesium初始化完成');
+                
+                // 加载航线数据
+                await loadRoutesData();
+                
+                // 渲染航线列表
+                renderRouteList();
+                
+                // 在地图上渲染所有航线
+                renderAllRoutes();
+                
+                console.log('航线数据加载完成');
+                
+                // 监听瓦片加载
+                viewer.scene.globe.tileLoadProgressEvent.addEventListener(function(numberOfPendingRequests, numberOfTilesProcessing) {
+                    if (numberOfPendingRequests === 0 && numberOfTilesProcessing === 0) {
+                        console.log('瓦片加载完成');
+                    }
+                });
+                
+            } catch (error) {
+                console.error('初始化失败:', error);
+                alert('初始化失败: ' + error.message);
+            }
+        }
+        
+        // 加载航线数据
+        async function loadRoutesData() {
+            try {
+                const response = await fetch('data/airline/fixed_routes_library.json');
+                if (!response.ok) {
+                    throw new Error('无法加载航线数据');
+                }
+                const data = await response.json();
+                
+                // 数据结构是 {"航线库": {"航线数据": [...]}}
+                routesData = data['航线库']['航线数据'];
+                console.log('加载了', routesData.length, '条航线数据');
+                
+                // 更新统计数据
+                document.getElementById('routeCount').textContent = routesData.length;
+                const totalWaypoints = routesData.reduce((sum, route) => sum + route['航路点'].length, 0);
+                document.getElementById('waypointCount').textContent = totalWaypoints;
+                
+            } catch (error) {
+                console.error('加载航线数据失败:', error);
+                alert('加载航线数据失败: ' + error.message);
+            }
+        }
+        
+        // 渲染航线列表
+        function renderRouteList(filterType = 'all') {
+            const container = document.getElementById('routeListContent');
+            container.innerHTML = '';
+            
+            const filteredRoutes = filterType === 'all' 
+                ? routesData 
+                : routesData.filter(route => route['任务类型'] === filterType);
+            
+            filteredRoutes.forEach(route => {
+                const item = document.createElement('div');
+                item.className = 'route-item';
+                item.dataset.routeId = route['航线ID'];
+                item.innerHTML = `
+                    <div class="route-header">
+                        <span class="route-id">${route['航线ID']}</span>
+                        <span class="route-priority ${route['优先级']}">${route['优先级']}级</span>
+                    </div>
+                    <div class="route-name">${route['航线名称']}</div>
+                    <div class="route-meta">
+                        <span class="meta-item">
+                            <iconify-icon icon="lucide:map"></iconify-icon>
+                            ${route['总里程(km)']}km
+                        </span>
+                        <span class="meta-item">
+                            <iconify-icon icon="lucide:clock"></iconify-icon>
+                            ${route['预计用时(min)']}min
+                        </span>
+                        <span class="meta-item">
+                            <iconify-icon icon="lucide:arrow-up"></iconify-icon>
+                            ${route['飞行高度(m)']}m
+                        </span>
+                    </div>
+                    <span class="route-type type-${route['任务类型']}">${route['任务类型']}</span>
+                `;
+                
+                item.addEventListener('click', () => selectRoute(route['航线ID']));
+                container.appendChild(item);
+            });
+        }
+        
+        // 选择航线
+        function selectRoute(routeId) {
+            currentRouteId = routeId;
+            
+            // 更新列表样式
+            document.querySelectorAll('.route-item').forEach(item => {
+                item.classList.remove('selected');
+                if (item.dataset.routeId === routeId) {
+                    item.classList.add('selected');
+                }
+            });
+            
+            // 显示详情面板
+            showRouteDetail(routeId);
+            
+            // 高亮地图上的航线
+            highlightRoute(routeId);
+        }
+        
+        // 显示航线详情
+        function showRouteDetail(routeId) {
+            const route = routesData.find(r => r['航线ID'] === routeId);
+            if (!route) return;
+            
+            const panel = document.getElementById('detailPanel');
+            panel.classList.add('show');
+            
+            document.getElementById('detailTitle').textContent = route['航线名称'];
+            document.getElementById('detailId').textContent = route['航线ID'];
+            document.getElementById('detailType').textContent = route['任务类型'];
+            document.getElementById('detailPriority').textContent = route['优先级'] + '级';
+            document.getElementById('detailLevel').textContent = route['航路级别'] + '级';
+            document.getElementById('detailDistance').textContent = route['总里程(km)'] + ' km';
+            document.getElementById('detailTime').textContent = route['预计用时(min)'] + ' 分钟';
+            document.getElementById('detailAltitude').textContent = route['飞行高度(m)'] + ' m';
+            document.getElementById('detailSpeed').textContent = route['最大速度(km/h)'] + ' km/h';
+            document.getElementById('detailWidth').textContent = route['航路半宽(m)'] + ' m';
+            document.getElementById('detailStart').textContent = route['起点']['名称'];
+            document.getElementById('detailEnd').textContent = route['终点']['名称'];
+            document.getElementById('waypointCountDetail').textContent = route['航路点'].length;
+            
+            // 渲染航路点列表
+            const waypointList = document.getElementById('waypointList');
+            waypointList.innerHTML = '';
+            route['航路点'].forEach((waypoint, index) => {
+                const item = document.createElement('div');
+                item.className = 'waypoint-item';
+                item.innerHTML = `
+                    <div class="waypoint-header">
+                        <span class="waypoint-name">${index + 1}. ${waypoint['名称']}</span>
+                        <span class="waypoint-time">${waypoint['停留时间(s)'] > 0 ? waypoint['停留时间(s)'] + 's停留' : '-'}</span>
+                    </div>
+                    <div class="waypoint-coords">
+                        ${waypoint['坐标'][0].toFixed(6)}, ${waypoint['坐标'][1].toFixed(6)}
+                    </div>
+                `;
+                waypointList.appendChild(item);
+            });
+        }
+        
+        // 在地图上渲染所有航线
+        function renderAllRoutes() {
+            console.log('开始渲染航线，总数:', routesData.length);
+            routesData.forEach((route, index) => {
+                console.log(`渲染航线 ${index + 1}: ${route['航线ID']} - ${route['航线名称']}`);
+                renderRoute(route);
+            });
+            console.log('航线渲染完成');
+        }
+        
+        // 渲染单条航线
+        function renderRoute(route) {
+            try {
+                console.log(`渲染航线: ${route['航线ID']}, 航路点数: ${route['航路点'].length}`);
+                
+                // 根据航路级别设置颜色
+                let color;
+                if (route['航路级别'] === 'Ⅰ') {
+                    color = Cesium.Color.RED;
+                } else if (route['航路级别'] === 'Ⅱ') {
+                    color = Cesium.Color.ORANGE;
+                } else {
+                    color = Cesium.Color.GREEN;
+                }
+                
+                // 创建航线路径
+                const positions = route['航路点'].map(wp =>
+                    Cesium.Cartesian3.fromDegrees(wp['坐标'][0], wp['坐标'][1], route['飞行高度(m)'])
+                );
+                
+                console.log(`航线 ${route['航线ID']} 坐标点数: ${positions.length}`);
+                
+                const entity = viewer.entities.add({
+                    id: route['航线ID'],
+                    name: route['航线名称'],
+                    polyline: {
+                        positions: positions,
+                        width: 4,
+                        material: color,
+                        clampToGround: false
+                    },
+                    description: `
+                        <div style="padding: 12px;">
+                            <h3 style="margin: 0 0 8px 0; color: #333;">${route['航线名称']}</h3>
+                            <p style="margin: 4px 0; color: #666;">任务类型: ${route['任务类型']}</p>
+                            <p style="margin: 4px 0; color: #666;">航路级别: ${route['航路级别']}级</p>
+                            <p style="margin: 4px 0; color: #666;">航线里程: ${route['总里程(km)']}km</p>
+                            <p style="margin: 4px 0; color: #666;">预计用时: ${route['预计用时(min)']}分钟</p>
+                        </div>
+                    `
+                });
+                
+                routeEntities[route['航线ID']] = entity;
+                console.log(`航线 ${route['航线ID']} 添加成功`);
+                
+                // 添加航路点标记
+                route['航路点'].forEach((waypoint, index) => {
+                    const waypointEntity = viewer.entities.add({
+                        id: `${route['航线ID']}_wp_${index}`,
+                        name: waypoint['名称'],
+                        position: Cesium.Cartesian3.fromDegrees(waypoint['坐标'][0], waypoint['坐标'][1], route['飞行高度(m)']),
+                        point: {
+                            pixelSize: 8,
+                            color: index === 0 ? Cesium.Color.GREEN :
+                                   index === route['航路点'].length - 1 ? Cesium.Color.RED :
+                                   Cesium.Color.YELLOW,
+                            outlineColor: Cesium.Color.WHITE,
+                            outlineWidth: 2,
+                            heightReference: Cesium.HeightReference.NONE
+                        },
+                        label: {
+                            text: waypoint['名称'],
+                            font: '12px sans-serif',
+                            fillColor: Cesium.Color.WHITE,
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 2,
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            pixelOffset: new Cesium.Cartesian2(0, -10),
+                            heightReference: Cesium.HeightReference.NONE
+                        }
+                    });
+                    
+                    if (!waypointEntities[route['航线ID']]) {
+                        waypointEntities[route['航线ID']] = [];
+                    }
+                    waypointEntities[route['航线ID']].push(waypointEntity);
+                });
+                
+                console.log(`航线 ${route['航线ID']} 航路点添加完成`);
+            } catch (error) {
+                console.error(`渲染航线 ${route['航线ID']} 失败:`, error);
+            }
+        }
+        
+        // 高亮航线
+        function highlightRoute(routeId) {
+            // 重置所有航线透明度
+            Object.keys(routeEntities).forEach(id => {
+                const entity = routeEntities[id];
+                if (entity.polyline) {
+                    const color = getRouteColorById(id);
+                    entity.polyline.material = color.withAlpha(id === routeId ? 1.0 : 0.2);
+                    entity.polyline.width = id === routeId ? 6 : 3;
+                }
+            });
+            
+            // 高亮航路点
+            Object.keys(waypointEntities).forEach(id => {
+                waypointEntities[id].forEach(wp => {
+                    wp.point.pixelSize = id === routeId ? 10 : 6;
+                    wp.label.show = id === routeId;
+                });
+            });
+        }
+        
+        // 根据航线ID获取颜色
+        function getRouteColorById(routeId) {
+            const route = routesData.find(r => r['航线ID'] === routeId);
+            if (!route) return Cesium.Color.RED;
+            
+            if (route['航路级别'] === 'Ⅰ') {
+                return Cesium.Color.RED;
+            } else if (route['航路级别'] === 'Ⅱ') {
+                return Cesium.Color.ORANGE;
+            } else {
+                return Cesium.Color.GREEN;
+            }
+        }
+        
+        // 筛选按钮事件
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filterType = btn.dataset.type;
+                renderRouteList(filterType);
+            });
+        });
+        
+        // 定位到航线
+        document.getElementById('flyToRoute').addEventListener('click', () => {
+            if (!currentRouteId) return;
+            
+            const entity = routeEntities[currentRouteId];
+            if (entity && entity.polyline) {
+                viewer.flyTo(entity, {
+                    duration: 2,
+                    offset: new Cesium.HeadingPitchRange(0, Cesium.Math.toRadians(-45), 20000)
+                });
+            }
+        });
+        
+        // 关闭详情面板
+        document.getElementById('hideDetail').addEventListener('click', () => {
+            document.getElementById('detailPanel').classList.remove('show');
+            currentRouteId = null;
+            
+            // 重置所有航线
+            Object.keys(routeEntities).forEach(id => {
+                const entity = routeEntities[id];
+                if (entity.polyline) {
+                    const color = getRouteColorById(id);
+                    entity.polyline.material = color.withAlpha(1.0);
+                    entity.polyline.width = 4;
+                }
+            });
+            
+            Object.keys(waypointEntities).forEach(id => {
+                waypointEntities[id].forEach(wp => {
+                    wp.point.pixelSize = 8;
+                    wp.label.show = true;
+                });
+            });
+            
+            // 移除列表选中状态
+            document.querySelectorAll('.route-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+        });
+        
+        // 初始化
+        init();
+    </script>
+</body>
+</html>

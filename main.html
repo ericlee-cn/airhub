@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>低空经济仿真验证平台</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Iconify -->
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<style>
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            overflow: hidden;
+        }
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+        .main-content-scroll {
+            height: 100vh;
+            overflow: hidden;
+            padding: 2rem;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+        
+        .tech-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            height: 100%;
+            border-radius: 12px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            cursor: pointer;
+        }
+        .tech-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.5);
+        }
+        .sub-title {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            color: white;
+            line-height: 1;
+        }
+        .section-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+        .icon-muted {
+            opacity: 0.35;
+            filter: grayscale(0.6);
+            transition: all 0.3s ease;
+        }
+        .tech-card:hover .icon-muted {
+            opacity: 0.8;
+            filter: grayscale(0);
+            color: var(--accent-blue);
+        }
+        /* 彩色图标hover效果 */
+        .tech-card:hover [class*="text-"] {
+            filter: brightness(1.3);
+            transform: scale(1.1);
+            transition: all 0.3s ease;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+<!-- ================= 登录页面 ================= -->
+<div class="w-full h-screen bg-[#0f172a] flex items-center justify-center" id="loginPage">
+<div class="login-card w-[520px] rounded-3xl p-14">
+<div class="text-center mb-12">
+<h1 class="text-3xl font-bold text-white mb-4 tracking-tight">低空经济仿真验证平台</h1>
+<p class="text-slate-500 font-medium">综合推演与评估终端 · 2026-03-09</p>
+</div>
+<div class="space-y-6">
+<input class="w-full h-[56px] px-6 bg-slate-900 border border-slate-700 rounded-2xl focus:outline-none focus:border-blue-500 transition-all text-white placeholder-slate-600" placeholder="用户名/登录账号" type="text"/>
+<input class="w-full h-[56px] px-6 bg-slate-900 border border-slate-700 rounded-2xl focus:outline-none focus:border-blue-500 transition-all text-white placeholder-slate-600" placeholder="访问权限密钥" type="password"/>
+<div class="flex justify-between items-center text-sm px-1 text-slate-500">
+<label class="flex items-center cursor-pointer hover:text-slate-300 transition-colors">
+<input class="mr-2 rounded border-slate-700 bg-slate-900" type="checkbox"/> 保持登录状态
+                    </label>
+<a class="hover:text-blue-400 transition-colors" href="#">安全指引</a>
+</div>
+<button class="w-full h-[56px] bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-bold text-lg transition-all active:scale-[0.98]" onclick="handleLogin()">
+                    验证并进入
+                </button>
+</div>
+</div>
+</div>
+<!-- ================= 主界面 ================= -->
+<div class="hidden flex flex-col h-screen" id="mainPage">
+<main class="flex-1 main-content-scroll">
+<div class="max-w-6xl mx-auto h-full flex flex-col justify-center">
+<div class="mb-6">
+<h2 class="sub-title">低空经济仿真验证平台</h2>
+<p class="text-slate-500 mt-2 text-base font-light">
+                        今天是 2026年03月09日。欢迎回到低空经济综合验证中心。
+                    </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 flex-1 content-center">
+<!-- 卡片 1 -->
+<div class="tech-card" onclick="activeNav('base')">
+<div class="flex justify-between items-start">
+<span class="iconify text-3xl text-blue-400" data-icon="material-symbols:database-outline"></span>
+<span class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Model Base</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-white mb-1">基础模型管理</h3>
+<p class="text-slate-500 text-xs leading-relaxed">管理各类低空经济数学模型与飞行底座，确保物理规则的一致性与实时更新。</p>
+</div>
+</div>
+<!-- 卡片 2 -->
+<div class="tech-card" onclick="activeNav('edit')">
+<div class="flex justify-between items-start">
+<span class="iconify text-3xl text-emerald-400" data-icon="material-symbols:edit-document-outline-rounded"></span>
+<span class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Scenario</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-white mb-1">想定编辑中心</h3>
+<p class="text-slate-500 text-xs leading-relaxed">提供可视化的场景定义界面，支持多级环境要素编排与协同版本控制。</p>
+</div>
+</div>
+<!-- 卡片 3 -->
+<div class="tech-card" onclick="activeNav('sim')">
+<div class="flex justify-between items-start">
+<span class="iconify text-3xl text-orange-400" data-icon="material-symbols:rocket-launch-outline"></span>
+<span class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Simulation</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-white mb-1">仿真推演引擎</h3>
+<p class="text-slate-500 text-xs leading-relaxed">核心并发计算集群，负责高保真度的任务推演、冲突检测与实时态势分发。</p>
+</div>
+</div>
+<!-- 卡片 4 -->
+<div class="tech-card" onclick="activeNav('eval')">
+<div class="flex justify-between items-start">
+<span class="iconify text-3xl text-purple-400" data-icon="material-symbols:analytics-outline"></span>
+<span class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Assessment</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-white mb-1">仿真评估分析</h3>
+<p class="text-slate-500 text-xs leading-relaxed">针对推演结果进行多维度量化评估，自动化生成专业效能分析报告与优化建议。</p>
+</div>
+</div>
+<!-- 卡片 5 -->
+<div class="tech-card" onclick="activeNav('exp')">
+<div class="flex justify-between items-start">
+<span class="iconify text-3xl text-cyan-400" data-icon="material-symbols:science-outline"></span>
+<span class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Laboratory</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-white mb-1">仿真实验子系统</h3>
+<p class="text-slate-500 text-xs leading-relaxed">支持自动化批量实验（DoE），通过闭环反馈不断优化模型精度与算法鲁棒性。</p>
+</div>
+</div>
+<!-- 卡片 6 -->
+<div class="tech-card" onclick="activeNav('setting')">
+<div class="flex justify-between items-start">
+<span class="iconify text-3xl text-rose-400" data-icon="material-symbols:settings-outline"></span>
+<span class="text-[9px] text-slate-600 font-bold uppercase tracking-widest">System</span>
+</div>
+<div>
+<h3 class="text-lg font-bold text-white mb-1">综合系统管理</h3>
+<p class="text-slate-500 text-xs leading-relaxed">管控平台全局权限、日志审计及微服务监控，确保系统运行的高可靠性。</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<footer class="w-full h-[30px] bg-slate-950 border-t border-slate-900 flex items-center justify-center text-[10px] text-slate-700 tracking-[0.2em] font-medium uppercase">
+            Low Altitude Economy Simulation Platform · 2026-03-09 · Secure Environment
+        </footer>
+</div>
+<!-- 退出弹窗 -->
+<div class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md" id="logoutModal">
+<div class="login-card rounded-3xl w-[420px] p-10">
+<h2 class="text-2xl font-bold text-white mb-4">退出确认</h2>
+<p class="text-slate-400 mb-8 font-light">即将断开与平台的连接，确定退出当前管理会话吗？</p>
+<div class="flex justify-end gap-4">
+<button class="px-6 py-2 text-slate-500 hover:text-slate-300 transition-colors" onclick="closeLogoutModal()">取消</button>
+<button class="px-8 py-2 bg-red-600/20 text-red-500 hover:bg-red-600 hover:text-white rounded-xl transition-all font-bold" onclick="confirmLogout()">终端登出</button>
+</div>
+</div>
+</div>
+<script>
+        function updateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('currentTime').textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        function handleLogin() {
+            const btn = document.querySelector('button[onclick="handleLogin()"]');
+            btn.innerHTML = '<span class="iconify animate-spin mr-2" data-icon="lucide:loader-2"></span> 系统验证中...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainPage').classList.remove('hidden');
+                btn.innerHTML = '验证并进入';
+                btn.disabled = false;
+            }, 1000);
+        }
+
+        function activeNav(type) {
+            console.log(`Navigating to subsystem handle: ${type}`);
+
+            // 映射子系统到对应的index.html路径
+            const subsystemMap = {
+                'base': 'basic/index.html',
+                'edit': 'editor/index.html',
+                'sim': 'deduction/index.html',
+                'eval': 'Evaluation/index.html',
+                'exp': 'simlab/index.html',
+                'setting': 'Integrate/index.html'
+            };
+
+            const targetUrl = subsystemMap[type];
+            if (targetUrl) {
+                // 在新标签页中打开
+                window.open(targetUrl, '_blank');
+            } else {
+                console.error(`Unknown subsystem type: ${type}`);
+            }
+        }
+
+        function showLogoutConfirm() {
+            document.getElementById('logoutModal').classList.remove('hidden');
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').classList.add('hidden');
+        }
+
+        function confirmLogout() {
+            closeLogoutModal();
+            document.getElementById('mainPage').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

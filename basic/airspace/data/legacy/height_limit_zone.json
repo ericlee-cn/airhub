@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "name": "限高区-市区边缘",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "限高区-市区边缘",
+        "type": "height_limit",
+        "description": "高度限制 | 120m以下",
+        "maxHeight": 120,
+        "color": "orange"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [119.94, 30.50],
+            [119.94, 30.56],
+            [119.99, 30.56],
+            [119.99, 30.50],
+            [119.94, 30.50]
+          ]
+        ]
+      }
+    }
+  ]
+}

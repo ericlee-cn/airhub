@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>实验列表 - 低空经济仿真验证平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
+        .sidebar-item-active { background: linear-gradient(90deg, rgba(22, 119, 255, 0.2) 0%, rgba(22, 119, 255, 0) 100%); border-left: 4px solid #1677ff; color: #1677ff; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+<!-- 侧边导航 -->
+<aside class="w-64 border-r border-slate-800 flex flex-col bg-slate-900">
+<div class="p-6 flex items-center gap-3">
+<span class="iconify text-3xl text-blue-500" data-icon="ri:drone-fill"></span>
+<span class="font-bold text-lg tracking-wider">低空仿真系统</span>
+</div>
+<nav class="flex-1 mt-4 px-3 space-y-1">
+<a class="sidebar-item-active flex items-center gap-3 p-3 rounded-lg transition-all" href="index.html">
+<span class="iconify" data-icon="ri:dashboard-3-line"></span> 实验列表
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="design.html">
+<span class="iconify" data-icon="ri:edit-box-line"></span> 实验设计
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="scheduling.html">
+<span class="iconify" data-icon="ri:list-settings-line"></span> 实验调度
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="monitor.html">
+<span class="iconify" data-icon="ri:radar-line"></span> 执行监控
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="result.html">
+<span class="iconify" data-icon="ri:pie-chart-2-line"></span> 单轮结果
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="comparison.html">
+<span class="iconify" data-icon="ri:bubble-chart-line"></span> 多轮对比
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="iteration.html">
+<span class="iconify" data-icon="ri:history-line"></span> 迭代记录
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="log-audit.html">
+<span class="iconify" data-icon="ri:file-list-3-line"></span> 日志审计
+            </a>
+</nav>
+<div class="p-6 border-t border-slate-800">
+<div class="flex items-center gap-3 text-sm text-slate-500">
+<span class="iconify" data-icon="ri:calendar-event-line"></span> 2026-03-10
+            </div>
+</div>
+</aside>
+<!-- 主体区域 -->
+<main class="flex-1 flex flex-col overflow-hidden bg-[#0a0f1c]">
+<!-- 顶部通栏 -->
+<header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/50">
+<h1 class="text-xl font-semibold">实验列表</h1>
+<div class="flex items-center gap-4">
+<div class="relative">
+<input class="bg-slate-800 border-none rounded-full py-1.5 px-10 text-sm focus:ring-2 focus:ring-blue-500 w-64" placeholder="搜索实验..." type="text"/>
+<span class="iconify absolute left-3 top-2 text-slate-500" data-icon="ri:search-line"></span>
+</div>
+<a class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm flex items-center gap-2 transition-all" href="design.html">
+<span class="iconify" data-icon="ri:add-line"></span> 新建实验
+                </a>
+</div>
+</header>
+<!-- 内容滚动区 -->
+<section class="flex-1 overflow-y-auto p-8 space-y-6">
+<!-- 统计概览 -->
+<div class="grid grid-cols-4 gap-6">
+<div class="glass-card p-5 rounded-xl border-l-4 border-blue-500">
+<div class="text-slate-400 text-xs mb-1">总实验数</div>
+<div class="text-2xl font-bold">128</div>
+<div class="text-blue-400 text-xs mt-2 flex items-center gap-1">
+<span class="iconify" data-icon="ri:arrow-right-up-line"></span> +12% 本月
+                    </div>
+</div>
+<div class="glass-card p-5 rounded-xl border-l-4 border-yellow-500">
+<div class="text-slate-400 text-xs mb-1">执行中</div>
+<div class="text-2xl font-bold">4</div>
+<div class="text-yellow-400 text-xs mt-2 italic flex items-center gap-1">
+<span class="iconify" data-icon="ri:loader-4-line"></span> 正在实时仿真
+                    </div>
+</div>
+<div class="glass-card p-5 rounded-xl border-l-4 border-green-500">
+<div class="text-slate-400 text-xs mb-1">已完成(今日)</div>
+<div class="text-2xl font-bold">12</div>
+<div class="text-green-400 text-xs mt-2 flex items-center gap-1">
+<span class="iconify" data-icon="ri:checkbox-circle-line"></span> 运行效率良好
+                    </div>
+</div>
+<div class="glass-card p-5 rounded-xl border-l-4 border-red-500">
+<div class="text-slate-400 text-xs mb-1">异常中断</div>
+<div class="text-2xl font-bold">1</div>
+<div class="text-red-400 text-xs mt-2 flex items-center gap-1">
+<span class="iconify" data-icon="ri:alarm-warning-line"></span> 建议查看日志
+                    </div>
+</div>
+</div>
+<!-- 数据表格 -->
+<div class="glass-card rounded-xl overflow-hidden">
+<div class="p-4 border-b border-white/5 flex justify-between items-center bg-white/5">
+<span class="font-medium">最近实验记录</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-xs bg-slate-800 rounded border border-slate-700">场景筛选</button>
+<button class="px-3 py-1 text-xs bg-slate-800 rounded border border-slate-700">导出数据</button>
+</div>
+</div>
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-800/50 text-slate-400 uppercase text-xs">
+<tr>
+<th class="px-6 py-4">实验编号</th>
+<th class="px-6 py-4 border-l border-white/5">实验名称</th>
+<th class="px-6 py-4 border-l border-white/5">应用场景</th>
+<th class="px-6 py-4 border-l border-white/5">创建时间</th>
+<th class="px-6 py-4 border-l border-white/5">当前状态</th>
+<th class="px-6 py-4 border-l border-white/5 text-center">操作</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-blue-500/5 transition-all">
+<td class="px-6 py-4 font-mono text-blue-400">EXP-20260310-001</td>
+<td class="px-6 py-4">低空物流配送方案验证实验</td>
+<td class="px-6 py-4"><span class="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded text-xs">城市配送</span></td>
+<td class="px-6 py-4">2026-03-10 09:30</td>
+<td class="px-6 py-4 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-green-500"></span> 已完成
+                            </td>
+<td class="px-6 py-4 text-center">
+<a class="text-blue-500 hover:underline mr-4" href="result.html">查看结果</a>
+<a class="text-slate-400 hover:text-white" href="iteration.html">迭代记录</a>
+</td>
+</tr>
+<tr class="hover:bg-blue-500/5 transition-all">
+<td class="px-6 py-4 font-mono text-blue-400">EXP-20260310-002</td>
+<td class="px-6 py-4">空域巡检参数迭代实验</td>
+<td class="px-6 py-4"><span class="bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded text-xs">安全巡检</span></td>
+<td class="px-6 py-4">2026-03-10 10:10</td>
+<td class="px-6 py-4 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-yellow-400 animate-pulse"></span> 执行中
+                            </td>
+<td class="px-6 py-4 text-center">
+<a class="text-yellow-500 hover:underline mr-4" href="monitor.html">实时监控</a>
+<button class="text-red-400 hover:text-red-300">强制终止</button>
+</td>
+</tr>
+<tr class="hover:bg-blue-500/5 transition-all">
+<td class="px-6 py-4 font-mono text-blue-400">EXP-20260310-003</td>
+<td class="px-6 py-4">应急救援方案验证实验</td>
+<td class="px-6 py-4"><span class="bg-red-500/10 text-red-400 px-2 py-0.5 rounded text-xs">医疗应急</span></td>
+<td class="px-6 py-4">2026-03-10 11:30</td>
+<td class="px-6 py-4 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-slate-500"></span> 待队列调度
+                            </td>
+<td class="px-6 py-4 text-center">
+<a class="text-blue-400 hover:underline mr-4" href="design.html">编辑设计</a>
+<a class="text-green-500 hover:text-green-400" href="scheduling.html">执行</a>
+</td>
+</tr>
+<tr class="hover:bg-blue-500/5 transition-all">
+<td class="px-6 py-4 font-mono text-blue-400">EXP-20260310-004</td>
+<td class="px-6 py-4">全域空域管控测试实验</td>
+<td class="px-6 py-4"><span class="bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded text-xs">空域管控</span></td>
+<td class="px-6 py-4">2026-03-10 14:00</td>
+<td class="px-6 py-4 flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-red-500"></span> 执行失败
+                            </td>
+<td class="px-6 py-4 text-center">
+<button class="text-orange-400 hover:underline mr-4">查看日志</button>
+<button class="text-slate-400 hover:text-white">重试</button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="p-4 border-t border-white/5 flex justify-between items-center text-xs text-slate-500 bg-slate-900/40">
+<span>显示 1 到 4 共 4 条记录</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-slate-800 rounded disabled:opacity-50">上一页</button>
+<button class="px-3 py-1 bg-blue-600 text-white rounded">1</button>
+<button class="px-3 py-1 bg-slate-800 rounded">下一页</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body>
+</html>

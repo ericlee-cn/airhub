@@ -1,0 +1,8 @@
+{
+  "_comment": "赛事临时禁飞场景：全域禁飞+雾+雨 联合测试",
+  "sim_step_s": 0.5,
+  "horizontal_gap_m": 50,
+  "vertical_gap_m": 30,
+  "max_sim_time_s": 14400,
+  "scene_desc": "赛事期间临时禁飞推演，含雨雾气象强制悬停，测试时间窗口管制"
+}

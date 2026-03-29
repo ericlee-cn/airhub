@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基础模型管理子系统 | 装备库</title>
+    
+    <!-- 引入Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- 引入CSV解析库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <!-- 引入图标库 -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(135deg, #030a1c 0%, #0f172a 100%);
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        /* 统一顶部导航栏样式 */
+        .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1) !important; }
+        a.nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1) !important; }
+        
+        /* 毛玻璃效果 */
+        .glass-panel { 
+            background: rgba(15, 23, 42, 0.85); 
+            border: 1px solid rgba(0, 170, 255, 0.2); 
+            backdrop-filter: blur(12px); 
+        }
+        
+        /* 导航激活状态 */
+        .nav-active { 
+            border-bottom: 2px solid #00aaff; 
+            color: #00aaff; 
+            background: rgba(0, 170, 255, 0.1); 
+        }
+        
+        /* 地图背景 */
+        .map-bg { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); 
+        }
+        
+        /* 设备图片容器 */
+        .device-image-container { 
+            position: relative; 
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 80%); 
+        }
+        
+        /* 网格背景 */
+        .grid-bg {
+            background-image: 
+                linear-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        
+        /* 扫描线动画 */
+        @keyframes scan {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+        .animate-scan {
+            animation: scan 2s linear infinite;
+        }
+        
+        /* 滚动条样式 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(13, 17, 23, 0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(139, 148, 158, 0.3); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(139, 148, 158, 0.5); }
+        
+        /* 过渡动画 */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+        
+        /* 确保三个面板都能滚动 */
+        .scrollable-panel {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        /* 固定中间区域内容高度 */
+        .fixed-content-height {
+            min-height: 500px;
+            position: relative;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .container { padding: 0 12px; }
+            .category-nav { grid-template-columns: repeat(2, 1fr) !important; }
+            .device-grid { grid-template-columns: 1fr !important; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- 顶部导航栏 -->
+        <header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+            <div class="flex items-center gap-3">
+                <iconify-icon icon="material-symbols:airplanemode-active" class="text-3xl text-blue-400"></iconify-icon>
+                <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真基础模型管理系统</h1>
+            </div>
+            <nav class="flex gap-1 h-full justify-center">
+                <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../terrain.html">
+                    <iconify-icon icon="lucide:map" class="mr-2"></iconify-icon>地理环境
+                </a>
+                <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../electromagnetic/electromagnetic.html">
+                    <iconify-icon icon="lucide:waves" class="mr-2"></iconify-icon>电磁环境
+                </a>
+                <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../weather/weather_cesium.html">
+                    <iconify-icon icon="lucide:cloud-sun" class="mr-2"></iconify-icon>气象环境
+                </a>
+                <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../airspace/index.html">
+                    <iconify-icon icon="lucide:layers" class="mr-2"></iconify-icon>空域航路
+                </a>
+                <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../rules/index.html">
+                    <iconify-icon icon="lucide:gavel" class="mr-2"></iconify-icon>飞行规则
+                </a>
+                <a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="index.html">
+                    <iconify-icon icon="lucide:database" class="mr-2"></iconify-icon>装备库
+                </a>
+            </nav>
+            <div style="display:flex;align-items:center;gap:8px;margin-left:16px;padding-right:8px;">
+              <a href="../index.html" title="基础管理主页" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:rgba(0,170,255,0.12);border:1px solid rgba(0,170,255,0.35);color:#60c8ff;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,170,255,0.25)'" onmouseout="this.style.background='rgba(0,170,255,0.12)'">
+                <iconify-icon icon="lucide:layout-dashboard" style="font-size:17px;"></iconify-icon>
+              </a>
+              <a href="../../main.html" title="系统主页面" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.35);color:#c084fc;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='rgba(139,92,246,0.25)'" onmouseout="this.style.background='rgba(139,92,246,0.12)'">
+                <iconify-icon icon="lucide:home" style="font-size:17px;"></iconify-icon>
+              </a>
+            </div>
+        </header>
+
+        <!-- 主体布局：三栏式 -->
+        <div class="flex-1 flex overflow-hidden" style="height: calc(100vh - 4rem);">
+            <!-- 左边栏：装备分类导航 -->
+            <aside class="w-80 glass-panel border-r border-slate-700 flex flex-col z-20">
+                <div class="p-4 border-b border-slate-800 bg-slate-900/40 flex-shrink-0">
+                    <h2 class="font-bold flex items-center gap-2">
+                        <iconify-icon icon="lucide:box" class="text-blue-400"></iconify-icon> 
+                        装备资源目录
+                    </h2>
+                </div>
+                
+                <!-- 可滚动的内容区域 -->
+                <div class="flex-1 scrollable-panel p-4">
+                    <!-- 分类导航 -->
+                    <div class="space-y-1">
+                        <!-- 飞行器 -->
+                        <details class="group mb-3" open>
+                            <summary class="flex items-center justify-between p-3 bg-blue-500/10 border-l-2 border-blue-500 rounded-r text-sm cursor-pointer list-none hover:bg-blue-500/20 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <iconify-icon icon="material-symbols:helicopter"></iconify-icon> 飞行器 (AV)
+                                </span>
+                                <span class="text-xs text-blue-400 font-mono">{{ getDeviceCount('AV') }}</span>
+                            </summary>
+                            <div class="pl-7 pr-2 py-2 space-y-2 mt-1 border-l border-slate-700 ml-2">
+                                <div v-for="device in getDevicesByType('AV')" 
+                                     :key="device.drone_id"
+                                     class="flex items-center justify-between text-xs p-1.5 hover:bg-slate-800 rounded cursor-pointer group/item"
+                                     :class="{'bg-blue-500/20': selectedDevice && selectedDevice.drone_id === device.drone_id}"
+                                     @click="selectDevice(device)">
+                                    <span class="text-slate-300 group-hover/item:text-blue-400 truncate">{{ device.model_type }}</span>
+                                    <span class="px-1.5 py-0.5 bg-slate-700 text-[10px] rounded text-slate-400 flex-shrink-0">{{ device.nature || '通用' }}</span>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- 通讯设备 -->
+                        <details class="group mb-3">
+                            <summary class="flex items-center justify-between p-3 bg-green-500/10 border-l-2 border-green-500 rounded-r text-sm cursor-pointer list-none hover:bg-green-500/20 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <iconify-icon icon="material-symbols:router"></iconify-icon> 通讯设备 (COM)
+                                </span>
+                                <span class="text-xs text-green-400 font-mono">{{ getDeviceCount('COM') }}</span>
+                            </summary>
+                            <div class="pl-7 pr-2 py-2 space-y-2 mt-1 border-l border-slate-700 ml-2">
+                                <div v-for="device in getDevicesByType('COM')" 
+                                     :key="device.comm_id"
+                                     class="flex items-center justify-between text-xs p-1.5 hover:bg-slate-800 rounded cursor-pointer group/item"
+                                     :class="{'bg-green-500/20': selectedDevice && selectedDevice.comm_id === device.comm_id}"
+                                     @click="selectDevice(device)">
+                                    <span class="text-slate-300 group-hover/item:text-green-400 truncate">{{ device.model_type }}</span>
+                                    <span class="px-1.5 py-0.5 bg-slate-700 text-[10px] rounded text-slate-400 flex-shrink-0">{{ device.product_category || '通用' }}</span>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- 导航设备 -->
+                        <details class="group mb-3">
+                            <summary class="flex items-center justify-between p-3 bg-purple-500/10 border-l-2 border-purple-500 rounded-r text-sm cursor-pointer list-none hover:bg-purple-500/20 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <iconify-icon icon="material-symbols:settings-input-antenna"></iconify-icon> 导航设备 (NAV)
+                                </span>
+                                <span class="text-xs text-purple-400 font-mono">{{ getDeviceCount('NAV') }}</span>
+                            </summary>
+                            <div class="pl-7 pr-2 py-2 space-y-2 mt-1 border-l border-slate-700 ml-2">
+                                <div v-for="device in getDevicesByType('NAV')" 
+                                     :key="device.nav_id"
+                                     class="flex items-center justify-between text-xs p-1.5 hover:bg-slate-800 rounded cursor-pointer group/item"
+                                     :class="{'bg-purple-500/20': selectedDevice && selectedDevice.nav_id === device.nav_id}"
+                                     @click="selectDevice(device)">
+                                    <span class="text-slate-300 group-hover/item:text-purple-400 truncate">{{ device.model_type }}</span>
+                                    <span class="px-1.5 py-0.5 bg-slate-700 text-[10px] rounded text-slate-400 flex-shrink-0">{{ device.product_category || '通用' }}</span>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- 监视设备 -->
+                        <details class="group mb-3">
+                            <summary class="flex items-center justify-between p-3 bg-orange-500/10 border-l-2 border-orange-500 rounded-r text-sm cursor-pointer list-none hover:bg-orange-500/20 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <iconify-icon icon="material-symbols:videocam"></iconify-icon> 监视设备 (MON)
+                                </span>
+                                <span class="text-xs text-orange-400 font-mono">{{ getDeviceCount('MON') }}</span>
+                            </summary>
+                            <div class="pl-7 pr-2 py-2 space-y-2 mt-1 border-l border-slate-700 ml-2">
+                                <div v-for="device in getDevicesByType('MON')" 
+                                     :key="device.monitor_id"
+                                     class="flex items-center justify-between text-xs p-1.5 hover:bg-slate-800 rounded cursor-pointer group/item"
+                                     :class="{'bg-orange-500/20': selectedDevice && selectedDevice.monitor_id === device.monitor_id}"
+                                     @click="selectDevice(device)">
+                                    <span class="text-slate-300 group-hover/item:text-orange-400 truncate">{{ device.model_type }}</span>
+                                    <span class="px-1.5 py-0.5 bg-slate-700 text-[10px] rounded text-slate-400 flex-shrink-0">{{ device.product_category || '通用' }}</span>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- 反制设备 -->
+                        <details class="group mb-3">
+                            <summary class="flex items-center justify-between p-3 bg-red-500/10 border-l-2 border-red-500 rounded-r text-sm cursor-pointer list-none hover:bg-red-500/20 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <iconify-icon icon="material-symbols:security"></iconify-icon> 反制设备 (CTR)
+                                </span>
+                                <span class="text-xs text-red-400 font-mono">{{ getDeviceCount('CTR') }}</span>
+                            </summary>
+                            <div class="pl-7 pr-2 py-2 space-y-2 mt-1 border-l border-slate-700 ml-2">
+                                <div v-for="device in getDevicesByType('CTR')" 
+                                     :key="device.counter_id"
+                                     class="flex items-center justify-between text-xs p-1.5 hover:bg-slate-800 rounded cursor-pointer group/item"
+                                     :class="{'bg-red-500/20': selectedDevice && selectedDevice.counter_id === device.counter_id}"
+                                     @click="selectDevice(device)">
+                                    <span class="text-slate-300 group-hover/item:text-red-400 truncate">{{ device.model_type }}</span>
+                                    <span class="px-1.5 py-0.5 bg-slate-700 text-[10px] rounded text-slate-400 flex-shrink-0">{{ device.product_category || '通用' }}</span>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- 气象设备 -->
+                        <details class="group mb-3">
+                            <summary class="flex items-center justify-between p-3 bg-cyan-500/10 border-l-2 border-cyan-500 rounded-r text-sm cursor-pointer list-none hover:bg-cyan-500/20 transition-colors">
+                                <span class="flex items-center gap-2">
+                                    <iconify-icon icon="material-symbols:cloud"></iconify-icon> 气象设备 (WTH)
+                                </span>
+                                <span class="text-xs text-cyan-400 font-mono">{{ getDeviceCount('WTH') }}</span>
+                            </summary>
+                            <div class="pl-7 pr-2 py-2 space-y-2 mt-1 border-l border-slate-700 ml-2">
+                                <div v-for="device in getDevicesByType('WTH')" 
+                                     :key="device.weather_id"
+                                     class="flex items-center justify-between text-xs p-1.5 hover:bg-slate-800 rounded cursor-pointer group/item"
+                                     :class="{'bg-cyan-500/20': selectedDevice && selectedDevice.weather_id === device.weather_id}"
+                                     @click="selectDevice(device)">
+                                    <span class="text-slate-300 group-hover/item:text-cyan-400 truncate">{{ device.model_type }}</span>
+                                    <span class="px-1.5 py-0.5 bg-slate-700 text-[10px] rounded text-slate-400 flex-shrink-0">{{ device.product_category || '通用' }}</span>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                    
+                    <!-- 数据统计 -->
+                    <div class="mt-6 p-4 bg-slate-900/50 rounded-lg">
+                        <h3 class="text-xs font-semibold text-slate-500 mb-3 uppercase tracking-wider">数据统计</h3>
+                        <div class="grid grid-cols-2 gap-2 text-sm">
+                            <div class="text-center p-2 rounded bg-slate-800/50">
+                                <p class="text-xs text-slate-400">设备总数</p>
+                                <p class="text-xl font-bold">{{ totalDevices }}</p>
+                            </div>
+                            <div class="text-center p-2 rounded bg-slate-800/50">
+                                <p class="text-xs text-slate-400">在线设备</p>
+                                <p class="text-xl font-bold text-green-400">{{ onlineDevices }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 控制面板 -->
+                <div class="p-4 border-t border-slate-800 flex-shrink-0">
+                    <button @click="loadAllData" 
+                            class="w-full py-2 bg-blue-600 hover:bg-blue-500 rounded text-sm font-bold flex items-center justify-center gap-2 transition"
+                            :disabled="loading">
+                        <iconify-icon icon="lucide:refresh-cw" :class="{'animate-spin': loading}"></iconify-icon>
+                        {{ loading ? '加载中...' : '重新加载数据' }}
+                    </button>
+                </div>
+            </aside>
+
+            <!-- 中间区域：设备预览 -->
+            <main class="flex-1 relative map-bg overflow-hidden">
+                <!-- 网格背景 -->
+                <div class="absolute inset-0 grid-bg opacity-20"></div>
+                
+                <!-- 可滚动的设备预览区域 -->
+                <div class="relative h-full scrollable-panel">
+                    <div class="p-8 fixed-content-height">
+                        <div v-if="selectedDevice" class="w-full max-w-4xl mx-auto">
+                            <!-- 设备标识 -->
+                            <div class="mb-8 text-center">
+                                <h2 class="text-3xl font-bold text-white">{{ selectedDevice.model_type }}</h2>
+                                <p class="text-slate-400">{{ selectedDevice.manufacturer }}</p>
+                                <div class="flex justify-center gap-2 mt-2">
+                                    <span class="px-3 py-1 text-xs rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                        {{ selectedDevice.unique_product_code || selectedDevice.drone_id || selectedDevice.comm_id || selectedDevice.nav_id || selectedDevice.monitor_id || selectedDevice.counter_id || selectedDevice.weather_id }}
+                                    </span>
+                                    <span :class="'px-3 py-1 text-xs rounded-full ' + getStatusClass(selectedDevice.status)">
+                                        {{ selectedDevice.status || '未知' }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <!-- 设备图片 -->
+                            <div class="relative h-64 mb-8 rounded-xl overflow-hidden border-2 border-slate-700">
+                                <img v-if="selectedDevice.image_filename" 
+                                     :src="'images/' + getDeviceImagePath(selectedDevice)" 
+                                     :alt="selectedDevice.model_type"
+                                     class="w-full h-full object-contain p-4 bg-gradient-to-b from-slate-900 to-slate-950"
+                                     @error="handleImageError">
+                                <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950">
+                                    <iconify-icon :icon="getDeviceIcon(selectedDevice)" class="text-8xl text-slate-700"></iconify-icon>
+                                </div>
+                                <div class="absolute inset-0 w-full h-[1px] bg-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.5)] top-0 animate-scan"></div>
+                            </div>
+                            
+                            <!-- 核心参数 -->
+                            <div class="grid grid-cols-3 gap-4 mb-8">
+                                <div v-if="getDeviceProperty(selectedDevice, 'mass_empty')" class="glass-panel p-4 rounded-lg text-center">
+                                    <p class="text-xs text-slate-400 mb-1">空机重量</p>
+                                    <p class="text-xl font-bold">{{ getDeviceProperty(selectedDevice, 'mass_empty') }} <span class="text-sm text-slate-500">kg</span></p>
+                                </div>
+                                <div v-if="getDeviceProperty(selectedDevice, 'working_temp_range')" class="glass-panel p-4 rounded-lg text-center">
+                                    <p class="text-xs text-slate-400 mb-1">工作温度</p>
+                                    <p class="text-xl font-bold">{{ getDeviceProperty(selectedDevice, 'working_temp_range') }}</p>
+                                </div>
+                                <div v-if="getDeviceProperty(selectedDevice, 'max_speed')" class="glass-panel p-4 rounded-lg text-center">
+                                    <p class="text-xs text-slate-400 mb-1">最大速度</p>
+                                    <p class="text-xl font-bold">{{ getDeviceProperty(selectedDevice, 'max_speed') }}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- 维度导航 -->
+                            <div class="flex justify-center space-x-2 mb-8">
+                                <button v-for="(dimension, index) in getDeviceDimensions(selectedDevice)" 
+                                        :key="index"
+                                        @click="activeDimension = index"
+                                        :class="['px-4 py-2 rounded-lg transition-all flex-shrink-0', activeDimension === index ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700']">
+                                    {{ dimension }}
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 无设备选中时的提示 -->
+                        <div v-else class="text-center py-20">
+                            <iconify-icon icon="lucide:package" class="text-8xl text-slate-600 mb-4"></iconify-icon>
+                            <h2 class="text-2xl text-slate-400 mb-2">请选择设备</h2>
+                            <p class="text-slate-500">从左侧选择设备查看详细参数</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 底部状态栏 -->
+                <div class="absolute bottom-0 left-0 right-0 p-4 bg-slate-900/80 border-t border-slate-700">
+                    <div class="flex items-center justify-between">
+                        <div class="text-xs font-mono border-l-4 border-blue-500 pl-2">
+                            数据源: CSV | 记录数: {{ totalDevices }} | 最后更新: {{ lastUpdateTime }}
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- 右边栏：设备多维模型详情 -->
+            <aside class="w-96 glass-panel border-l border-slate-700 flex flex-col z-20">
+                <div class="p-4 border-b border-slate-800 bg-slate-900/40 flex-shrink-0">
+                    <h2 class="font-bold flex items-center gap-2">
+                        <iconify-icon icon="lucide:database" class="text-blue-400"></iconify-icon> 
+                        装备多维模型数据
+                    </h2>
+                </div>
+                
+                <!-- 可滚动的详情区域 -->
+                <div v-if="selectedDevice" class="flex-1 flex flex-col overflow-hidden">
+                    <!-- 维度导航选项卡 -->
+                    <div class="flex border-b border-slate-800 flex-shrink-0">
+                        <div class="flex overflow-x-auto">
+                            <button v-for="(dimension, index) in getDeviceDimensions(selectedDevice)" 
+                                    :key="index"
+                                    @click="activeDimension = index"
+                                    :class="['px-4 py-3 text-sm font-medium transition-colors relative whitespace-nowrap', 
+                                            activeDimension === index ? 'text-blue-400' : 'text-slate-400 hover:text-slate-300']">
+                                {{ dimension }}
+                                <div v-if="activeDimension === index" class="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-400"></div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 维度内容 -->
+                    <div class="flex-1 scrollable-panel p-4">
+                        <!-- 当前维度标题 -->
+                        <h3 class="text-lg font-semibold mb-4 text-slate-300">
+                            {{ getDeviceDimensions(selectedDevice)[activeDimension] }}
+                        </h3>
+                        
+                        <!-- 动态生成该维度的字段 -->
+                        <div v-if="getDimensionFields(selectedDevice, activeDimension).length > 0" class="space-y-3">
+                            <div v-for="field in getDimensionFields(selectedDevice, activeDimension)" 
+                                 :key="field.key"
+                                 class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                                <div class="flex justify-between items-start">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs text-slate-400 mb-1">{{ getFieldLabel(field.key) }}</p>
+                                        <p class="text-sm text-slate-300 break-words">{{ formatFieldValue(field.value) }}</p>
+                                    </div>
+                                    <span v-if="field.unit" class="text-xs text-slate-500 ml-2 flex-shrink-0">{{ field.unit }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 如果没有该维度的数据 -->
+                        <div v-else class="text-center py-8 text-slate-500">
+                            <iconify-icon icon="lucide:info" class="text-3xl mb-3"></iconify-icon>
+                            <p>暂无 {{ getDeviceDimensions(selectedDevice)[activeDimension] }} 数据</p>
+                        </div>
+                        
+                        <!-- 备注信息 -->
+                        <div v-if="selectedDevice.备注 && activeDimension === 0" class="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                            <p class="text-sm text-blue-400 font-semibold mb-2">系统备注</p>
+                            <p class="text-slate-300 text-sm">{{ selectedDevice.备注 }}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div v-else class="flex-1 flex items-center justify-center p-4">
+                    <div class="text-center text-slate-500">
+                        <iconify-icon icon="lucide:info" class="text-3xl mb-3"></iconify-icon>
+                        <p>请从左侧选择设备查看详细参数</p>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        
+        // 设备类别配置
+        const deviceCategories = [
+            { 
+                key: 'AV', 
+                name: '飞行器', 
+                csvFile: 'data/av_drones.csv', 
+                icon: 'material-symbols:helicopter',
+                color: '#3b82f6',
+                dimensions: ['物理模型', '动力学模型', '感知模型', '能源消耗模型', 'OODA模型']
+            },
+            { 
+                key: 'COM', 
+                name: '通讯设备', 
+                csvFile: 'data/com_devices.csv', 
+                icon: 'material-symbols:router',
+                color: '#10b981',
+                dimensions: ['静态属性', '通信性能', '传输能力', '运维适配']
+            },
+            { 
+                key: 'NAV', 
+                name: '导航设备', 
+                csvFile: 'data/nav_devices.csv', 
+                icon: 'material-symbols:settings-input-antenna',
+                color: '#8b5cf6',
+                dimensions: ['静态属性', '定位性能', '信号适配', '运维参数']
+            },
+            { 
+                key: 'MON',  // 注意：这里是 MON
+                name: '监视设备', 
+                csvFile: 'data/mon_devices.csv',  // 注意：使用 mon_devices.csv
+                icon: 'material-symbols:videocam',
+                color: '#f59e0b',
+                dimensions: ['静态属性', '探测性能', '跟踪适配', '运维保障']
+            },
+            { 
+                key: 'CTR', 
+                name: '反制设备', 
+                csvFile: 'data/ctr_devices.csv', 
+                icon: 'material-symbols:security',
+                color: '#ef4444',
+                dimensions: ['静态属性', '干扰性能', '适配范围', '运维参数']
+            },
+            { 
+                key: 'WTH', 
+                name: '气象设备', 
+                csvFile: 'data/wth_devices.csv', 
+                icon: 'material-symbols:cloud',
+                color: '#06b6d4',
+                dimensions: ['静态属性', '探测性能', '数据传输', '运维保障']
+            }
+        ];
+
+        // 设备维度字段映射
+        const deviceDimensionFields = {
+            'AV': {
+                '物理模型': ['drone_id', 'unique_product_code', 'model_type', 'manufacturer', 'manufacturer_code', 'nature', 'product_type', 'product_category', 'registration_country', 'real_name_reg_id', 'owner_type', 'airworthiness', 'mass_empty', 'mass_total_max', 'length_total', 'width_total', 'height_total', 'rotor_count', 'working_temp_range', 'protection_level'],
+                '动力学模型': ['max_speed', 'cruise_speed', 'climb_rate_typical', 'climb_rate_max', 'descent_rate_typical', 'descent_rate_max', 'turn_rate_typical', 'turn_rate_max', 'takeoff_landing_wind_resist', 'operation_wind_resist', 'control_frequency', 'navigation_mode', 'autonomous_capability'],
+                '感知模型': ['obstacle_avoidance', 'sensor_list', 'electronic_fence', 'perception_range'],
+                '能源消耗模型': ['flight_time_avg', 'flight_time_max', 'energy_type', 'battery_capacity', 'battery_voltage', 'energy_consumption_rate', 'charging_time'],
+                'OODA模型': ['observe_data_sources', 'orient_context', 'decide_strategy', 'act_command_types', 'ooda_cycle_time']
+            },
+            'COM': {
+                '静态属性': ['comm_id', 'unique_product_code', 'model_type', 'manufacturer', 'manufacturer_code', 'nature', 'product_category', 'installation_type', 'mass_total', 'size_dimension', 'protection_level', 'working_temp_range'],
+                '通信性能': ['freq_band', 'tx_power', 'comm_distance_max', 'transmission_rate', 'anti_interference', 'encryption_mode', 'signal_coverage'],
+                '传输能力': ['link_num_max', 'data_type_support', 'delay_transmission', 'multi_uav_support'],
+                '运维适配': ['power_supply', 'working_hours_continuous', 'mtbf', 'maintain_cycle', 'remote_management', 'fault_alarm']
+            },
+            'NAV': {
+                '静态属性': ['nav_id', 'unique_product_code', 'model_type', 'manufacturer', 'manufacturer_code', 'product_category', 'installation_type', 'mass_total', 'size_dimension', 'protection_level', 'working_temp_range'],
+                '定位性能': ['satellite_system', 'pos_accuracy_static', 'pos_accuracy_rtk', 'differential_distance', 'data_update_rate', 'signal_recover_time', 'cold_start_time', 'hot_start_time'],
+                '信号适配': ['signal_freq', 'signal_strength', 'diff_protocol', 'signal_coverage', 'anti_multipath'],
+                '运维参数': ['power_supply', 'working_hours_continuous', 'power_consumption', 'maintain_cycle', 'remote_config', 'data_storage']
+            },
+            'MON': {  // 注意：这里是 MON
+                '静态属性': ['monitor_id', 'unique_product_code', 'model_type', 'manufacturer', 'manufacturer_code', 'product_category', 'installation_type', 'mass_total', 'size_dimension', 'protection_level', 'working_temp_range'],
+                '探测性能': ['detect_distance_max', 'detect_altitude_max', 'detect_precision', 'target_recognize', 'detect_mode', 'track_num_max', 'recognition_rate', 'minimum_detect_size'],
+                '跟踪适配': ['track_speed', 'ptz_rotate_range', 'ptz_speed', 'zoom_multiple', 'data_transmit_mode', 'alarm_mode', 'image_resolution'],
+                '运维保障': ['power_supply', 'working_hours_continuous', 'mtbf', 'maintain_cycle', 'dust_proof_waterproof', 'storage_capacity', 'remote_control']
+            },
+            'CTR': {
+                '静态属性': ['counter_id', 'unique_product_code', 'model_type', 'manufacturer', 'manufacturer_code', 'product_category', 'installation_type', 'mass_total', 'size_dimension', 'protection_level', 'working_temp_range'],
+                '干扰性能': ['jam_distance_max', 'jam_freq_band', 'jam_power', 'jam_mode', 'jam_response_time', 'jam_effect', 'continuous_jam_time', 'freq_adjust_range'],
+                '适配范围': ['adapt_uav_type', 'adapt_altitude', 'coverage_angle', 'work_scene', 'anti_interference_self', 'effective_jam_radius'],
+                '运维参数': ['power_supply', 'power_consumption', 'working_hours_continuous', 'maintain_cycle', 'remote_operation', 'fault_diagnosis', 'storage_transport_condition']
+            },
+            'WTH': {
+                '静态属性': ['weather_id', 'unique_product_code', 'model_type', 'manufacturer', 'manufacturer_code', 'product_category', 'installation_type', 'mass_total', 'size_dimension', 'protection_level', 'working_temp_range'],
+                '探测性能': ['monitor_items', 'wind_speed_range', 'wind_speed_precision', 'wind_dir_range', 'wind_dir_precision', 'temp_range', 'temp_precision', 'humidity_range', 'humidity_precision', 'pressure_range', 'pressure_precision', 'rainfall_range', 'rainfall_precision', 'visibility_range', 'visibility_precision', 'monitor_height'],
+                '数据传输': ['data_update_rate', 'transmit_mode', 'transmit_distance_max', 'data_format', 'storage_capacity', 'data_upload_interval', 'communication_protocol'],
+                '运维保障': ['power_supply', 'power_consumption', 'maintain_cycle', 'calibration_method', 'self_diagnosis', 'fault_alarm', 'service_life', 'operating_humidity']
+            }
+        };
+
+        // 字段映射表
+        const fieldLabels = {
+            // 通用字段
+            'drone_id': '无人机唯一身份标识',
+            'comm_id': '通讯设备唯一标识',
+            'nav_id': '导航设备唯一标识',
+            'monitor_id': '监视设备唯一标识',
+            'counter_id': '反制设备唯一标识',
+            'weather_id': '气象设备唯一标识',
+            'unique_product_code': '产品唯一识别码',
+            'model_type': '设备具体机型',
+            'manufacturer': '设备生产厂商全称',
+            'manufacturer_code': '生产厂商代码',
+            'nature': '设备使用性质',
+            'product_type': '无人机类型分级',
+            'product_category': '设备结构类别',
+            'registration_country': '设备实名注册国籍',
+            'real_name_reg_id': '民航实名登记标识编号',
+            'owner_type': '设备拥有者类型',
+            'airworthiness': '适航许可资质',
+            'mass_empty': '空机重量',
+            'mass_total_max': '最大起飞重量',
+            'length_total': '机身展开全长',
+            'width_total': '机身展开全宽',
+            'height_total': '机身展开全高',
+            'rotor_count': '旋翼数量',
+            'working_temp_range': '工作环境温度区间',
+            'protection_level': '防护等级',
+            'max_speed': '最大平飞速度',
+            'cruise_speed': '巡航速度',
+            'climb_rate_typical': '典型爬升速率',
+            'climb_rate_max': '最大爬升速率',
+            'descent_rate_typical': '典型下降速率',
+            'descent_rate_max': '最大下降速率',
+            'turn_rate_typical': '典型转弯速率',
+            'turn_rate_max': '最大转弯速率',
+            'takeoff_landing_wind_resist': '起降阶段抗风能力',
+            'operation_wind_resist': '作业阶段抗风能力',
+            'control_frequency': '控制频率',
+            'navigation_mode': '导航方式',
+            'autonomous_capability': '自主能力',
+            'obstacle_avoidance': '感知与避让能力',
+            'sensor_list': '搭载传感器类型',
+            'electronic_fence': '电子围栏能力',
+            'perception_range': '最大感知距离',
+            'flight_time_avg': '平均续航时间',
+            'flight_time_max': '最大续航时间',
+            'energy_type': '能源类型',
+            'battery_capacity': '电池额定容量',
+            'battery_voltage': '电池额定电压',
+            'energy_consumption_rate': '作业能耗率',
+            'charging_time': '标准充电时间',
+            'observe_data_sources': '观察数据源',
+            'orient_context': '态势分析输入',
+            'decide_strategy': '预设决策策略',
+            'act_command_types': '可执行指令类型',
+            'ooda_cycle_time': 'OODA闭环耗时',
+            'installation_type': '安装部署类型',
+            'mass_total': '设备整机重量',
+            'size_dimension': '设备外形尺寸',
+            'freq_band': '工作频段',
+            'tx_power': '发射功率',
+            'comm_distance_max': '最大通信距离',
+            'transmission_rate': '传输速率',
+            'anti_interference': '抗干扰能力',
+            'encryption_mode': '通信加密方式',
+            'signal_coverage': '信号覆盖面积',
+            'link_num_max': '最大挂载链路数',
+            'data_type_support': '支持传输数据类型',
+            'delay_transmission': '传输时延',
+            'multi_uav_support': '同时接入无人机数量',
+            'power_supply': '供电方式',
+            'working_hours_continuous': '连续工作时长',
+            'mtbf': '平均无故障工作时间',
+            'maintain_cycle': '常规维护周期',
+            'remote_management': '远程管理功能',
+            'fault_alarm': '故障告警方式',
+            'satellite_system': '支持卫星系统',
+            'pos_accuracy_static': '静态定位精度',
+            'pos_accuracy_rtk': 'RTK动态定位精度',
+            'differential_distance': '差分服务半径',
+            'data_update_rate': '数据更新频率',
+            'signal_recover_time': '信号失锁恢复时长',
+            'cold_start_time': '冷启动时间',
+            'hot_start_time': '热启动时间',
+            'signal_freq': '信号发射频段',
+            'signal_strength': '信号发射强度',
+            'diff_protocol': '支持差分协议',
+            'anti_multipath': '抗多路径干扰能力',
+            'remote_config': '远程配置功能',
+            'data_storage': '本地数据存储容量',
+            'detect_distance_max': '最大探测距离',
+            'detect_altitude_max': '最大探测高度',
+            'detect_precision': '探测定位精度',
+            'target_recognize': '可识别目标类型',
+            'detect_mode': '探测模式',
+            'track_num_max': '最大同时跟踪目标数',
+            'recognition_rate': '目标识别准确率',
+            'minimum_detect_size': '最小可探测目标尺寸',
+            'track_speed': '适配目标最大飞行速度',
+            'ptz_rotate_range': '云台旋转范围',
+            'ptz_speed': '云台旋转速度',
+            'zoom_multiple': '光学变焦倍数',
+            'data_transmit_mode': '探测数据传输方式',
+            'alarm_mode': '异常告警模式',
+            'image_resolution': '图像分辨率',
+            'dust_proof_waterproof': '防尘防水等级',
+            'storage_capacity': '本地存储容量',
+            'remote_control': '远程控制功能',
+            'jam_distance_max': '最大干扰距离',
+            'jam_freq_band': '干扰频段',
+            'jam_power': '干扰发射功率',
+            'jam_mode': '反制模式',
+            'jam_response_time': '干扰响应时长',
+            'jam_effect': '反制效果',
+            'continuous_jam_time': '连续干扰时长',
+            'freq_adjust_range': '频率调节范围',
+            'adapt_uav_type': '适配反制无人机类型',
+            'adapt_altitude': '适配反制高度',
+            'coverage_angle': '干扰覆盖角度',
+            'work_scene': '适配工作场景',
+            'anti_interference_self': '自身抗干扰能力',
+            'effective_jam_radius': '有效干扰半径',
+            'power_consumption': '工作功耗',
+            'remote_operation': '远程操作功能',
+            'fault_diagnosis': '故障诊断能力',
+            'storage_transport_condition': '存储运输条件',
+            'monitor_items': '监测气象要素',
+            'wind_speed_range': '风速监测范围',
+            'wind_speed_precision': '风速监测精度',
+            'wind_dir_range': '风向监测范围',
+            'wind_dir_precision': '风向监测精度',
+            'temp_range': '气温监测范围',
+            'temp_precision': '气温监测精度',
+            'humidity_range': '湿度监测范围',
+            'humidity_precision': '湿度监测精度',
+            'pressure_range': '气压监测范围',
+            'pressure_precision': '气压监测精度',
+            'rainfall_range': '雨量监测范围',
+            'rainfall_precision': '雨量监测精度',
+            'visibility_range': '能见度监测范围',
+            'visibility_precision': '能见度监测精度',
+            'monitor_height': '低空探测高度范围',
+            'transmit_mode': '数据传输方式',
+            'transmit_distance_max': '无线传输最大距离',
+            'data_format': '数据输出格式',
+            'data_upload_interval': '数据上传间隔',
+            'communication_protocol': '支持通信协议',
+            'calibration_method': '校准方式',
+            'self_diagnosis': '自检功能',
+            'service_life': '设计使用寿命',
+            'operating_humidity': '工作环境湿度',
+            'image_filename': '图片文件',
+            'status': '状态',
+            'current_location': '当前位置',
+            'last_update': '最后更新时间',
+            '备注': '备注'
+        };
+
+        // 字段单位映射
+        const fieldUnits = {
+            'mass_empty': 'kg',
+            'mass_total_max': 'kg',
+            'length_total': 'm',
+            'width_total': 'm',
+            'height_total': 'm',
+            'max_speed': 'm/s',
+            'cruise_speed': 'm/s',
+            'climb_rate_typical': 'm/s',
+            'climb_rate_max': 'm/s',
+            'descent_rate_typical': 'm/s',
+            'descent_rate_max': 'm/s',
+            'turn_rate_typical': '°/s',
+            'turn_rate_max': '°/s',
+            'takeoff_landing_wind_resist': 'm/s',
+            'operation_wind_resist': 'm/s',
+            'flight_time_avg': '分钟',
+            'flight_time_max': '分钟',
+            'battery_capacity': 'mAh',
+            'battery_voltage': 'V',
+            'energy_consumption_rate': 'W',
+            'charging_time': '分钟',
+            'ooda_cycle_time': 'ms',
+            'mass_total': 'kg',
+            'tx_power': 'dBm',
+            'comm_distance_max': 'km',
+            'transmission_rate': 'Mbps',
+            'delay_transmission': 'ms',
+            'multi_uav_support': '架',
+            'working_hours_continuous': '小时',
+            'mtbf': '小时',
+            'differential_distance': 'km',
+            'data_update_rate': 'Hz',
+            'signal_recover_time': '秒',
+            'cold_start_time': '秒',
+            'hot_start_time': '秒',
+            'signal_strength': 'dBm',
+            'signal_coverage': 'km²',
+            'power_consumption': 'W',
+            'detect_distance_max': 'km',
+            'detect_altitude_max': 'm',
+            'track_num_max': '个',
+            'recognition_rate': '%',
+            'minimum_detect_size': 'm',
+            'track_speed': 'm/s',
+            'ptz_speed': '°/s',
+            'jam_distance_max': 'km',
+            'jam_power': 'W',
+            'jam_response_time': '秒',
+            'continuous_jam_time': '分钟',
+            'adapt_altitude': 'm',
+            'coverage_angle': '°',
+            'effective_jam_radius': 'm',
+            'wind_speed_range': 'm/s',
+            'wind_speed_precision': 'm/s',
+            'wind_dir_range': '°',
+            'wind_dir_precision': '°',
+            'temp_range': '℃',
+            'temp_precision': '℃',
+            'humidity_range': '%',
+            'humidity_precision': '%',
+            'pressure_range': 'hPa',
+            'pressure_precision': 'hPa',
+            'rainfall_range': 'mm',
+            'rainfall_precision': 'mm',
+            'visibility_range': 'm',
+            'visibility_precision': 'm',
+            'monitor_height': 'm',
+            'transmit_distance_max': 'km',
+            'data_upload_interval': '秒',
+            'service_life': '年'
+        };
+
+        createApp({
+            setup() {
+                // 状态管理
+                const loading = ref(false);
+                const allDevices = ref({});
+                const selectedDevice = ref(null);
+                const activeDimension = ref(0);
+                const lastUpdateTime = ref('');
+                const error = ref(null);
+                
+                // 计算属性
+                const totalDevices = computed(() => {
+                    return Object.values(allDevices.value).reduce((total, devices) => total + devices.length, 0);
+                });
+                
+                const onlineDevices = computed(() => {
+                    return Object.values(allDevices.value)
+                        .flat()
+                        .filter(device => device.status === '在线').length;
+                });
+                
+                // 方法
+                const getDeviceCount = (type) => {
+                    return (allDevices.value[type] || []).length;
+                };
+                
+                const getDevicesByType = (type) => {
+                    return allDevices.value[type] || [];
+                };
+                
+                const getDeviceType = (device) => {
+                    if (device.drone_id) return 'AV';
+                    if (device.comm_id) return 'COM';
+                    if (device.nav_id) return 'NAV';
+                    if (device.monitor_id) return 'MON';
+                    if (device.counter_id) return 'CTR';
+                    if (device.weather_id) return 'WTH';
+                    return null;
+                };
+                
+                const getDeviceIcon = (device) => {
+                    const type = getDeviceType(device);
+                    const category = deviceCategories.find(c => c.key === type);
+                    return category ? category.icon : 'lucide:package';
+                };
+                
+                const getDeviceImagePath = (device) => {
+                    const type = getDeviceType(device);
+                    if (!type) return '';
+                    
+                    const category = type.toLowerCase();
+                    const imageFileName = device.image_filename || 'default.jpg';
+                    
+                    return `${category}_devices/${imageFileName}`;
+                };
+                
+                const getStatusClass = (status) => {
+                    switch (status) {
+                        case '在线': return 'bg-green-500/20 text-green-400';
+                        case '离线': return 'bg-red-500/20 text-red-400';
+                        case '维护中': return 'bg-yellow-500/20 text-yellow-400';
+                        default: return 'bg-slate-500/20 text-slate-400';
+                    }
+                };
+                
+                const getDeviceDimensions = (device) => {
+                    const type = getDeviceType(device);
+                    if (!type) return ['基本信息'];
+                    
+                    const category = deviceCategories.find(c => c.key === type);
+                    return category ? category.dimensions : ['基本信息'];
+                };
+                
+                const getDimensionFields = (device, dimensionIndex) => {
+                    const type = getDeviceType(device);
+                    if (!type || !deviceDimensionFields[type]) return [];
+                    
+                    const dimensions = getDeviceDimensions(device);
+                    if (dimensionIndex >= dimensions.length) return [];
+                    
+                    const dimension = dimensions[dimensionIndex];
+                    if (!deviceDimensionFields[type][dimension]) return [];
+                    
+                    return deviceDimensionFields[type][dimension]
+                        .filter(field => device[field] !== undefined && device[field] !== '')
+                        .map(field => ({
+                            key: field,
+                            value: device[field],
+                            unit: fieldUnits[field] || ''
+                        }));
+                };
+                
+                const getFieldLabel = (field) => {
+                    return fieldLabels[field] || field;
+                };
+                
+                const getFieldUnit = (field) => {
+                    return fieldUnits[field] || '';
+                };
+                
+                const formatFieldValue = (value) => {
+                    if (value === 'TRUE' || value === 'True' || value === 'true') return '是';
+                    if (value === 'FALSE' || value === 'False' || value === 'false') return '否';
+                    return value;
+                };
+                
+                const getDeviceProperty = (device, property) => {
+                    return device[property] || '';
+                };
+                
+                const selectDevice = (device) => {
+                    selectedDevice.value = device;
+                    activeDimension.value = 0;
+                };
+                
+                const handleImageError = (event) => {
+                    event.target.style.display = 'none';
+                    const parent = event.target.parentElement;
+                    const placeholder = document.createElement('iconify-icon');
+                    placeholder.setAttribute('icon', getDeviceIcon(selectedDevice.value));
+                    placeholder.className = 'text-6xl text-slate-700';
+                    parent.appendChild(placeholder);
+                };
+                
+                // 数据加载
+                const loadCSVData = async (category) => {
+                    const categoryConfig = deviceCategories.find(c => c.key === category);
+                    if (!categoryConfig) return [];
+                    
+                    try {
+                        const response = await fetch(categoryConfig.csvFile);
+                        if (!response.ok) {
+                            throw new Error(`无法加载 ${categoryConfig.csvFile}: ${response.status}`);
+                        }
+                        
+                        const csvText = await response.text();
+                        
+                        return new Promise((resolve) => {
+                            Papa.parse(csvText, {
+                                header: true,
+                                skipEmptyLines: true,
+                                complete: (results) => {
+                                    console.log(`成功加载 ${category}:`, results.data.length, '条记录');
+                                    resolve(results.data);
+                                },
+                                error: (err) => {
+                                    console.error(`解析 ${category} CSV 失败:`, err);
+                                    resolve([]);
+                                }
+                            });
+                        });
+                    } catch (err) {
+                        console.warn(`加载 ${category} CSV 失败:`, err.message);
+                        return [];
+                    }
+                };
+                
+                const loadAllData = async () => {
+                    loading.value = true;
+                    error.value = null;
+                    
+                    try {
+                        const allData = {};
+                        for (const category of deviceCategories) {
+                            allData[category.key] = await loadCSVData(category.key);
+                        }
+                        
+                        allDevices.value = allData;
+                        
+                        // 默认选择第一个设备
+                        for (const category of deviceCategories) {
+                            if (allData[category.key] && allData[category.key].length > 0) {
+                                selectedDevice.value = allData[category.key][0];
+                                break;
+                            }
+                        }
+                        
+                        lastUpdateTime.value = new Date().toLocaleString('zh-CN');
+                    } catch (err) {
+                        error.value = `数据加载失败: ${err.message}`;
+                        console.error('数据加载失败:', err);
+                    } finally {
+                        loading.value = false;
+                    }
+                };
+                
+                // 生命周期
+                onMounted(() => {
+                    loadAllData();
+                });
+                
+                return {
+                    // 状态
+                    loading,
+                    allDevices,
+                    selectedDevice,
+                    activeDimension,
+                    lastUpdateTime,
+                    error,
+                    
+                    // 计算属性
+                    totalDevices,
+                    onlineDevices,
+                    
+                    // 方法
+                    getDeviceCount,
+                    getDevicesByType,
+                    getDeviceType,
+                    getDeviceIcon,
+                    getDeviceImagePath,
+                    getStatusClass,
+                    getDeviceDimensions,
+                    getDimensionFields,
+                    getFieldLabel,
+                    getFieldUnit,
+                    formatFieldValue,
+                    getDeviceProperty,
+                    selectDevice,
+                    handleImageError,
+                    loadAllData
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

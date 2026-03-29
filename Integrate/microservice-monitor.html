@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=1920, user-scalable=no" name="viewport"/>
+<title>仿真系统综合管理平台 - 微服务监控</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+        body { background-color: #121212; font-family: "Microsoft YaHei", sans-serif; color: #E5E7EB; }
+        .sidebar-item:hover { background-color: #ffffff0a; }
+        .card-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .service-card { transition: all 0.3s ease; background-color: #1E1E1E; border: 1px solid #2D2D2D; }
+        .service-card:hover { transform: translateY(-5px); border-color: #1677FF; }
+    </style>
+</head>
+<body class="w-[1920px] h-[1080px] overflow-hidden flex">
+<!-- 左侧导航 -->
+<aside class="w-[240px] bg-[#1A1A1A] h-full border-r border-[#2D2D2D] flex flex-col flex-shrink-0">
+<div class="p-6 flex items-center gap-3 border-b border-[#2D2D2D]">
+<div class="w-8 h-8 bg-[#1677FF] rounded flex items-center justify-center">
+<span class="iconify text-white text-xl" data-icon="mdi:hubspot"></span>
+</div>
+<span class="text-lg font-bold text-white">仿真系统管理</span>
+</div>
+<nav class="flex-1 py-4">
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="index.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:view-dashboard"></span>
+<span>首页概览</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="permission.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:shield-account"></span>
+<span>权限管控</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="log-audit.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:clipboard-text-clock"></span>
+<span>日志审计</span>
+</a>
+<a class="flex items-center px-6 py-4 bg-[#1677FF22] border-right-3 border-[#1677FF] text-[#1677FF]" href="microservice-monitor.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:monitor-dashboard"></span>
+<span>微服务监控</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="exception-handle.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:alert-box"></span>
+<span>应急处置</span>
+</a>
+</nav>
+</aside>
+<!-- 主体区域 -->
+<main class="flex-1 flex flex-col overflow-hidden bg-[#121212]">
+<!-- 顶部工具栏 -->
+<header class="h-16 bg-[#1A1A1A] border-b border-[#2D2D2D] flex items-center justify-between px-8">
+<div class="flex items-center gap-6">
+<div class="flex border border-[#2D2D2D] rounded overflow-hidden">
+<button class="bg-[#1677FF] text-white px-4 py-1.5 flex items-center gap-2">
+<span class="iconify" data-icon="mdi:view-grid"></span> 大屏视图
+                    </button>
+<button class="bg-[#1A1A1A] text-gray-400 px-4 py-1.5 flex items-center gap-2 border-l border-[#2D2D2D] hover:bg-[#2D2D2D]">
+<span class="iconify" data-icon="mdi:view-list"></span> 列表视图
+                    </button>
+</div>
+<div class="text-sm border-l border-[#2D2D2D] pl-6 flex gap-8">
+<div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#52C41A]"></span> <span class="text-gray-400 italic font-mono uppercase">Online: 8/8</span></div>
+<div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-[#FF4D4F]"></span> <span class="text-gray-400 italic font-mono uppercase">Alarm: 3</span></div>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="bg-[#1A1A1A] border border-[#2D2D2D] p-2 rounded text-gray-400 hover:bg-[#2D2D2D]"><span class="iconify text-gray-400 text-xl" data-icon="mdi:refresh"></span></button>
+<button class="bg-[#1A1A1A] border border-[#2D2D2D] p-2 rounded hover:bg-[#2D2D2D] text-gray-400"><span class="iconify text-gray-400 text-xl" data-icon="mdi:volume-mute"></span></button>
+</div>
+</header>
+<!-- 监控大屏正文 -->
+<div class="flex-1 p-6 overflow-y-auto">
+<!-- 系统资源监控 -->
+<div class="grid grid-cols-3 gap-6 mb-6">
+<div class="bg-[#1E1E1E] p-5 rounded border border-[#2D2D2D] card-shadow">
+<div class="flex justify-between items-center mb-6">
+<span class="font-bold flex items-center gap-2 text-gray-200"><span class="iconify text-[#1677FF]" data-icon="mdi:cpu-64-bit"></span> CPU 平均负载</span>
+<span class="text-sm font-mono text-[#1677FF] font-bold">42.5%</span>
+</div>
+<div class="w-full h-40" id="cpuChart"></div>
+</div>
+<div class="bg-[#1E1E1E] p-5 rounded border border-[#2D2D2D] card-shadow">
+<div class="flex justify-between items-center mb-6">
+<span class="font-bold flex items-center gap-2 text-gray-200"><span class="iconify text-[#1677FF]" data-icon="mdi:memory"></span> 内存使用率</span>
+<span class="text-sm font-mono text-orange-500 font-bold">78.2%</span>
+</div>
+<div class="w-full h-40" id="memChart"></div>
+</div>
+<div class="bg-[#1E1E1E] p-5 rounded border border-[#2D2D2D] card-shadow">
+<div class="flex justify-between items-center mb-6">
+<span class="font-bold flex items-center gap-2 text-gray-200"><span class="iconify text-[#1677FF]" data-icon="mdi:harddisk"></span> 磁盘可用空间</span>
+<span class="text-sm font-mono text-gray-500 font-bold">1.2 TB / 4 TB</span>
+</div>
+<div class="flex items-center justify-center p-4">
+<div class="w-full h-4 bg-[#121212] rounded-full overflow-hidden flex relative">
+<div class="h-full bg-[#52C41A]/70 shadow-sm" style="width: 30%"></div>
+<div class="h-full bg-blue-500/70 shadow-sm" style="width: 25%"></div>
+<div class="h-full bg-[#2D2D2D]" style="width: 45%"></div>
+<div class="absolute inset-x-0 inset-y-0 flex justify-end px-3 text-[10px] text-gray-500">已使用 30%</div>
+</div>
+</div>
+<div class="mt-4 grid grid-cols-3 gap-2 text-[11px] text-gray-500">
+<div class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-[#52C41A]/70"></span> 系统</div>
+<div class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-blue-500/70"></span> 模拟数据库</div>
+<div class="flex items-center gap-1"><span class="w-2 h-2 rounded bg-[#2D2D2D]"></span> 空闲</div>
+</div>
+</div>
+</div>
+<!-- 微服务状态卡片网格 -->
+<div class="mb-4 flex items-center gap-2 px-2 text-gray-400">
+<span class="iconify text-xl" data-icon="mdi:hexagon-multiple"></span>
+<span class="font-bold uppercase tracking-wider">Container Nodes (8)</span>
+</div>
+<div class="grid grid-cols-4 gap-6">
+<!-- 服务卡片开始 -->
+<div class="bg-[#1E1E1E] p-5 border-l-4 border-[#52C41A] rounded shadow-sm service-card relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-gray-800">auth-service</h4>
+<p class="text-[10px] text-gray-400">ID: ctn-7201-as</p>
+</div>
+<span class="bg-green-100 text-[#52C41A] px-2 py-0.5 rounded text-[10px] font-bold">健康</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-xs mb-4">
+<div class="text-gray-500">响应时间: <span class="text-gray-800 font-mono">24ms</span></div>
+<div class="text-gray-500">成功率: <span class="text-gray-800 font-mono">100%</span></div>
+</div>
+<button class="w-full text-[12px] bg-gray-50 py-1 rounded text-[#1677FF] border border-transparent group-hover:bg-[#1677FF] group-hover:text-white transition-colors">查看调用链路</button>
+<!-- 动态水球/背景图占位 -->
+<span class="iconify absolute -right-4 -bottom-4 text-6xl text-gray-50 group-hover:text-white/20" data-icon="mdi:shield-check"></span>
+</div>
+<div class="bg-white p-5 border-l-4 border-[#FF4D4F] rounded shadow-sm service-card relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-gray-800">payment-gateway</h4>
+<p class="text-[10px] text-gray-400">ID: ctn-7202-pg</p>
+</div>
+<span class="bg-red-100 text-[#FF4D4F] px-2 py-0.5 rounded text-[10px] font-bold animate-pulse">异常</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-xs mb-4">
+<div class="text-gray-500">响应时间: <span class="text-red-500 font-mono font-bold">850ms</span></div>
+<div class="text-gray-500">成功率: <span class="text-red-500 font-mono font-bold">92.4%</span></div>
+</div>
+<button class="w-full text-[12px] bg-red-50 py-1 rounded text-red-600 border border-red-200">故障自愈中...</button>
+<span class="iconify absolute -right-4 -bottom-4 text-6xl text-red-50" data-icon="mdi:alert-decagram"></span>
+</div>
+<div class="bg-white p-5 border-l-4 border-[#52C41A] rounded shadow-sm service-card relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-gray-800">user-service</h4>
+<p class="text-[10px] text-gray-400">ID: ctn-7204-us</p>
+</div>
+<span class="bg-green-100 text-[#52C41A] px-2 py-0.5 rounded text-[10px] font-bold">健康</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-xs mb-4">
+<div class="text-gray-500">响应时间: <span class="text-gray-800 font-mono">18ms</span></div>
+<div class="text-gray-500">成功率: <span class="text-gray-800 font-mono">100%</span></div>
+</div>
+<button class="w-full text-[12px] bg-gray-50 py-1 rounded text-[#1677FF] border border-transparent group-hover:bg-[#1677FF] group-hover:text-white">查看调用链路</button>
+<span class="iconify absolute -right-4 -bottom-4 text-6xl text-gray-50 group-hover:text-white/20" data-icon="mdi:account-group"></span>
+</div>
+<div class="bg-white p-5 border-l-4 border-[#52C41A] rounded shadow-sm service-card relative overflow-hidden group">
+<div class="flex justify-between items-start mb-4">
+<div>
+<h4 class="font-bold text-gray-800">simulation-core</h4>
+<p class="text-[10px] text-gray-400">ID: ctn-7501-sc</p>
+</div>
+<span class="bg-green-100 text-[#52C41A] px-2 py-0.5 rounded text-[10px] font-bold">健康</span>
+</div>
+<div class="grid grid-cols-2 gap-2 text-xs mb-4">
+<div class="text-gray-500">吞吐量: <span class="text-gray-800 font-mono">15k/s</span></div>
+<div class="text-gray-500">成功率: <span class="text-gray-800 font-mono">99.9%</span></div>
+</div>
+<button class="w-full text-[12px] bg-gray-50 py-1 rounded text-[#1677FF] group-hover:bg-[#1677FF] group-hover:text-white">监控详情</button>
+<span class="iconify absolute -right-4 -bottom-4 text-6xl text-gray-50 group-hover:text-white/20" data-icon="mdi:cpu-64-bit"></span>
+</div>
+<!-- 循环示例，共展示8个 -->
+<div class="bg-white p-5 border-l-4 border-yellow-400 rounded shadow-sm service-card relative overflow-hidden">
+<div class="flex justify-between items-start mb-4">
+<div><h4 class="font-bold text-gray-800">log-collector</h4></div>
+<span class="bg-yellow-50 text-yellow-600 px-2 py-0.5 rounded text-[10px] font-bold">延迟</span>
+</div>
+<div class="text-xs mb-4 text-gray-400 italic">IO负载均衡调整中...</div>
+<button class="w-full text-[12px] bg-yellow-50 py-1 rounded text-yellow-700">拓扑查看</button>
+</div>
+<div class="bg-white p-5 border-l-4 border-[#52C41A] rounded shadow-sm service-card relative overflow-hidden">
+<h4 class="font-bold text-gray-800 mb-2">cache-redis</h4>
+<div class="text-xs text-gray-500 mb-4">命中率: 94.2% | 活跃连接: 450</div>
+<button class="w-full text-[12px] bg-gray-50 py-1 rounded text-[#1677FF]">性能看板</button>
+</div>
+<div class="bg-white p-5 border-l-4 border-[#52C41A] rounded shadow-sm service-card relative overflow-hidden">
+<h4 class="font-bold text-gray-800 mb-2">db-mysql-master</h4>
+<div class="text-xs text-gray-500 mb-4">QPS: 840 | 连接数: 15%</div>
+<button class="w-full text-[12px] bg-gray-50 py-1 rounded text-[#1677FF]">数据看板</button>
+</div>
+<div class="bg-white p-5 border-l-4 border-[#52C41A] rounded shadow-sm service-card relative overflow-hidden">
+<h4 class="font-bold text-gray-800 mb-2">message-mq</h4>
+<div class="text-xs text-gray-500 mb-4">堆积量: 0 | 副本状态: 同步</div>
+<button class="w-full text-[12px] bg-gray-50 py-1 rounded text-[#1677FF]">中间件监控</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        const cpuCtx = echarts.init(document.getElementById('cpuChart'));
+        const memCtx = echarts.init(document.getElementById('memChart'));
+
+        const commonOption = {
+            grid: { top: 10, left: 0, right: 0, bottom: 0 },
+            xAxis: { type: 'category', show: false },
+            yAxis: { type: 'value', show: false, max: 100 },
+            series: [{
+                type: 'line',
+                data: [35, 38, 30, 45, 42, 38, 48, 42, 40, 42],
+                smooth: true,
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(22, 119, 255, 0.4)' },
+                        { offset: 1, color: 'rgba(22, 119, 255, 0.05)' }
+                    ])
+                },
+                lineStyle: { width: 3, color: '#1677FF' },
+                symbol: 'none'
+            }]
+        };
+
+        cpuCtx.setOption(commonOption);
+        memCtx.setOption({
+            ...commonOption,
+            series: [{
+                ...commonOption.series[0],
+                data: [60, 65, 70, 75, 72, 78, 80, 78, 77, 78],
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(249, 115, 22, 0.4)' },
+                        { offset: 1, color: 'rgba(249, 115, 22, 0.05)' }
+                    ])
+                },
+                lineStyle: { width: 3, color: '#f97316' }
+            }],
+            visualMap: {
+                show: false,
+                pieces: [{ gt: 80, color: '#FF4D4F' }, { lte: 80, color: '#f97316' }]
+            }
+        });
+    </script>
+</body>
+</html>

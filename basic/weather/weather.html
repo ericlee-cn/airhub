@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>德清低空气象环境仿真系统 | 2026-03-15</title>
+<style>
+        body { background-color: #030a1c; color: #e2e8f0; font-family: 'PingFang SC', sans-serif; height: 100vh; overflow: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 170, 255, 0.2); backdrop-filter: blur(12px); }
+        .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1); }
+        .map-bg { background: linear-gradient(135deg, #0f172a 0%, #020617 100%); position: fixed; inset: 0; z-index: -1; }
+        
+        /* 侧边栏样式 */
+        .side-panel { width: 300px; transition: all 0.3s ease; }
+        .tree-node { cursor: pointer; transition: all 0.2s; border-radius: 4px; padding: 6px 10px; margin: 2px 0; }
+        .tree-node:hover { background: rgba(56, 189, 248, 0.1); }
+        .tree-node.active { background: rgba(56, 189, 248, 0.2); color: #38bdf8; border-left: 3px solid #38bdf8; }
+        .tree-sub { margin-left: 20px; border-left: 1px dashed rgba(255,255,255,0.1); padding-left: 10px; }
+
+        /* 表格样式 */
+        .data-table-container { background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 8px; overflow: hidden; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 3px; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+        th { background: rgba(56, 189, 248, 0.1); color: #7dd3fc; font-weight: 600; padding: 12px 8px; border-bottom: 1px solid rgba(56, 189, 248, 0.2); white-space: nowrap; }
+        td { padding: 10px 8px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); white-space: nowrap; }
+        
+        .status-tag { padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+        .tag-normal { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+        .tag-warning { background: rgba(234, 179, 8, 0.2); color: #facc15; }
+        .tag-danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.z-50{z-index:50}.mb-1{margin-bottom:0.25rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mr-1{margin-right:0.25rem}.mr-2{margin-right:0.5rem}.mr-4{margin-right:1rem}.mt-4{margin-top:1rem}.inline{display:inline}.flex{display:flex}.h-10{height:2.5rem}.h-12{height:3rem}.h-16{height:4rem}.h-full{height:100%}.w-10{width:2.5rem}.flex-1{flex:1 1 0%}.cursor-default{cursor:default}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-blue-500\/20{border-color:rgb(59 130 246 / 0.2)}.border-blue-500\/50{border-color:rgb(59 130 246 / 0.5)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.bg-blue-500\/10{background-color:rgb(59 130 246 / 0.1)}.bg-blue-500\/20{background-color:rgb(59 130 246 / 0.2)}.bg-green-500\/20{background-color:rgb(34 197 94 / 0.2)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-blue-400{--tw-gradient-from:#60a5fa var(--tw-gradient-from-position);--tw-gradient-to:rgb(96 165 250 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-cyan-300{--tw-gradient-to:#67e8f9 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-3{padding:0.75rem}.p-4{padding:1rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.pb-2{padding-bottom:0.5rem}.text-right{text-align:right}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-\[11px\]{font-size:11px}.font-bold{font-weight:700}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.tracking-widest{letter-spacing:0.1em}.text-blue-200{--tw-text-opacity:1;color:rgb(191 219 254 / var(--tw-text-opacity, 1))}.text-blue-300{--tw-text-opacity:1;color:rgb(147 197 253 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-green-400{--tw-text-opacity:1;color:rgb(74 222 128 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-yellow-500{--tw-text-opacity:1;color:rgb(234 179 8 / var(--tw-text-opacity, 1))}.opacity-50{opacity:0.5}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-blue-400\/10:hover{background-color:rgb(96 165 250 / 0.1)}</style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.z-50{z-index:50}.mb-1{margin-bottom:0.25rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mr-1{margin-right:0.25rem}.mr-2{margin-right:0.5rem}.mt-4{margin-top:1rem}.inline{display:inline}.flex{display:flex}.h-12{height:3rem}.h-16{height:4rem}.h-full{height:100%}.flex-1{flex:1 1 0%}.cursor-default{cursor:default}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-blue-500\/20{border-color:rgb(59 130 246 / 0.2)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.bg-blue-500\/10{background-color:rgb(59 130 246 / 0.1)}.bg-blue-500\/20{background-color:rgb(59 130 246 / 0.2)}.bg-green-500\/20{background-color:rgb(34 197 94 / 0.2)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-blue-400{--tw-gradient-from:#60a5fa var(--tw-gradient-from-position);--tw-gradient-to:rgb(96 165 250 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-cyan-300{--tw-gradient-to:#67e8f9 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-3{padding:0.75rem}.p-4{padding:1rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.pb-2{padding-bottom:0.5rem}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[11px\]{font-size:11px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.tracking-widest{letter-spacing:0.1em}.text-blue-200{--tw-text-opacity:1;color:rgb(191 219 254 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-green-400{--tw-text-opacity:1;color:rgb(74 222 128 / var(--tw-text-opacity, 1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-yellow-500{--tw-text-opacity:1;color:rgb(234 179 8 / var(--tw-text-opacity, 1))}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-blue-400\/10:hover{background-color:rgb(96 165 250 / 0.1)}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}</style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.z-50{z-index:50}.mb-1{margin-bottom:0.25rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mr-1{margin-right:0.25rem}.mr-2{margin-right:0.5rem}.mt-4{margin-top:1rem}.inline{display:inline}.flex{display:flex}.h-12{height:3rem}.h-16{height:4rem}.h-full{height:100%}.flex-1{flex:1 1 0%}.cursor-default{cursor:default}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.overflow-auto{overflow:auto}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-blue-500\/20{border-color:rgb(59 130 246 / 0.2)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.bg-blue-500\/10{background-color:rgb(59 130 246 / 0.1)}.bg-blue-500\/20{background-color:rgb(59 130 246 / 0.2)}.bg-green-500\/20{background-color:rgb(34 197 94 / 0.2)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-blue-400{--tw-gradient-from:#60a5fa var(--tw-gradient-from-position);--tw-gradient-to:rgb(96 165 250 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-cyan-300{--tw-gradient-to:#67e8f9 var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-3{padding:0.75rem}.p-4{padding:1rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.pb-2{padding-bottom:0.5rem}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[11px\]{font-size:11px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.tracking-widest{letter-spacing:0.1em}.text-blue-200{--tw-text-opacity:1;color:rgb(191 219 254 / var(--tw-text-opacity, 1))}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-green-400{--tw-text-opacity:1;color:rgb(74 222 128 / var(--tw-text-opacity, 1))}.text-sky-400{--tw-text-opacity:1;color:rgb(56 189 248 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-yellow-500{--tw-text-opacity:1;color:rgb(234 179 8 / var(--tw-text-opacity, 1))}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-blue-400\/10:hover{background-color:rgb(96 165 250 / 0.1)}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}</style>
+</head>
+<body class="flex flex-col is-mb-ai-setting">
+<div class="map-bg"></div>
+<!-- 顶部导航 -->
+<header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+<div class="flex items-center gap-3">
+<svg aria-hidden="true" class="iconify text-3xl text-blue-400 iconify--material-symbols" data-icon="material-symbols:airplanemode-active" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M7 22v-2.5l3-2.1v-3.6L2 17v-3l8-5.6V4q0-.825.588-1.412T12 2t1.413.588T14 4v4.4l8 5.6v3l-8-3.2v3.6l3 2.1V22l-5-1.5z" fill="currentColor"></path></svg>
+<h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">基础模型管理系统</h1>
+</div>
+<nav class="flex gap-1 h-full">
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="https://modao.cc/agent-py/workspace/69abea4b89350d730b654a54/无人机管控系统_v45.html/index.html?render_html=true">系统总览</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="terrain.html">
+<svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:map" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0zm.894.211v15M9 3.236v15" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>地理环境</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="electromagnetic.html">
+<svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:waves" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2c2.5 0 2.5-2 5-2c1.3 0 1.9.5 2.5 1M2 12c.6.5 1.2 1 2.5 1c2.5 0 2.5-2 5-2c2.6 0 2.4 2 5 2c2.5 0 2.5-2 5-2c1.3 0 1.9.5 2.5 1M2 18c.6.5 1.2 1 2.5 1c2.5 0 2.5-2 5-2c2.6 0 2.4 2 5 2c2.5 0 2.5-2 5-2c1.3 0 1.9.5 2.5 1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>电磁环境</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="weather.html">
+<svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:cloud-sun" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v2m-7.07.93l1.41 1.41M20 12h2m-2.93-7.07l-1.41 1.41m-1.713 6.31a4 4 0 0 0-5.925-4.128M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>气象环境</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="airspace.html">
+<svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:layers" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></g></svg>空域航路</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="rules.html">
+<svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:gavel" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m14 13l-8.381 8.38a1 1 0 0 1-3.001-3l8.384-8.381M16 16l6-6m-.5.5l-8-8M8 8l6-6M8.5 7.5l8 8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>飞行规则</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="assets.html">
+<svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:database" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14a9 3 0 0 0 18 0V5"></path><path d="M3 12a9 3 0 0 0 18 0"></path></g></svg>装备库</a>
+</nav>
+</header>
+<main class="flex-1 flex overflow-hidden p-4 gap-4">
+<!-- 左侧树状目录 -->
+<aside class="side-panel glass-panel rounded-lg flex flex-col p-4">
+<div class="flex items-center gap-2 mb-6 pb-2 border-b border-white/10">
+<svg aria-hidden="true" class="iconify text-blue-400 iconify--mdi" data-icon="mdi:file-tree" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h6v4H3zm12 7h6v4h-6zm0 7h6v4h-6zm-2-4H7v5h6v2H5V9h2v2h6z" fill="currentColor"></path></svg>
+<h2 class="font-bold">仿真区域选择 (德清)</h2>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar">
+<!-- 一级：春夏 -->
+<div class="mb-4">
+<div class="tree-node flex items-center font-bold" onclick="toggleNode('node-spring')">
+<svg aria-hidden="true" class="iconify mr-2 text-green-400 iconify--mdi" data-icon="mdi:flower" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M3 13a9 9 0 0 0 9 9c0-5-4.03-9-9-9m9-7.5A2.5 2.5 0 0 1 14.5 8a2.5 2.5 0 0 1-2.5 2.5A2.5 2.5 0 0 1 9.5 8A2.5 2.5 0 0 1 12 5.5m-6.4 4.75a2.5 2.5 0 0 0 2.5 2.5c.53 0 1.02-.17 1.4-.44v.19A2.5 2.5 0 0 0 12 15a2.5 2.5 0 0 0 2.5-2.5v-.19c.38.27.87.44 1.4.44a2.5 2.5 0 0 0 2.5-2.5c0-1-.59-1.85-1.43-2.25c.84-.4 1.43-1.26 1.43-2.25a2.5 2.5 0 0 0-2.5-2.5c-.53 0-1.02.16-1.4.44V3.5A2.5 2.5 0 0 0 12 1a2.5 2.5 0 0 0-2.5 2.5v.19c-.38-.28-.87-.44-1.4-.44a2.5 2.5 0 0 0-2.5 2.5c0 .99.59 1.85 1.43 2.25c-.84.4-1.43 1.25-1.43 2.25M12 22a9 9 0 0 0 9-9c-5 0-9 4-9 9" fill="currentColor"></path></svg>春夏场景
+                    </div>
+<div class="tree-sub" id="node-spring">
+<div class="tree-node text-sm active" onclick="loadSimulation('春夏', '中心城区', this)">
+<svg aria-hidden="true" class="iconify mr-1 iconify--mdi" data-icon="mdi:city-variant-outline" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M15 23h-2v-2h2zm4-2h-2v2h2zm-4-4h-2v2h2zm-8 4H5v2h2zm0-4H5v2h2zm12 0h-2v2h2zm-4-4h-2v2h2zm4 0h-2v2h2zm2-4a2 2 0 0 1 2 2v12h-2V11H11v12H9v-8H3v8H1v-8a2 2 0 0 1 2-2h6v-2a2 2 0 0 1 2-2V7a2 2 0 0 1 2-2h2V1h2v4h2a2 2 0 0 1 2 2zm-2 0V7h-6v2z" fill="currentColor"></path></svg>中心城区
+                        </div>
+<div class="tree-node text-sm" onclick="loadSimulation('春夏', '东部山区', this)">
+<svg aria-hidden="true" class="iconify mr-1 iconify--mdi" data-icon="mdi:terrain" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m14 6l-3.75 5l2.85 3.8l-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22z" fill="currentColor"></path></svg>东部山区
+                        </div>
+<div class="tree-node text-sm" onclick="loadSimulation('春夏', '西部山区', this)">
+<svg aria-hidden="true" class="iconify mr-1 iconify--mdi" data-icon="mdi:mountain" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m14 6l-3.75 5l2.85 3.8l-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22z" fill="currentColor"></path></svg>西部山区
+                        </div>
+</div>
+</div>
+<!-- 一级：秋冬 -->
+<div>
+<div class="tree-node flex items-center font-bold" onclick="toggleNode('node-winter')">
+<svg aria-hidden="true" class="iconify mr-2 text-blue-200 iconify--mdi" data-icon="mdi:snowflake" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m20.79 13.95l-2.33.62l-2-1.13v-2.88l2-1.13l2.33.62l.52-1.93l-1.77-.47l.46-1.77l-1.93-.52l-.62 2.33l-2 1.13L13 7.38V5.12l1.71-1.71L13.29 2L12 3.29L10.71 2L9.29 3.41L11 5.12v2.26L8.5 8.82l-2-1.13l-.58-2.33L4 5.88l.47 1.77l-1.77.47l.52 1.93l2.33-.62l2 1.13v2.89l-2 1.13l-2.33-.62l-.52 1.93l1.77.47L4 18.12l1.93.52l.62-2.33l2-1.13L11 16.62v2.26l-1.71 1.71L10.71 22L12 20.71L13.29 22l1.41-1.41l-1.7-1.71v-2.26l2.5-1.45l2 1.13l.62 2.33l1.88-.51l-.47-1.77l1.77-.47zM9.5 10.56L12 9.11l2.5 1.45v2.88L12 14.89l-2.5-1.45z" fill="currentColor"></path></svg>秋冬场景
+                    </div>
+<div class="tree-sub" id="node-winter">
+<div class="tree-node text-sm" onclick="loadSimulation('秋冬', '中心城区', this)">
+<svg aria-hidden="true" class="iconify mr-1 iconify--mdi" data-icon="mdi:city-variant-outline" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M15 23h-2v-2h2zm4-2h-2v2h2zm-4-4h-2v2h2zm-8 4H5v2h2zm0-4H5v2h2zm12 0h-2v2h2zm-4-4h-2v2h2zm4 0h-2v2h2zm2-4a2 2 0 0 1 2 2v12h-2V11H11v12H9v-8H3v8H1v-8a2 2 0 0 1 2-2h6v-2a2 2 0 0 1 2-2V7a2 2 0 0 1 2-2h2V1h2v4h2a2 2 0 0 1 2 2zm-2 0V7h-6v2z" fill="currentColor"></path></svg>中心城区
+                        </div>
+<div class="tree-node text-sm" onclick="loadSimulation('秋冬', '东部山区', this)">
+<svg aria-hidden="true" class="iconify mr-1 iconify--mdi" data-icon="mdi:terrain" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m14 6l-3.75 5l2.85 3.8l-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22z" fill="currentColor"></path></svg>东部山区
+                        </div>
+<div class="tree-node text-sm" onclick="loadSimulation('秋冬', '西部山区', this)">
+<svg aria-hidden="true" class="iconify mr-1 iconify--mdi" data-icon="mdi:mountain" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m14 6l-3.75 5l2.85 3.8l-1.6 1.2C9.81 13.75 7 10 7 10l-6 8h22z" fill="currentColor"></path></svg>西部山区
+                        </div>
+</div>
+</div>
+</div>
+<div class="mt-4 p-3 bg-blue-500/10 rounded-lg text-xs leading-relaxed border border-blue-500/20">
+<p class="text-blue-400 font-bold mb-1"><svg aria-hidden="true" class="iconify inline mr-1 iconify--mdi" data-icon="mdi:information" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M13 9h-2V7h2m0 10h-2v-6h2m-1-9A10 10 0 0 0 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2" fill="currentColor"></path></svg>说明</p>
+<p class="text-slate-400">当前加载德清区域 1:1 高精度气象仿真数据。更新频率：≤5分钟/次。</p>
+</div>
+</aside>
+<!-- 右侧数据表格 -->
+<section class="flex-1 flex flex-col gap-4 overflow-hidden">
+<div class="h-12 glass-panel flex items-center justify-between px-6 rounded-lg">
+<div class="flex items-center gap-4">
+<span class="text-sm text-slate-400">当前视图:</span>
+<span class="font-bold text-blue-400" id="breadcrumb">春夏 - 中心城区</span>
+</div>
+<div class="flex gap-2 text-xs font-mono">
+<span class="px-2 py-1 bg-green-500/20 text-green-400 rounded">数据源：德清气象局仿真库</span>
+<span class="px-2 py-1 bg-blue-500/20 text-blue-400 rounded">最后更新：2026-03-07 13:30</span>
+</div>
+</div>
+<div class="flex-1 data-table-container custom-scrollbar overflow-auto">
+<table id="weather-table">
+<thead>
+<tr>
+<th>时间</th>
+<th>风速 (m/s)</th>
+<th>风向 (°)</th>
+<th>垂直风 (m/s)</th>
+<th>风切变</th>
+<th>湍流 (%)</th>
+<th>能见度 (m)</th>
+<th>气温 (℃)</th>
+<th>气压 (hPa)</th>
+<th>湿度 (%)</th>
+<th>降水 (mm/h)</th>
+<th>爆流强度</th>
+<th>团雾等级</th>
+<th>寒潮等级</th>
+<th>场景标签</th>
+</tr>
+</thead>
+<tbody id="table-body"><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">6:00</td>
+<td class="">2.0</td>
+<td>110</td>
+<td>0</td>
+<td>0.5</td>
+<td>3</td>
+<td class="text-yellow-500">2500</td>
+<td class="">20.0</td>
+<td>1010</td>
+<td>88%</td>
+<td><span class="status-tag tag-normal">0</span></td>
+<td>0</td>
+<td><span class="status-tag tag-warning">2 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">7:00</td>
+<td class="">3.0</td>
+<td>120</td>
+<td>+0.2</td>
+<td>0.6</td>
+<td>4</td>
+<td class="">6000</td>
+<td class="">22.0</td>
+<td>1008</td>
+<td>75%</td>
+<td><span class="status-tag tag-normal">0</span></td>
+<td>0</td>
+<td><span class="status-tag tag-normal">1 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">8:00</td>
+<td class="">3.0</td>
+<td>130</td>
+<td>+0.3</td>
+<td>0.7</td>
+<td>5</td>
+<td class="">8000</td>
+<td class="">24.0</td>
+<td>1007</td>
+<td>70%</td>
+<td><span class="status-tag tag-normal">0</span></td>
+<td>0</td>
+<td><span class="status-tag tag-normal">1 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">9:00</td>
+<td class="">4.0</td>
+<td>140</td>
+<td>+0.5</td>
+<td>0.8</td>
+<td>6</td>
+<td class="">10000</td>
+<td class="">26.0</td>
+<td>1005</td>
+<td>65%</td>
+<td><span class="status-tag tag-normal">0</span></td>
+<td>0</td>
+<td><span class="status-tag tag-normal">1 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">10:00</td>
+<td class="">4.0</td>
+<td>150</td>
+<td>+0.6</td>
+<td>1</td>
+<td>7</td>
+<td class="">12000</td>
+<td class="">27.0</td>
+<td>1003</td>
+<td>60%</td>
+<td><span class="status-tag tag-normal">0</span></td>
+<td>0</td>
+<td><span class="status-tag tag-normal">1 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">11:00</td>
+<td class="">5.0</td>
+<td>160</td>
+<td>+0.8</td>
+<td>1.2</td>
+<td>8</td>
+<td class="">12000</td>
+<td class="">29.0</td>
+<td>1001</td>
+<td>55%</td>
+<td><span class="status-tag tag-normal">0</span></td>
+<td>0</td>
+<td><span class="status-tag tag-normal">1 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">12:00</td>
+<td class="">5.0</td>
+<td>170</td>
+<td>+1</td>
+<td>1.5</td>
+<td>10</td>
+<td class="">12000</td>
+<td class="">31.0</td>
+<td>999</td>
+<td>50%</td>
+<td><span class="status-tag tag-warning">5</span></td>
+<td>1</td>
+<td><span class="status-tag tag-normal">1 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">13:00</td>
+<td class="">6.0</td>
+<td>180</td>
+<td>-1</td>
+<td>2</td>
+<td>12</td>
+<td class="">8000</td>
+<td class="">32.0</td>
+<td>998</td>
+<td>60%</td>
+<td><span class="status-tag tag-danger">8</span></td>
+<td>2</td>
+<td><span class="status-tag tag-warning">2 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr><tr class="hover:bg-blue-400/10 transition cursor-default group">
+<td class="font-bold text-sky-400">13:30</td>
+<td class="">7.0</td>
+<td>185</td>
+<td>-1</td>
+<td>2.2</td>
+<td>14</td>
+<td class="">6000</td>
+<td class="">33.0</td>
+<td>997</td>
+<td>65%</td>
+<td><span class="status-tag tag-danger">10</span></td>
+<td>3</td>
+<td><span class="status-tag tag-warning">2 级</span></td>
+<td>0</td>
+<td class="text-slate-500 italic text-[11px]">春夏-中心城区</td>
+</tr></tbody>
+</table>
+</div>
+</section>
+</main>
+<script>
+        // 核心仿真数据 (基于 Excel 手册)
+        const baseData = [
+            { t: "6:00", ws: 2.0, wd: 110, vw: 0.0, sh: 0.5, tu: 3, vi: 2500, te: 20, pr: 1010, hu: 88, rain: 0.0, burst: 0, fog: 2, cold: 0 },
+            { t: "7:00", ws: 3.0, wd: 120, vw: 0.2, sh: 0.6, tu: 4, vi: 6000, te: 22, pr: 1008, hu: 75, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+            { t: "8:00", ws: 3.0, wd: 130, vw: 0.3, sh: 0.7, tu: 5, vi: 8000, te: 24, pr: 1007, hu: 70, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+            { t: "9:00", ws: 4.0, wd: 140, vw: 0.5, sh: 0.8, tu: 6, vi: 10000, te: 26, pr: 1005, hu: 65, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+            { t: "10:00", ws: 4.0, wd: 150, vw: 0.6, sh: 1.0, tu: 7, vi: 12000, te: 27, pr: 1003, hu: 60, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+            { t: "11:00", ws: 5.0, wd: 160, vw: 0.8, sh: 1.2, tu: 8, vi: 12000, te: 29, pr: 1001, hu: 55, rain: 0.0, burst: 0, fog: 1, cold: 0 },
+            { t: "12:00", ws: 5.0, wd: 170, vw: 1.0, sh: 1.5, tu: 10, vi: 12000, te: 31, pr: 999, hu: 50, rain: 5.0, burst: 1, fog: 1, cold: 0 },
+            { t: "13:00", ws: 6.0, wd: 180, vw: -1.0, sh: 2.0, tu: 12, vi: 8000, te: 32, pr: 998, hu: 60, rain: 8.0, burst: 2, fog: 2, cold: 0 },
+            { t: "13:30", ws: 7.0, wd: 185, vw: -1.0, sh: 2.2, tu: 14, vi: 6000, te: 33, pr: 997, hu: 65, rain: 10.0, burst: 3, fog: 2, cold: 0 }
+        ];
+
+        function toggleNode(id) {
+            const el = document.getElementById(id);
+            el.classList.toggle('hidden');
+        }
+
+        function loadSimulation(season, area, element) {
+            // UI 切换
+            document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('breadcrumb').innerText = `${season} - ${area}`;
+            
+            updateWeatherTable(season, area);
+        }
+
+        function updateWeatherTable(season, area) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+
+            // 根据场景逻辑微调数据
+            const tempModifier = season === '秋冬' ? -15 : 0;
+            const windModifier = area.includes('山区') ? 1.6 : 1.0;
+            const visibilityModifier = area === '西部山区' ? 0.6 : 1.0;
+
+            baseData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-400/10 transition cursor-default group";
+                
+                const curWS = (row.ws * windModifier).toFixed(1);
+                const curTe = (row.te + tempModifier).toFixed(1);
+                const curVi = (row.vi * visibilityModifier).toFixed(0);
+                
+                // 渲染标签逻辑
+                const fogClass = row.fog > 1 ? 'tag-warning' : 'tag-normal';
+                const rainClass = row.rain > 5 ? 'tag-danger' : (row.rain > 0 ? 'tag-warning' : 'tag-normal');
+
+                tr.innerHTML = `
+                    <td class="font-bold text-sky-400">${row.t}</td>
+                    <td class="${curWS > 7 ? 'text-orange-400 font-bold' : ''}">${curWS}</td>
+                    <td>${row.wd}</td>
+                    <td>${row.vw > 0 ? '+' : ''}${row.vw}</td>
+                    <td>${row.sh}</td>
+                    <td>${row.tu}</td>
+                    <td class="${curVi < 5000 ? 'text-yellow-500' : ''}">${curVi}</td>
+                    <td class="${curTe < 5 ? 'text-blue-400 font-bold' : ''}">${curTe}</td>
+                    <td>${row.pr}</td>
+                    <td>${row.hu}%</td>
+                    <td><span class="status-tag ${rainClass}">${row.rain}</span></td>
+                    <td>${row.burst}</td>
+                    <td><span class="status-tag ${fogClass}">${row.fog} 级</span></td>
+                    <td>${season === '秋冬' ? 1 : 0}</td>
+                    <td class="text-slate-500 italic text-[11px]">${season}-${area}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 页面初始化
+        window.addEventListener('load', () => {
+            updateWeatherTable('春夏', '中心城区');
+        });
+    </script>
+</body></html>

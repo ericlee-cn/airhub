@@ -1,0 +1,33 @@
+{
+  "airspace_list": [
+    {
+      "area_id": "AREA_001",
+      "area_name": "城区核心禁飞圆区",
+      "area_type": "no_fly",
+      "priority": 1,
+      "min_alt": 0,
+      "max_alt": 400,
+      "time_mode": "always",
+      "geo_shape": "circle",
+      "center_lon": 120.153,
+      "center_lat": 30.287,
+      "radius_m": 500
+    },
+    {
+      "area_id": "AREA_002",
+      "area_name": "住宅区禁飞多边形",
+      "area_type": "no_fly",
+      "priority": 2,
+      "min_alt": 0,
+      "max_alt": 200,
+      "time_mode": "always",
+      "geo_shape": "polygon",
+      "points": [
+        [120.10, 30.26],
+        [120.13, 30.26],
+        [120.13, 30.28],
+        [120.10, 30.28]
+      ]
+    }
+  ]
+}

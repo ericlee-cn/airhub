@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航线库管理</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Noto Sans SC', sans-serif; }
+        body { margin: 0; padding: 0; overflow: hidden; background: #0f172a; }
+        #cesiumContainer { width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        
+        /* 左侧面板 */
+        #leftPanel {
+            position: absolute; left: 0; top: 0; width: 280px; height: 100%;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(148, 163, 184, 0.2);
+            display: flex; flex-direction: column; z-index: 100;
+        }
+        #leftPanel .header { padding: 12px 16px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); }
+        #leftPanel .header h2 { margin: 0; font-size: 15px; font-weight: 600; color: #e2e8f0; }
+        
+        /* 筛选器 */
+        .filter-bar { padding: 10px 16px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); }
+        .filter-bar select {
+            width: 100%; padding: 6px 10px; background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(100, 116, 139, 0.3); border-radius: 6px;
+            color: #e2e8f0; font-size: 12px; outline: none;
+        }
+        .filter-bar select:focus { border-color: #3b82f6; }
+        
+        /* 列表 */
+        #routeList { flex: 1; overflow-y: auto; padding: 6px; }
+        .route-item {
+            padding: 8px 10px; margin-bottom: 6px;
+            background: rgba(30, 41, 59, 0.8); border-radius: 6px;
+            border: 2px solid transparent; cursor: pointer;
+            transition: all 0.2s; position: relative;
+        }
+        .route-item:hover { background: rgba(51, 65, 85, 0.9); border-color: rgba(96, 165, 250, 0.4); }
+        .route-item.selected { background: rgba(30, 64, 175, 0.4); border-color: #3b82f6; }
+        .route-item h3 { margin: 0 0 4px 0; font-size: 12px; font-weight: 600; color: #f1f5f9; }
+        .route-item p { margin: 0; font-size: 10px; color: #94a3b8; }
+        .route-item .tags { display: flex; gap: 3px; margin-top: 6px; flex-wrap: wrap; }
+        .route-item .tag {
+            padding: 1px 5px; font-size: 9px; border-radius: 3px;
+            background: rgba(96, 165, 250, 0.2); color: #60a5fa;
+        }
+        .route-item .tag.type1 { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .route-item .tag.type2 { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .route-item .tag.type3 { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+        
+        /* 勾选框 */
+        .route-item .checkbox {
+            position: absolute; top: 8px; right: 8px;
+            width: 16px; height: 16px;
+            border: 2px solid #64748b; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .route-item .checkbox.checked { background: #3b82f6; border-color: #3b82f6; }
+        .route-item .checkbox svg { display: none; width: 12px; height: 12px; color: white; }
+        .route-item .checkbox.checked svg { display: block; }
+        
+        /* 统计栏和操作栏 */
+        #actionBar { padding: 10px 16px; border-top: 1px solid rgba(148, 163, 184, 0.2); }
+        #actionBar .info { font-size: 12px; color: #94a3b8; margin-bottom: 10px; }
+        #actionBar .info span { color: #3b82f6; font-weight: 600; }
+        #actionBar .btn {
+            width: 100%; padding: 10px; border: none; border-radius: 6px;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        #actionBar .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;
+        }
+        #actionBar .btn-primary:hover { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+        #actionBar .btn-primary:disabled { background: #334155; color: #64748b; cursor: not-allowed; }
+        
+        /* 右侧面板 */
+        #rightPanel {
+            position: absolute; right: 0; top: 0; width: 320px; height: 100%;
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            border-left: 1px solid rgba(148, 163, 184, 0.2);
+            display: flex; flex-direction: column; z-index: 100;
+            transform: translateX(100%); transition: transform 0.3s;
+        }
+        #rightPanel.visible { transform: translateX(0); }
+        #rightPanel .header { padding: 12px 16px; border-bottom: 1px solid rgba(148, 163, 184, 0.2); display: flex; justify-content: space-between; align-items: center; }
+        #rightPanel .header h2 { margin: 0; font-size: 15px; font-weight: 600; color: #e2e8f0; }
+        #rightPanel .close-btn {
+            width: 28px; height: 28px; border: none; background: rgba(100, 116, 139, 0.3);
+            border-radius: 6px; color: #94a3b8; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+        }
+        #rightPanel .close-btn:hover { background: rgba(239, 68, 68, 0.3); color: #f87171; }
+        #rightPanel .detail-content { flex: 1; overflow-y: auto; padding: 12px; }
+        
+        .section { margin-bottom: 12px; }
+        .section-title {
+            font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 8px;
+        }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .info-item { background: rgba(30, 41, 59, 0.6); padding: 8px; border-radius: 6px; }
+        .info-item.full { grid-column: span 2; }
+        .info-item label { font-size: 9px; color: #64748b; display: block; margin-bottom: 2px; }
+        .info-item span { font-size: 12px; color: #e2e8f0; font-weight: 500; }
+        
+        .waypoint-list { background: rgba(30, 41, 59, 0.6); border-radius: 6px; overflow: hidden; }
+        .waypoint-item {
+            padding: 6px 10px; display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid rgba(100, 116, 139, 0.2);
+        }
+        .waypoint-item:last-child { border-bottom: none; }
+        .waypoint-item .num {
+            width: 20px; height: 20px; background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 600; color: white;
+        }
+        .waypoint-item .info { flex: 1; }
+        .waypoint-item .info .name { font-size: 11px; font-weight: 500; color: #e2e8f0; }
+        .waypoint-item .info .coords { font-size: 10px; color: #64748b; }
+        .waypoint-item .alt { font-size: 11px; color: #60a5fa; font-weight: 500; }
+        
+        /* 工具栏 */
+        #toolbar {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px);
+            padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(148, 163, 184, 0.2);
+            display: flex; gap: 6px; z-index: 100;
+        }
+        #toolbar button {
+            padding: 6px 12px; background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2); border-radius: 6px;
+            color: #e2e8f0; font-size: 12px; cursor: pointer;
+        }
+        #toolbar button:hover { background: rgba(59, 130, 246, 0.3); border-color: rgba(59, 130, 246, 0.5); }
+        #toolbar button.active { background: rgba(59, 130, 246, 0.4); border-color: #3b82f6; }
+        
+        /* 加载状态 */
+        .loading { display: flex; align-items: center; justify-content: center; height: 100%; color: #64748b; flex-direction: column; }
+        .spinner { width: 30px; height: 30px; border: 3px solid rgba(59, 130, 246, 0.2); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.5); }
+        ::-webkit-scrollbar-thumb { background: rgba(100, 116, 139, 0.4); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div id="cesiumContainer"></div>
+    
+    <div id="toolbar">
+        <button id="btnShowAll" onclick="showAllRoutes()">显示全部</button>
+        <button id="btnClear" onclick="clearRoutes()">清除</button>
+    </div>
+    
+    <div id="leftPanel">
+        <div class="header">
+            <h2>航线库</h2>
+        </div>
+        <div class="filter-bar">
+            <select id="filterType" onchange="applyFilter()">
+                <option value="">全部航线类型</option>
+                <option value="定期航线">定期航线</option>
+                <option value="登记航线">登记航线</option>
+                <option value="累积航线">累积航线</option>
+            </select>
+        </div>
+        <div class="filter-bar">
+            <select id="filterBiz" onchange="applyFilter()">
+                <option value="">全部业务类型</option>
+                <option value="巡检">巡检</option>
+                <option value="测试">测试</option>
+                <option value="仿真">仿真</option>
+                <option value="其他">其他</option>
+            </select>
+        </div>
+        <div id="routeList">
+            <div class="loading"><div class="spinner"></div></div>
+        </div>
+        <div id="actionBar">
+            <div class="info">已选择 <span id="selectedCount">0</span> 条航线</div>
+            <button class="btn btn-primary" id="btnAddToScenario" onclick="addToScenario()" disabled>加入想定</button>
+        </div>
+    </div>
+    
+    <div id="rightPanel">
+        <div class="header">
+            <h2>航线详情</h2>
+            <button class="close-btn" onclick="closeRightPanel()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="detail-content" id="detailContent">
+            <div class="loading">请选择一条航线</div>
+        </div>
+    </div>
+    
+    <script>
+        let routes = [];
+        let filteredRoutes = [];
+        let selectedRoute = null;
+        let selectedRoutes = new Set();
+        let viewer = null;
+        let routeEntities = [];
+        
+        // 初始化Cesium
+        function initCesium() {
+            Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlYTRiOGY4Yi1mYjIwLTRlZTgtOWU4ZS0yNWJjOGVhM2QyNGEiLCJpZCI6MjU5LCJzY29wZXMiOlsiYXNsIiwiYXNyIiwiYXN3IiwiZ2MiXSwiaWF0IjoxNDkzNTM4NzY5fQ.Oz3BqYFf8Hb82tJ0Lxx0X2M2MMX0MN0xlOmK0zD0QfI';
+            
+            viewer = new Cesium.Viewer('cesiumContainer', {
+                animation: false, timeline: false, baseLayerPicker: true,
+                geocoder: false, homeButton: true, sceneModePicker: true,
+                navigationHelpButton: false, selectionIndicator: false, infoBox: false
+            });
+            
+            viewer.camera.setView({ destination: Cesium.Cartesian3.fromDegrees(120.0, 30.55, 50000) });
+            
+            // 高德卫星影像
+            viewer.imageryLayers.addImageryProvider(new Cesium.UrlTemplateImageryProvider({
+                url: 'https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}'
+            }));
+        }
+        
+        // 加载JSON数据
+        async function loadRoutes() {
+            document.getElementById('routeList').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch('route_library.json');
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                
+                routes = await response.json();
+                
+                // geojson已经是标准JSON格式，直接引用
+                routes.forEach(function(route) {
+                    route.geojsonObj = route.geojson;
+                });
+                
+                filteredRoutes = routes.slice();
+                renderRouteList();
+                
+                console.log('加载完成,航线数:', routes.length);
+                
+                setTimeout(showAllRoutes, 500);
+            } catch(error) {
+                console.error('加载失败:', error);
+                document.getElementById('routeList').innerHTML = '<div class="loading">加载失败<br><br>请使用本地服务器:<br>cd C:\\mgs\\flyplan<br>python -m http.server 5500</div>';
+            }
+        }
+        
+        // 解析CSV行（处理引号内的逗号）
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuote = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') {
+                    inQuote = !inQuote;
+                } else if (char === ',' && !inQuote) {
+                    result.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current.trim());
+            return result;
+        }
+        
+        // 渲染列表
+        function renderRouteList() {
+            const container = document.getElementById('routeList');
+            container.innerHTML = '';
+            
+            filteredRoutes.forEach((route, index) => {
+                const item = document.createElement('div');
+                const isSelected = selectedRoutes.has(route.route_id);
+                const isDetailSelected = selectedRoute === route;
+                item.className = `route-item ${isDetailSelected ? 'selected' : ''}`;
+                item.onclick = (e) => {
+                    if (e.target.closest('.checkbox')) {
+                        toggleCheck(route, e);
+                    } else {
+                        showDetail(route);
+                    }
+                };
+                
+                const typeClass = route.route_type === '定期航线' ? 'type1' : 
+                                 route.route_type === '登记航线' ? 'type2' : 'type3';
+                
+                item.innerHTML = `
+                    <div class="checkbox ${isSelected ? 'checked' : ''}" onclick="toggleCheck(${index}, event)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                    <h3>${route.route_name || route.route_id}</h3>
+                    <p>${route.route_id} | ${route.route_length_m}m</p>
+                    <div class="tags">
+                        <span class="tag ${typeClass}">${route.route_type}</span>
+                        <span class="tag">${route.fly_freq || '-'}</span>
+                        <span class="tag">${route.biz_type}</span>
+                        <span class="tag">${route.waypoint_count}航点</span>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+        
+        // 筛选
+        function applyFilter() {
+            const typeFilter = document.getElementById('filterType').value;
+            const bizFilter = document.getElementById('filterBiz').value;
+            
+            filteredRoutes = routes.filter(r => {
+                if (typeFilter && r.route_type !== typeFilter) return false;
+                if (bizFilter && r.biz_type !== bizFilter) return false;
+                return true;
+            });
+            
+            renderRouteList();
+        }
+        
+        // 切换勾选状态
+        function toggleCheck(routeOrIndex, event) {
+            event.stopPropagation();
+            const route = typeof routeOrIndex === 'number' ? filteredRoutes[routeOrIndex] : routeOrIndex;
+            const routeId = route.route_id;
+            
+            if (selectedRoutes.has(routeId)) {
+                selectedRoutes.delete(routeId);
+            } else {
+                selectedRoutes.add(routeId);
+            }
+            
+            renderRouteList();
+            updateSelectedCount();
+            
+            // 绘制选中的航线
+            drawSelectedRoutes();
+        }
+        
+        // 更新选中数量
+        function updateSelectedCount() {
+            document.getElementById('selectedCount').textContent = selectedRoutes.size;
+            document.getElementById('btnAddToScenario').disabled = selectedRoutes.size === 0;
+        }
+        
+        // 加入想定
+        function addToScenario() {
+            if (selectedRoutes.size === 0) return;
+            
+            const selectedData = routes.filter(r => selectedRoutes.has(r.route_id));
+            console.log('加入想定:', selectedData);
+            
+            alert(`已成功将 ${selectedData.length} 条航线加入当前想定！\n\n航线列表:\n${selectedData.map(r => '- ' + (r.route_name || r.route_id)).join('\n')}`);
+        }
+        
+        // 显示详情
+        function showDetail(route) {
+            selectedRoute = route;
+            renderRouteList();
+            
+            document.getElementById('rightPanel').classList.add('visible');
+            
+            // 调试
+            console.log('showDetail - route:', route.route_id);
+            console.log('showDetail - geojsonObj:', route.geojsonObj);
+            
+            const coords = route.geojsonObj?.coordinates || [];
+            console.log('showDetail - coords长度:', coords.length);
+            
+            // 在地图上绘制该航线
+            drawRouteOnMap(route);
+            
+            let waypointsHtml = '';
+            coords.forEach((c, i) => {
+                const lon = c[0] !== undefined ? c[0].toFixed(6) : '-';
+                const lat = c[1] !== undefined ? c[1].toFixed(6) : '-';
+                const alt = c[2] !== undefined ? c[2] : '-';
+                waypointsHtml += `
+                    <div class="waypoint-item">
+                        <div class="num">${i + 1}</div>
+                        <div class="info">
+                            <div class="name">P${i + 1}</div>
+                            <div class="coords">${lon}, ${lat}</div>
+                        </div>
+                        <div class="alt">${alt}m</div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('detailContent').innerHTML = `
+                <div class="section">
+                    <div class="section-title">基本信息</div>
+                    <div class="info-grid">
+                        <div class="info-item full">
+                            <label>航线名称</label>
+                            <span>${route.route_name || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>航线编号</label>
+                            <span>${route.route_id || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>航线类型</label>
+                            <span>${route.route_type || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>飞行频率</label>
+                            <span>${route.fly_freq || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>业务类型</label>
+                            <span>${route.biz_type || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <label>航线长度</label>
+                            <span>${route.route_length_m} m</span>
+                        </div>
+                        <div class="info-item">
+                            <label>数据来源</label>
+                            <span>${route.data_source || '-'}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="section">
+                    <div class="section-title">航点信息 (${coords.length} 个)</div>
+                    <div class="waypoint-list">${waypointsHtml}</div>
+                </div>
+            `;
+            
+            // 地图定位到该航线
+            if (coords.length > 0) {
+                const avgLon = coords.reduce((s, c) => s + c[0], 0) / coords.length;
+                const avgLat = coords.reduce((s, c) => s + c[1], 0) / coords.length;
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(avgLon, avgLat, 3000),
+                    duration: 1
+                });
+            }
+        }
+        
+        // 关闭右侧面板
+        function closeRightPanel() {
+            document.getElementById('rightPanel').classList.remove('visible');
+            selectedRoute = null;
+            renderRouteList();
+        }
+        
+        // 显示全部航线
+        function showAllRoutes() {
+            clearRoutes();
+            
+            if (filteredRoutes.length === 0) return;
+            
+            const colors = [
+                Cesium.Color.fromCssColorString('#3b82f6'),
+                Cesium.Color.fromCssColorString('#22c55e'),
+                Cesium.Color.fromCssColorString('#f59e0b'),
+                Cesium.Color.fromCssColorString('#ef4444'),
+                Cesium.Color.fromCssColorString('#8b5cf6')
+            ];
+            
+            let minLon = Infinity, maxLon = -Infinity;
+            let minLat = Infinity, maxLat = -Infinity;
+            
+            filteredRoutes.forEach((route, idx) => {
+                const coords = route.geojsonObj?.coordinates;
+                if (!coords || coords.length === 0) return;
+                
+                const positions = coords.map(c => Cesium.Cartesian3.fromDegrees(c[0], c[1], c[2]));
+                const color = colors[idx % colors.length];
+                
+                const entity = viewer.entities.add({
+                    name: route.route_name,
+                    polyline: {
+                        positions: positions,
+                        width: 2,
+                        material: new Cesium.PolylineGlowMaterialProperty({
+                            glowPower: 0.2, color: color
+                        })
+                    }
+                });
+                routeEntities.push(entity);
+                
+                coords.forEach(c => {
+                    minLon = Math.min(minLon, c[0]);
+                    maxLon = Math.max(maxLon, c[0]);
+                    minLat = Math.min(minLat, c[1]);
+                    maxLat = Math.max(maxLat, c[1]);
+                });
+            });
+            
+            if (minLon !== Infinity) {
+                const centerLon = (minLon + maxLon) / 2;
+                const centerLat = (minLat + maxLat) / 2;
+                const span = Math.max(maxLon - minLon, maxLat - minLat) * 1.5;
+                
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(centerLon, centerLat, span * 111000),
+                    duration: 1
+                });
+            }
+            
+            document.getElementById('btnShowAll').classList.add('active');
+        }
+        
+        // 清除航线
+        function clearRoutes() {
+            routeEntities.forEach(e => viewer.entities.remove(e));
+            routeEntities = [];
+            document.getElementById('btnShowAll').classList.remove('active');
+        }
+        
+        // 绘制单条航线到地图
+        function drawRouteOnMap(route) {
+            const coords = route.geojsonObj?.coordinates;
+            if (!coords || coords.length === 0) return;
+            
+            // 清除之前的选中航线
+            routeEntities.forEach(e => viewer.entities.remove(e));
+            routeEntities = [];
+            
+            const positions = coords.map(c => Cesium.Cartesian3.fromDegrees(c[0], c[1], c[2] || 100));
+            
+            const entity = viewer.entities.add({
+                name: route.route_name,
+                polyline: {
+                    positions: positions,
+                    width: 3,
+                    material: new Cesium.PolylineGlowMaterialProperty({
+                        glowPower: 0.3,
+                        color: Cesium.Color.fromCssColorString('#3b82f6')
+                    })
+                }
+            });
+            routeEntities.push(entity);
+            
+            // 添加航点
+            coords.forEach((c, i) => {
+                const waypoint = viewer.entities.add({
+                    position: Cesium.Cartesian3.fromDegrees(c[0], c[1], c[2] || 100),
+                    point: {
+                        pixelSize: 8,
+                        color: Cesium.Color.fromCssColorString('#3b82f6'),
+                        outlineColor: Cesium.Color.WHITE,
+                        outlineWidth: 2
+                    },
+                    label: {
+                        text: 'P' + (i + 1),
+                        font: '10px Noto Sans SC',
+                        fillColor: Cesium.Color.WHITE,
+                        style: Cesium.LabelStyle.FILL,
+                        pixelOffset: new Cesium.Cartesian2(0, -12),
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY
+                    }
+                });
+                routeEntities.push(waypoint);
+            });
+        }
+        
+        // 绘制所有选中的航线
+        function drawSelectedRoutes() {
+            routeEntities.forEach(e => viewer.entities.remove(e));
+            routeEntities = [];
+            
+            if (selectedRoutes.size === 0) return;
+            
+            const colors = [
+                Cesium.Color.fromCssColorString('#3b82f6'),
+                Cesium.Color.fromCssColorString('#22c55e'),
+                Cesium.Color.fromCssColorString('#f59e0b'),
+                Cesium.Color.fromCssColorString('#ef4444'),
+                Cesium.Color.fromCssColorString('#8b5cf6')
+            ];
+            
+            let idx = 0;
+            selectedRoutes.forEach(routeId => {
+                const route = routes.find(r => r.route_id === routeId);
+                if (!route) return;
+                
+                const coords = route.geojsonObj?.coordinates;
+                if (!coords || coords.length === 0) return;
+                
+                const positions = coords.map(c => Cesium.Cartesian3.fromDegrees(c[0], c[1], c[2] || 100));
+                const color = colors[idx % colors.length];
+                idx++;
+                
+                const entity = viewer.entities.add({
+                    name: route.route_name,
+                    polyline: {
+                        positions: positions,
+                        width: 2,
+                        material: new Cesium.PolylineGlowMaterialProperty({
+                            glowPower: 0.2,
+                            color: color
+                        })
+                    }
+                });
+                routeEntities.push(entity);
+            });
+        }
+        
+        window.onload = function() {
+            initCesium();
+            loadRoutes();
+        };
+    </script>
+</body>
+</html>

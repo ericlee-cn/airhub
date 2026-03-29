@@ -1,0 +1,85 @@
+<!-- 统一顶部导航栏 -->
+<header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50" id="main-header">
+  <div class="flex items-center gap-3">
+    <svg aria-hidden="true" class="iconify text-3xl text-blue-400 iconify--material-symbols" data-icon="material-symbols:airplanemode-active" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M7 22v-2.5l3-2.1v-3.6L2 17v-3l8-5.6V4q0-.825.588-1.412T12 2t1.413.588T14 4v4.4l8 5.6v3l-8-3.2v3.6l3 2.1V22l-5-1.5z" fill="currentColor"></path></svg>
+    <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真基础模型管理系统</h1>
+  </div>
+  <nav class="flex gap-1 h-full justify-center" id="main-nav">
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" data-href="terrain.html" href="terrain.html">
+      <svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:map" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>地理环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" data-href="electromagnetic/electromagnetic.html" href="electromagnetic/electromagnetic.html">
+      <svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:waves" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2c2.5 0 2.5-2 5-2c1.3 0 1.9.5 2.5 1M2 12c.6.5 1.2 1 2.5 1c2.5 0 2.5-2 5-2c2.6 0 2.4 2 5 2c2.5 0 2.5-2 5-2c1.3 0 1.9.5 2.5 1M2 18c.6.5 1.2 1 2.5 1c2.5 0 2.5-2 5-2c2.6 0 2.4 2 5 2c2.5 0 2.5-2 5-2c1.3 0 1.9.5 2.5 1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>电磁环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" data-href="weather/weather_cesium.html" href="weather/weather_cesium.html">
+      <svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:cloud-sun" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v2m-7.07.93l1.41 1.41M20 12h2m-2.93-7.07l-1.41 1.41m-1.713 6.31a4 4 0 0 0-5.925-4.128M13 22H7a5 5 0 1 1 4.9-6H13a3 3 0 0 1 0 6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>气象环境</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" data-href="airspace/index.html" href="airspace/index.html">
+      <svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:layers" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"></path><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"></path><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"></path></g></svg>空域航路</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" data-href="rules/index.html" href="rules/index.html">
+      <svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:gavel" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="m14 13l-8.381 8.38a1 1 0 0 1-3.001-3l8.384-8.381M16 16l6-6m-.5.5l-8-8M8 8l6-6M8.5 7.5l8 8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>飞行规则</a>
+    <a class="flex items-center px-4 transition-all hover:bg-slate-800" data-href="assets/index.html" href="assets/index.html">
+      <svg aria-hidden="true" class="iconify mr-2 iconify--lucide" data-icon="lucide:database" height="1em" role="img" viewbox="0 0 24 24" width="1em" xmlns="http://www.w3.org/2000/svg"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14a9 3 0 0 0 18 0V5"></path><path d="M3 12a9 3 0 0 0 18 0"></path></g></svg>装备库</a>
+  </nav>
+</header>
+
+<style>
+/* 导航栏样式 */
+#main-header {
+  display: flex;
+}
+#main-header.hidden {
+  display: none;
+}
+#main-nav a {
+  color: #e2e8f0;
+  text-decoration: none;
+}
+#main-nav a:hover {
+  background: rgba(30, 41, 59, 0.8);
+}
+#main-nav a.nav-active {
+  border-bottom: 2px solid #00aaff;
+  color: #00aaff;
+  background: rgba(0, 170, 255, 0.15);
+}
+#main-nav a.nav-active svg {
+  color: #00aaff !important;
+}
+</style>
+
+<script>
+// 导航栏初始化函数
+function initNavigation() {
+  // 获取当前页面路径
+  const currentPath = window.location.pathname;
+  const currentPage = currentPath.split('/').pop();
+  
+  // 获取导航栏元素
+  const header = document.getElementById('main-header');
+  const navLinks = document.querySelectorAll('#main-nav a');
+  
+  // 检查是否为嵌入模式（URL参数 embedded=true）
+  const urlParams = new URLSearchParams(window.location.search);
+  const isEmbedded = urlParams.get('embedded') === 'true';
+  
+  // 如果是嵌入模式，隐藏导航栏
+  if (isEmbedded && header) {
+    header.style.display = 'none';
+    // 同时隐藏可能存在的其他导航元素
+    document.body.classList.add('embedded-mode');
+  }
+  
+  // 设置当前页面激活状态
+  navLinks.forEach(link => {
+    const href = link.getAttribute('data-href') || link.getAttribute('href');
+    const linkPage = href.split('/').pop();
+    
+    if (linkPage === currentPage || 
+        (currentPage === '' && href.endsWith('terrain.html')) ||
+        currentPath.includes(href.replace('../', '').replace('./', ''))) {
+      link.classList.add('nav-active');
+    }
+  });
+}
+
+// 页面加载完成后初始化
+document.addEventListener('DOMContentLoaded', initNavigation);
+</script>

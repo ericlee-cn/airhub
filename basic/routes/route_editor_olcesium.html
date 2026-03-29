@@ -1,0 +1,3671 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航路编辑系统 v3.0</title>
+    <!-- 禁止 Live Server 自动刷新页面（拦截 /ws 路径的 WebSocket + reload 消息）-->
+    <script>
+    (function() {
+        const _WS = window.WebSocket;
+        function FakeWS(url, proto) {
+            // Live Server 用同端口 /ws 路径；其他常见 livereload 端口也一并屏蔽
+            if (url && (url.endsWith('/ws') || url.includes('/ws?') ||
+                        url.includes('35729') || url.includes('livereload') ||
+                        url.includes('browsersync'))) {
+                console.warn('[Live Server WS blocked]', url);
+                // 返回空壳，让 Live Server 脚本正常运行但收不到消息
+                this.send = function(){};
+                this.close = function(){};
+                this.addEventListener = function(){};
+                this.onmessage = null;
+                this.onopen = null;
+                this.onerror = null;
+                this.onclose = null;
+                this.readyState = 3; // CLOSED
+                return this;
+            }
+            return new _WS(url, proto);
+        }
+        FakeWS.prototype = _WS.prototype;
+        FakeWS.CONNECTING = 0; FakeWS.OPEN = 1; FakeWS.CLOSING = 2; FakeWS.CLOSED = 3;
+        window.WebSocket = FakeWS;
+
+        // 双保险：直接让 location.reload() 变成空操作
+        try {
+            Object.defineProperty(window.location, 'reload', {
+                configurable: true,
+                get: function() {
+                    return function() { console.warn('[location.reload blocked]'); };
+                }
+            });
+        } catch(e) {}
+    })();
+    </script>
+    <script>window.CESIUM_BASE_URL = '../cesium/Cesium-1.139.1/Build/Cesium/';</script>
+    <script src="../cesium/Cesium-1.139.1/Build/Cesium/Cesium.js"></script>
+    <link href="../cesium/Cesium-1.139.1/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #cesiumContainer { width: 100%; height: 100%; }
+
+        /* ========== 侧边栏 ========== */
+        #sidebar {
+            position: absolute; top: 0; left: 0;
+            width: 300px; height: 100%;
+            background: rgba(15, 20, 35, 0.96);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            z-index: 100; overflow-y: auto;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.4);
+        }
+
+        .sb-header {
+            padding: 16px 18px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .sb-header h2 { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+        .sb-header p  { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+        .sb-section {
+            padding: 14px 18px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .sb-section-title {
+            font-size: 10px; font-weight: 700; letter-spacing: 1px;
+            text-transform: uppercase; color: #475569; margin-bottom: 10px;
+        }
+
+        /* 模式切换标签 */
+        .mode-tabs { display: flex; gap: 0; margin-bottom: 0; }
+        .mode-tab {
+            flex: 1; padding: 8px; text-align: center;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8; background: rgba(255,255,255,0.04);
+            transition: all 0.25s;
+        }
+        .mode-tab:first-child { border-radius: 4px 0 0 4px; }
+        .mode-tab:last-child  { border-radius: 0 4px 4px 0; }
+        .mode-tab.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+        /* 航路等级选择 */
+        .grade-selector { display: flex; gap: 6px; }
+        .grade-btn {
+            flex: 1; padding: 8px 4px; text-align: center;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            border-radius: 4px; border: 2px solid transparent;
+            transition: all 0.25s;
+        }
+        .grade-btn[data-grade="I"]   { background: rgba(239,68,68,0.15);  color: #ef4444; border-color: rgba(239,68,68,0.3); }
+        .grade-btn[data-grade="II"]  { background: rgba(245,158,11,0.15); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
+        .grade-btn[data-grade="III"] { background: rgba(34,197,94,0.15);  color: #22c55e; border-color: rgba(34,197,94,0.3); }
+        .grade-btn.active[data-grade="I"]   { background: #ef4444; color: #fff; border-color: #ef4444; }
+        .grade-btn.active[data-grade="II"]  { background: #f59e0b; color: #fff; border-color: #f59e0b; }
+        .grade-btn.active[data-grade="III"] { background: #22c55e; color: #fff; border-color: #22c55e; }
+
+        /* 等级说明 */
+        .grade-info {
+            margin-top: 8px; padding: 8px 10px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 4px; font-size: 11px; color: #94a3b8;
+            border-left: 3px solid #3b82f6;
+        }
+
+        /* 输入框 */
+        .field { margin-bottom: 8px; }
+        .field label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 4px; }
+        .field input, .field select {
+            width: 100%; padding: 7px 9px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 3px; color: #e2e8f0; font-size: 12px;
+        }
+        .field input:focus, .field select:focus {
+            outline: none; border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.25);
+        }
+
+        /* 按钮 */
+        .btn {
+            width: 100%; padding: 8px; border: none;
+            border-radius: 4px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.25s; display: block;
+        }
+        .btn + .btn { margin-top: 6px; }
+        .btn-primary   { background: #3b82f6; color: #fff; }
+        .btn-primary:hover   { background: #2563eb; }
+        .btn-success   { background: #10b981; color: #fff; }
+        .btn-success:hover   { background: #059669; }
+        .btn-warning   { background: #f59e0b; color: #fff; }
+        .btn-warning:hover   { background: #d97706; }
+        .btn-danger    { background: rgba(239,68,68,0.2); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+        .btn-danger:hover    { background: rgba(239,68,68,0.35); }
+        .btn-ghost     { background: rgba(255,255,255,0.07); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-ghost:hover     { background: rgba(255,255,255,0.12); }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .btn-grid .btn { margin: 0; }
+
+        /* ========== 图层面板 ========== */
+        .layer-list { max-height: 260px; overflow-y: auto; }
+        .layer-item {
+            display: flex; align-items: center; gap: 0;
+            padding: 0; margin-bottom: 4px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 5px;
+            transition: all 0.15s; overflow: hidden;
+        }
+        .layer-item:hover { border-color: rgba(255,255,255,0.14); background: rgba(255,255,255,0.07); }
+        .layer-item.active { border-color: #3b82f6; background: rgba(59,130,246,0.12); }
+        .layer-item.active .li-radio { background: #3b82f6; border-color: #3b82f6; }
+        .layer-item.active .li-radio::after { opacity:1; }
+
+        /* 单选按钮区域 */
+        .li-radio-wrap {
+            flex-shrink: 0; width: 36px; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; padding: 10px 0;
+        }
+        .li-radio {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.25);
+            background: transparent;
+            position: relative; flex-shrink: 0;
+            transition: all 0.15s;
+        }
+        .li-radio::after {
+            content:''; position:absolute; top:50%; left:50%;
+            transform: translate(-50%,-50%);
+            width:6px; height:6px; border-radius:50%;
+            background:#fff; opacity:0; transition: opacity 0.15s;
+        }
+
+        /* 可见性开关 */
+        .li-vis {
+            flex-shrink: 0; width: 30px; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 13px; padding: 10px 0;
+            color: #64748b; transition: color 0.15s;
+        }
+        .li-vis:hover { color: #e2e8f0; }
+        .li-vis.hidden { color: #334155; }
+
+        /* 主体内容 */
+        .li-body {
+            flex: 1; min-width: 0; padding: 8px 6px 8px 0;
+            cursor: pointer;
+        }
+        .li-name {
+            font-size: 12px; font-weight: 600; color: #e2e8f0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .li-meta { font-size: 10px; color: #475569; margin-top: 2px; }
+
+        /* 删除按钮 */
+        .li-del {
+            flex-shrink: 0; width: 30px; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 13px; color: #475569;
+            transition: color 0.15s; padding: 10px 4px;
+        }
+        .li-del:hover { color: #ef4444; }
+
+        /* 等级徽章（精简版） */
+        .li-badge {
+            display: inline-block; padding: 1px 5px;
+            border-radius: 8px; font-size: 9px; font-weight: 700;
+            flex-shrink: 0;
+        }
+        .badge-I   { background: rgba(239,68,68,0.2);  color: #ef4444; }
+        .badge-II  { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .badge-III { background: rgba(34,197,94,0.2);  color: #22c55e; }
+
+        /* 当前编辑航路提示条 */
+        #currentRouteBar {
+            padding: 6px 10px; margin-bottom: 6px;
+            background: rgba(59,130,246,0.15);
+            border: 1px solid rgba(59,130,246,0.3);
+            border-radius: 4px; font-size: 11px;
+            color: #93c5fd; display: none;
+        }
+        #currentRouteBar.show { display: block; }
+        #currentRouteBar b { color: #60a5fa; }
+
+
+
+        /* 节点编辑工具栏（选中节点后浮出） */
+        #nodeToolbar {
+            position: absolute; top: 14px; right: 16px;
+            background: rgba(15,20,35,0.92);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 6px; padding: 8px 12px;
+            display: none; z-index: 101;
+            font-size: 12px; color: #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+        }
+        #nodeToolbar.show { display: flex; align-items: center; gap: 10px; }
+        #nodeToolbar .nt-label { color: #94a3b8; font-size: 11px; }
+        #nodeToolbar .nt-btn {
+            padding: 4px 10px; border-radius: 3px; border: none;
+            font-size: 11px; font-weight: 600; cursor: pointer;
+        }
+        #nodeToolbar .nt-del { background: rgba(239,68,68,0.8); color: #fff; }
+        #nodeToolbar .nt-del:hover { background: #ef4444; }
+        #nodeToolbar .nt-cancel { background: rgba(255,255,255,0.1); color: #cbd5e1; }
+        #nodeToolbar .nt-cancel:hover { background: rgba(255,255,255,0.18); }
+
+        /* ========== 地图编辑工具栏 ========== */
+        #editToolbar {
+            position: absolute; top: 14px; left: 50%;
+            transform: translateX(-50%);
+            display: none; align-items: center; gap: 4px;
+            background: rgba(15,20,35,0.92);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 8px; padding: 5px 8px;
+            z-index: 101;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+        }
+        #editToolbar.show { display: flex; }
+        .et-sep {
+            width: 1px; height: 20px;
+            background: rgba(255,255,255,0.12); margin: 0 2px;
+        }
+        .et-btn {
+            display: flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 5px; border: none;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; color: #94a3b8;
+            background: transparent;
+            white-space: nowrap;
+        }
+        .et-btn:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+        .et-btn.active-select {
+            background: rgba(59,130,246,0.25);
+            color: #60a5fa;
+            box-shadow: 0 0 0 1px rgba(59,130,246,0.5);
+        }
+        .et-btn.active-add {
+            background: rgba(16,185,129,0.25);
+            color: #34d399;
+            box-shadow: 0 0 0 1px rgba(16,185,129,0.5);
+        }
+        .et-btn.active-delete {
+            background: rgba(239,68,68,0.25);
+            color: #f87171;
+            box-shadow: 0 0 0 1px rgba(239,68,68,0.5);
+        }
+        .et-label {
+            font-size: 10px; color: #475569; padding: 0 4px;
+            letter-spacing: 0.5px;
+        }
+        /* 工具栏内的模式切换按钮 */
+        .et-mode-btn {
+            display: flex; align-items: center; gap: 4px;
+            padding: 5px 11px; border-radius: 5px; border: none;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
+            color: #64748b; background: transparent;
+        }
+        .et-mode-btn:hover { background: rgba(255,255,255,0.08); color: #e2e8f0; }
+        .et-mode-btn.active-draw {
+            background: rgba(245,158,11,0.2);
+            color: #fbbf24;
+            box-shadow: 0 0 0 1px rgba(245,158,11,0.5);
+        }
+        .et-mode-btn.active-edit {
+            background: rgba(99,102,241,0.2);
+            color: #a5b4fc;
+            box-shadow: 0 0 0 1px rgba(99,102,241,0.5);
+        }
+        /* 绘制模式下的操作按钮（完成/取消） */
+        .et-draw-btn {
+            display: flex; align-items: center; gap: 4px;
+            padding: 5px 10px; border-radius: 5px; border: none;
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .et-draw-finish { background: rgba(16,185,129,0.25); color: #34d399; }
+        .et-draw-finish:hover { background: rgba(16,185,129,0.4); }
+        .et-draw-cancel { background: rgba(239,68,68,0.15); color: #f87171; }
+        .et-draw-cancel:hover { background: rgba(239,68,68,0.3); }
+
+        /* 途径点列表 */
+        .wp-list { max-height: 180px; overflow-y: auto; }
+        .wp-item {
+            padding: 6px 8px; margin-bottom: 4px;
+            background: rgba(255,255,255,0.03);
+            border-left: 2px solid #3b82f6;
+            border-radius: 2px; font-size: 11px;
+        }
+        .wp-label { font-weight: 600; color: #e2e8f0; }
+        .wp-coord { font-family: monospace; color: #64748b; font-size: 10px; margin-top: 2px; }
+
+        /* 高度控制 */
+        .alt-control {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+        }
+
+        /* 状态栏 */
+        #statusBar {
+            position: absolute; bottom: 0; left: 300px; right: 0;
+            height: 38px; background: rgba(15,20,35,0.95);
+            border-top: 1px solid rgba(255,255,255,0.07);
+            display: flex; align-items: center; padding: 0 16px;
+            gap: 24px; font-size: 11px; color: #94a3b8; z-index: 99;
+        }
+        .st-item { display: flex; align-items: center; gap: 6px; }
+        .st-label { color: #475569; }
+        .st-val   { color: #e2e8f0; font-weight: 600; font-family: monospace; }
+
+        /* 操作提示 */
+        #hint {
+            position: absolute; top: 14px; left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15,20,35,0.9);
+            color: #e2e8f0; font-size: 12px; padding: 8px 16px;
+            border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+            z-index: 100; pointer-events: none;
+            display: none;
+        }
+
+        /* 模态框 */
+        .modal-bg {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.65); display: none;
+            align-items: center; justify-content: center; z-index: 200;
+        }
+        .modal-bg.show { display: flex; }
+        .modal {
+            background: #1e293b;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px; padding: 24px; width: 380px;
+        }
+        .modal h3 { font-size: 16px; color: #e2e8f0; margin-bottom: 16px; }
+        .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+        .modal-btns .btn { margin: 0; }
+
+        /* toast */
+        .toast {
+            position: fixed; bottom: 50px; right: 16px;
+            padding: 10px 18px; border-radius: 4px;
+            font-size: 12px; color: #fff; z-index: 300;
+            animation: toastIn 0.3s ease;
+        }
+        .toast.ok  { background: #10b981; }
+        .toast.err { background: #ef4444; }
+        .toast.info{ background: #3b82f6; }
+        @keyframes toastIn {
+            from { transform: translateY(16px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.03); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
+
+        /* ========== 顶层功能切换 Tab（航路 / 空域） ========== */
+        .top-tabs {
+            display: flex; gap: 0; padding: 10px 18px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .top-tab {
+            flex: 1; padding: 8px 6px; text-align: center;
+            font-size: 12px; font-weight: 700; cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #475569; background: transparent;
+            transition: all 0.2s; letter-spacing: 0.3px;
+        }
+        .top-tab:hover { color: #94a3b8; }
+        .top-tab.active-route { color: #60a5fa; border-bottom-color: #3b82f6; }
+        .top-tab.active-airspace { color: #a78bfa; border-bottom-color: #8b5cf6; }
+
+        /* 功能面板 */
+        .fn-panel { display: none; }
+        .fn-panel.active { display: block; }
+
+        /* ========== 空域类型样式 ========== */
+        /* 空域类型按钮 */
+        .astype-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .astype-btn {
+            padding: 7px 4px; text-align: center;
+            font-size: 11px; font-weight: 600; cursor: pointer;
+            border-radius: 4px; border: 1.5px solid transparent;
+            transition: all 0.2s;
+        }
+        .astype-btn.active { border-width: 2px; }
+        /* A类-禁飞区 */
+        .astype-A { background:rgba(239,68,68,0.12); color:#ef4444; border-color:rgba(239,68,68,0.3); }
+        .astype-A.active { background:#ef4444; color:#fff; }
+        /* B类-限制区 */
+        .astype-B { background:rgba(245,158,11,0.12); color:#f59e0b; border-color:rgba(245,158,11,0.3); }
+        .astype-B.active { background:#f59e0b; color:#fff; }
+        /* C类-管制区 */
+        .astype-C { background:rgba(59,130,246,0.12); color:#3b82f6; border-color:rgba(59,130,246,0.3); }
+        .astype-C.active { background:#3b82f6; color:#fff; }
+        /* D类-通报区 */
+        .astype-D { background:rgba(168,85,247,0.12); color:#a855f7; border-color:rgba(168,85,247,0.3); }
+        .astype-D.active { background:#a855f7; color:#fff; }
+        /* E类-飞行情报区 */
+        .astype-E { background:rgba(6,182,212,0.12); color:#06b6d4; border-color:rgba(6,182,212,0.3); }
+        .astype-E.active { background:#06b6d4; color:#fff; }
+        /* F类-航路保护区 */
+        .astype-F { background:rgba(16,185,129,0.12); color:#10b981; border-color:rgba(16,185,129,0.3); }
+        .astype-F.active { background:#10b981; color:#fff; }
+
+        /* 空域形状切换 */
+        .shape-tabs { display: flex; gap: 4px; margin-bottom: 8px; }
+        .shape-tab {
+            flex: 1; padding: 6px; text-align: center;
+            font-size: 11px; font-weight: 600; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 4px; color: #64748b;
+            background: rgba(255,255,255,0.04);
+            transition: all 0.2s;
+        }
+        .shape-tab.active { background: #8b5cf6; color: #fff; border-color: #8b5cf6; }
+
+        /* 空域图层徽章 */
+        .badge-A { background:rgba(239,68,68,0.2); color:#ef4444; }
+        .badge-B { background:rgba(245,158,11,0.2); color:#f59e0b; }
+        .badge-C { background:rgba(59,130,246,0.2); color:#3b82f6; }
+        .badge-D { background:rgba(168,85,247,0.2); color:#a855f7; }
+        .badge-E { background:rgba(6,182,212,0.2); color:#06b6d4; }
+        .badge-F { background:rgba(16,185,129,0.2); color:#10b981; }
+
+        /* 空域工具栏——复用 editToolbar，额外用颜色标示 */
+        #editToolbar.airspace-mode { border-color: rgba(139,92,246,0.5); }
+        #editToolbar.airspace-mode .et-mode-btn.active-draw { color:#c4b5fd; box-shadow:0 0 0 1px rgba(139,92,246,0.6); background:rgba(139,92,246,0.2); }
+        #editToolbar.airspace-mode .et-mode-btn.active-edit { color:#c4b5fd; box-shadow:0 0 0 1px rgba(139,92,246,0.6); background:rgba(139,92,246,0.2); }
+
+        /* 空域类型说明区 */
+        .astype-desc {
+            padding: 8px 10px; margin-top: 6px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 4px; font-size: 11px; color: #94a3b8;
+            line-height: 1.6;
+            border-left: 3px solid #8b5cf6;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Cesium 地图容器 -->
+<div id="cesiumContainer"></div>
+
+<!-- 操作提示 -->
+<div id="hint"></div>
+
+<!-- 地图编辑工具栏（2D编辑模式下显示在顶部中央） -->
+<div id="editToolbar">
+    <span id="etModeTag" style="font-size:10px;padding:2px 7px;border-radius:3px;font-weight:700;background:rgba(59,130,246,0.2);color:#60a5fa;">航路</span>
+    <span id="etRouteName" style="font-size:11px;color:#60a5fa;font-weight:700;padding:0 4px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    <div class="et-sep"></div>
+
+    <!-- 模式切换：绘制 / 编辑 -->
+    <button class="et-mode-btn" id="etTabDraw" onclick="onEtTabDraw()" title="点击地图连续添加航点/顶点 (绘制模式)">✏️ 绘制</button>
+    <button class="et-mode-btn active-edit" id="etTabEdit" onclick="onEtTabEdit()" title="选择/添加/删除节点 (编辑模式)">⚙️ 编辑</button>
+    <div class="et-sep"></div>
+
+    <!-- 绘制模式专属操作（绘制时显示） -->
+    <span id="drawToolGroup" style="display:none;align-items:center;gap:4px;">
+        <button class="et-draw-btn et-draw-finish" onclick="currentPanel==='airspace'?finishAirspaceDraw():finishDraw()" title="完成绘制 (Enter)">✓ 完成</button>
+        <button class="et-draw-btn" style="background:rgba(255,255,255,0.08);color:#94a3b8;" onclick="undoLast()" title="撤销最后一个点 (Ctrl+Z)">↶ 撤销点</button>
+        <button class="et-draw-btn et-draw-cancel" onclick="currentPanel==='airspace'?cancelAirspaceDraw():clearCurrentDraw()" title="取消绘制 (Esc)">✕ 取消</button>
+        <div class="et-sep"></div>
+    </span>
+
+    <!-- 编辑模式工具（非绘制时显示） -->
+    <span id="editToolGroup" style="display:flex;align-items:center;gap:4px;">
+        <span class="et-label">工具</span>
+        <div class="et-sep"></div>
+        <button class="et-btn active-select" id="toolSelect" onclick="setEditTool('select')" title="选择/拖拽节点 (S)">↖ 选择</button>
+        <button class="et-btn" id="toolAdd" onclick="setEditTool('add')" title="点击线段插入节点 (A)">＋ 添加节点</button>
+        <button class="et-btn" id="toolDelete" onclick="setEditTool('delete')" title="点击节点直接删除 (D)">✕ 删除节点</button>
+        <div class="et-sep"></div>
+        <button class="et-btn" id="toolUndo" onclick="undoLast()" title="无可撤销的操作 (Ctrl+Z)" disabled style="opacity:0.4;">↶ 撤销</button>
+        <div class="et-sep"></div>
+    </span>
+
+    <span id="etHint" style="font-size:11px;color:#64748b;padding:0 4px;">点击节点可选中拖拽</span>
+</div>
+
+<!-- 节点编辑工具栏（2D选中节点后显示） -->
+<div id="nodeToolbar">
+    <span class="nt-label" id="ntLabel">节点 #1</span>
+    <button class="nt-btn nt-del" onclick="deleteSelectedNode()">🗑 删除节点</button>
+    <button class="nt-btn nt-cancel" onclick="clearNodeSelection()">✕ 取消选中</button>
+</div>
+
+<!-- 左侧面板 -->
+<div id="sidebar">
+
+    <div class="sb-header">
+        <h2>🛩️ 航路 &amp; 空域编辑系统</h2>
+        <p>Cesium 1.139 · 矩形通道 · 多类型空域</p>
+    </div>
+
+    <!-- ===== 顶部功能切换 Tab ===== -->
+    <div class="top-tabs">
+        <div class="top-tab active-route" id="topTabRoute"   onclick="switchPanel('route')">✈️ 航路管理</div>
+        <div class="top-tab"              id="topTabAirspace" onclick="switchPanel('airspace')">🔷 空域管理</div>
+    </div>
+
+    <!-- 视图模式（两个面板共用） -->
+    <div class="sb-section">
+        <div class="sb-section-title">视图模式</div>
+        <div class="mode-tabs">
+            <div class="mode-tab active" id="tab2d" onclick="setMode('2d')">✏️ 编辑 (2D)</div>
+            <div class="mode-tab"        id="tab3d" onclick="setMode('3d')">🌐 预览 (3D)</div>
+        </div>
+    </div>
+
+    <!-- ================================================
+         航路管理面板
+    ================================================ -->
+    <div class="fn-panel active" id="panelRoute">
+
+        <!-- 操作模式提示 -->
+        <div class="sb-section" id="editSection">
+            <div class="sb-section-title">操作模式</div>
+            <p style="font-size:11px;color:#475569;line-height:1.7;">
+                在地图上方工具栏切换：<br>
+                <b style="color:#fbbf24">✏️ 绘制</b>：点击地图追加航点<br>
+                <b style="color:#a5b4fc">⚙️ 编辑</b>：选择 / 添加 / 删除节点
+            </p>
+        </div>
+
+        <!-- 航路等级 -->
+        <div class="sb-section">
+            <div class="sb-section-title">航路等级</div>
+            <div class="grade-selector">
+                <div class="grade-btn active" data-grade="I"   onclick="setGrade('I')">I 级</div>
+                <div class="grade-btn"        data-grade="II"  onclick="setGrade('II')">II 级</div>
+                <div class="grade-btn"        data-grade="III" onclick="setGrade('III')">III 级</div>
+            </div>
+            <div class="grade-info" id="gradeInfo">I级航路: 宽度 20km · 高度 8700m · 颜色红色</div>
+        </div>
+
+        <!-- 航路属性 -->
+        <div class="sb-section">
+            <div class="sb-section-title">航路属性</div>
+            <div class="field">
+                <label>航路名称</label>
+                <input type="text" id="routeName" placeholder="例：北上航线">
+            </div>
+            <div class="field">
+                <label>飞行高度 (米)</label>
+                <div class="alt-control">
+                    <input type="number" id="altMin" placeholder="最低" value="8400">
+                    <input type="number" id="altMax" placeholder="最高" value="12500">
+                </div>
+            </div>
+            <div class="field">
+                <label>自定义通道宽度 (米，0=按等级默认)</label>
+                <input type="number" id="customWidth" value="0" min="0">
+            </div>
+            <button class="btn btn-success" onclick="saveProperties()">💾 保存属性</button>
+        </div>
+
+        <!-- 图层面板 -->
+        <div class="sb-section">
+            <div class="sb-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+                <span>图层 (<span id="routeCount">0</span>)</span>
+                <span style="font-size:10px;color:#475569;">圆圈=激活编辑</span>
+            </div>
+            <div id="currentRouteBar">正在编辑：<b id="currentRouteName">—</b></div>
+            <div class="layer-list" id="routeList"></div>
+            <div class="btn-grid" style="margin-top: 8px;">
+                <button class="btn btn-primary btn-ghost" onclick="showNewModal()">➕ 新建</button>
+                <button class="btn btn-danger"            onclick="deleteCurrentRoute()">🗑 删除当前</button>
+            </div>
+        </div>
+
+        <!-- 途径点列表 -->
+        <div class="sb-section" id="wpSection" style="display:none">
+            <div class="sb-section-title">航点列表 (<span id="wpCount">0</span>)</div>
+            <div class="wp-list" id="wpList"></div>
+        </div>
+
+        <!-- 数据操作 -->
+        <div class="sb-section">
+            <div class="sb-section-title">数据操作</div>
+            <button class="btn btn-success"  onclick="exportGeoJSON()">📦 导出 GeoJSON</button>
+            <button class="btn btn-warning"  onclick="exportCZML()">🎬 导出 CZML</button>
+            <button class="btn btn-ghost"    onclick="importData()">📂 导入</button>
+            <button class="btn btn-danger"   onclick="clearAll()" style="margin-top: 10px;">⚠️ 清空全部</button>
+        </div>
+
+    </div><!-- /panelRoute -->
+
+    <!-- ================================================
+         空域管理面板
+    ================================================ -->
+    <div class="fn-panel" id="panelAirspace">
+
+        <!-- 空域类型 -->
+        <div class="sb-section">
+            <div class="sb-section-title">空域类型</div>
+            <div class="astype-grid">
+                <div class="astype-btn astype-A active" data-astype="A" onclick="setAirspaceType('A')">🚫 A类·禁飞区</div>
+                <div class="astype-btn astype-B"        data-astype="B" onclick="setAirspaceType('B')">⚠️ B类·限制区</div>
+                <div class="astype-btn astype-C"        data-astype="C" onclick="setAirspaceType('C')">🔵 C类·管制区</div>
+                <div class="astype-btn astype-D"        data-astype="D" onclick="setAirspaceType('D')">🔮 D类·通报区</div>
+                <div class="astype-btn astype-E"        data-astype="E" onclick="setAirspaceType('E')">🌀 E类·情报区</div>
+                <div class="astype-btn astype-F"        data-astype="F" onclick="setAirspaceType('F')">🛡️ F类·保护区</div>
+            </div>
+            <div class="astype-desc" id="astypeDesc">
+                A类禁飞区：严格禁止一切飞行活动，军事核心区、重要设施周边等
+            </div>
+        </div>
+
+        <!-- 绘制形状 -->
+        <div class="sb-section">
+            <div class="sb-section-title">绘制形状</div>
+            <div class="shape-tabs">
+                <div class="shape-tab active" id="shapePolygon" onclick="setAirspaceShape('polygon')">⬡ 多边形</div>
+                <div class="shape-tab"        id="shapeCircle"  onclick="setAirspaceShape('circle')">○ 圆形</div>
+            </div>
+            <p style="font-size:11px;color:#475569;line-height:1.6;">
+                在上方工具栏切换绘制/编辑：<br>
+                <b style="color:#c4b5fd">✏️ 绘制</b>：点击地图添加顶点<br>
+                <b style="color:#c4b5fd">⚙️ 编辑</b>：拖拽 / 插入 / 删除顶点
+            </p>
+        </div>
+
+        <!-- 空域属性 -->
+        <div class="sb-section">
+            <div class="sb-section-title">空域属性</div>
+            <div class="field">
+                <label>空域名称</label>
+                <input type="text" id="asName" placeholder="例：德清禁飞区-01">
+            </div>
+            <div class="field">
+                <label>高度范围 (米)</label>
+                <div class="alt-control">
+                    <input type="number" id="asAltMin" placeholder="下限" value="0">
+                    <input type="number" id="asAltMax" placeholder="上限" value="1000">
+                </div>
+            </div>
+            <div class="field" id="asRadiusField" style="display:none;">
+                <label>半径 (米，仅圆形)</label>
+                <input type="number" id="asRadius" value="2000" min="100">
+            </div>
+            <button class="btn btn-success" style="background:#7c3aed;color:#fff;" onclick="saveAirspaceProperties()">💾 保存属性</button>
+        </div>
+
+        <!-- 空域图层 -->
+        <div class="sb-section">
+            <div class="sb-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+                <span>空域图层 (<span id="asCount">0</span>)</span>
+                <span style="font-size:10px;color:#475569;">圆圈=激活编辑</span>
+            </div>
+            <div id="currentAirspaceBar" style="padding:6px 10px;margin-bottom:6px;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:4px;font-size:11px;color:#c4b5fd;display:none;">
+                正在编辑：<b id="currentAirspaceName">—</b>
+            </div>
+            <div class="layer-list" id="airspaceList"></div>
+            <div class="btn-grid" style="margin-top: 8px;">
+                <button class="btn btn-primary btn-ghost" style="border-color:rgba(139,92,246,0.4);color:#a78bfa;" onclick="showNewAirspaceModal()">➕ 新建空域</button>
+                <button class="btn btn-danger"            onclick="deleteCurrentAirspace()">🗑 删除当前</button>
+            </div>
+        </div>
+
+        <!-- 顶点列表 -->
+        <div class="sb-section" id="asVtxSection" style="display:none">
+            <div class="sb-section-title">顶点列表 (<span id="asVtxCount">0</span>)</div>
+            <div class="wp-list" id="asVtxList"></div>
+        </div>
+
+        <!-- 空域数据操作 -->
+        <div class="sb-section">
+            <div class="sb-section-title">数据操作</div>
+            <button class="btn btn-success"  onclick="exportAirspaceGeoJSON()">📦 导出 GeoJSON</button>
+            <button class="btn btn-ghost"    onclick="importAirspaceData()">📂 导入</button>
+            <button class="btn btn-danger"   onclick="clearAllAirspace()" style="margin-top: 10px;">⚠️ 清空全部空域</button>
+        </div>
+
+        <!-- 空域分类说明 -->
+        <div class="sb-section">
+            <div class="sb-section-title">空域分类说明</div>
+            <div style="font-size:11px;color:#64748b;line-height:1.8;">
+                <div><span class="li-badge badge-A" style="display:inline-block;margin-right:5px;">A</span><b style="color:#ef4444;">禁飞区</b>——军事核心/国家要害</div>
+                <div><span class="li-badge badge-B" style="display:inline-block;margin-right:5px;">B</span><b style="color:#f59e0b;">限制区</b>——特定条件可飞行</div>
+                <div><span class="li-badge badge-C" style="display:inline-block;margin-right:5px;">C</span><b style="color:#3b82f6;">管制区</b>——机场终端/进近区</div>
+                <div><span class="li-badge badge-D" style="display:inline-block;margin-right:5px;">D</span><b style="color:#a855f7;">通报区</b>——进入前须通报</div>
+                <div><span class="li-badge badge-E" style="display:inline-block;margin-right:5px;">E</span><b style="color:#06b6d4;">情报区</b>——飞行情报服务区</div>
+                <div><span class="li-badge badge-F" style="display:inline-block;margin-right:5px;">F</span><b style="color:#10b981;">保护区</b>——航路走廊保护带</div>
+            </div>
+        </div>
+
+    </div><!-- /panelAirspace -->
+
+</div>
+
+<!-- 状态栏 -->
+<div id="statusBar">
+    <div class="st-item"><span class="st-label">模式</span><span class="st-val" id="stMode">2D编辑</span></div>
+    <div class="st-item"><span class="st-label">编辑</span><span class="st-val" id="stRoute" style="color:#60a5fa;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</span></div>
+    <div class="st-item"><span class="st-label">等级</span><span class="st-val" id="stGrade">I</span></div>
+    <div class="st-item"><span class="st-label">航点</span><span class="st-val" id="stWp">0</span></div>
+    <div class="st-item"><span class="st-label">坐标</span><span class="st-val" id="stCoord">--</span></div>
+    <div class="st-item"><span class="st-label">长度</span><span class="st-val" id="stLen">--</span></div>
+    <div class="st-item" style="margin-left:auto;">
+        <span id="autoSaveStatus" style="font-size:11px;color:#64748b;display:flex;align-items:center;gap:5px;">
+            <span id="autoSaveDot" style="width:7px;height:7px;border-radius:50%;background:#334155;display:inline-block;flex-shrink:0;"></span>
+            <span id="autoSaveText">未连接保存服务</span>
+        </span>
+    </div>
+</div>
+
+<!-- 新建航路模态框 -->
+<div class="modal-bg" id="newModal">
+    <div class="modal">
+        <h3>✈️ 新建航路</h3>
+        <div class="field">
+            <label>航路名称</label>
+            <input type="text" id="newName" placeholder="例：华东高空航线">
+        </div>
+        <div class="field">
+            <label>航路类型</label>
+            <select id="newType">
+                <option value="airway">标准航路</option>
+                <option value="corridor">空中走廊</option>
+                <option value="uav">无人机航路</option>
+            </select>
+        </div>
+        <div class="modal-btns">
+            <button class="btn btn-primary" onclick="confirmNew()">创建</button>
+            <button class="btn btn-ghost"   onclick="closeModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 新建空域模态框 -->
+<div class="modal-bg" id="newAirspaceModal">
+    <div class="modal">
+        <h3>🔷 新建空域</h3>
+        <div class="field">
+            <label>空域名称</label>
+            <input type="text" id="newAsName" placeholder="例：德清禁飞区-01">
+        </div>
+        <div class="field">
+            <label>空域类型</label>
+            <select id="newAsType">
+                <option value="A">A类 - 禁飞区（军事/核心设施）</option>
+                <option value="B">B类 - 限制区（特定条件可飞）</option>
+                <option value="C">C类 - 管制区（机场终端区）</option>
+                <option value="D">D类 - 通报区（进入需通报）</option>
+                <option value="E">E类 - 飞行情报区</option>
+                <option value="F">F类 - 航路保护区</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>形状</label>
+            <select id="newAsShape">
+                <option value="polygon">多边形</option>
+                <option value="circle">圆形</option>
+            </select>
+        </div>
+        <div class="modal-btns">
+            <button class="btn btn-primary" style="background:#7c3aed;" onclick="confirmNewAirspace()">创建</button>
+            <button class="btn btn-ghost"   onclick="closeAirspaceModal()">取消</button>
+        </div>
+    </div>
+</div>
+
+<!-- 隐藏的文件输入 -->
+<input type="file" id="fileInput"   accept=".json,.geojson" style="display:none">
+<input type="file" id="asFileInput" accept=".json,.geojson" style="display:none">
+
+<script>
+// =====================================================
+//  空域类型定义（中国低空空域六大分类）
+// =====================================================
+const AIRSPACE_TYPES = {
+    'A': {
+        label: 'A类·禁飞区',
+        desc: '严格禁止一切飞行活动，军事核心区、国家重要设施周边',
+        fillColor: Cesium.Color.fromCssColorString('#ef4444'),
+        alpha: 0.28,
+        lineColor: '#ef4444',
+        lineAlpha: 0.85
+    },
+    'B': {
+        label: 'B类·限制区',
+        desc: '特定条件或时段内可申请飞行，军事演练区、特殊用途空域',
+        fillColor: Cesium.Color.fromCssColorString('#f59e0b'),
+        alpha: 0.22,
+        lineColor: '#f59e0b',
+        lineAlpha: 0.80
+    },
+    'C': {
+        label: 'C类·管制区',
+        desc: '机场终端管制区、进近管制区，需ATC许可',
+        fillColor: Cesium.Color.fromCssColorString('#3b82f6'),
+        alpha: 0.18,
+        lineColor: '#3b82f6',
+        lineAlpha: 0.75
+    },
+    'D': {
+        label: 'D类·通报区',
+        desc: '进入前须向相关单位通报，低空飞行区域',
+        fillColor: Cesium.Color.fromCssColorString('#a855f7'),
+        alpha: 0.15,
+        lineColor: '#a855f7',
+        lineAlpha: 0.70
+    },
+    'E': {
+        label: 'E类·飞行情报区',
+        desc: '提供飞行情报和告警服务的大区域，包括FIR、UIR',
+        fillColor: Cesium.Color.fromCssColorString('#06b6d4'),
+        alpha: 0.10,
+        lineColor: '#06b6d4',
+        lineAlpha: 0.65
+    },
+    'F': {
+        label: 'F类·航路保护区',
+        desc: '航路走廊侧向保护带，与航路关联，确保飞行安全间距',
+        fillColor: Cesium.Color.fromCssColorString('#10b981'),
+        alpha: 0.12,
+        lineColor: '#10b981',
+        lineAlpha: 0.65
+    }
+};
+
+// =====================================================
+//  空域数据管理
+// =====================================================
+class AirspaceManager {
+    constructor() {
+        this.airspaces = [];
+        this.load();
+    }
+
+    load() {
+        try {
+            const d = localStorage.getItem('airspace_editor_v1');
+            if (d) this.airspaces = JSON.parse(d);
+        } catch(e) {}
+    }
+
+    save() {
+        localStorage.setItem('airspace_editor_v1', JSON.stringify(this.airspaces));
+    }
+
+    // shape: 'polygon' | 'circle'
+    // vertices: [{id,lon,lat,label}]  (polygon)
+    // center: {lon,lat}  radius: number  (circle)
+    create(name, type, shape) {
+        const a = {
+            id: 'as_' + Date.now(),
+            name, type,        // type: A/B/C/D/E/F
+            shape,             // 'polygon' | 'circle'
+            created: new Date().toISOString(),
+            modified: new Date().toISOString(),
+            metadata: {
+                altMin: 0,
+                altMax: 1000,
+                radius: 2000   // 仅圆形使用
+            },
+            vertices: [],      // 多边形顶点 [{id,lon,lat,label}]
+            center: null,      // 圆形圆心 {lon,lat}
+        };
+        this.airspaces.push(a);
+        this.save();
+        return a;
+    }
+
+    get(id) { return this.airspaces.find(a => a.id === id); }
+
+    update(id, patch) {
+        const a = this.get(id);
+        if (a) { Object.assign(a, patch, { modified: new Date().toISOString() }); this.save(); }
+        return a;
+    }
+
+    delete(id) {
+        this.airspaces = this.airspaces.filter(a => a.id !== id);
+        this.save();
+    }
+
+    // 计算多边形面积（平方千米，简化球面近似）
+    calcArea(id) {
+        const a = this.get(id);
+        if (!a || a.shape !== 'polygon' || a.vertices.length < 3) return 0;
+        const pts = a.vertices;
+        let area = 0;
+        const n = pts.length;
+        for (let i = 0; i < n; i++) {
+            const j = (i + 1) % n;
+            area += pts[i].lon * pts[j].lat;
+            area -= pts[j].lon * pts[i].lat;
+        }
+        const deg2 = Math.abs(area) / 2;
+        const cosLat = Math.cos(Cesium.Math.toRadians(
+            pts.reduce((s, p) => s + p.lat, 0) / n
+        ));
+        return deg2 * 111.32 * 111.32 * cosLat;
+    }
+
+    toGeoJSON() {
+        const features = this.airspaces.map(a => {
+            const t = AIRSPACE_TYPES[a.type];
+            let geometry = null;
+            if (a.shape === 'polygon' && a.vertices.length >= 3) {
+                const ring = a.vertices.map(v => [v.lon, v.lat]);
+                ring.push(ring[0]);
+                geometry = { type: 'Polygon', coordinates: [ring] };
+            } else if (a.shape === 'circle' && a.center) {
+                // 圆形输出为 Point + radius 属性（标准做法）
+                geometry = { type: 'Point', coordinates: [a.center.lon, a.center.lat] };
+            }
+            return {
+                type: 'Feature',
+                properties: {
+                    id: a.id, name: a.name, type: a.type,
+                    shape: a.shape,
+                    type_label: t ? t.label : '',
+                    alt_min: a.metadata.altMin,
+                    alt_max: a.metadata.altMax,
+                    radius_m: a.metadata.radius,
+                    created: a.created, modified: a.modified
+                },
+                geometry
+            };
+        }).filter(f => f.geometry);
+        return { type: 'FeatureCollection', features };
+    }
+}
+
+// =====================================================
+//  航路等级定义
+// =====================================================
+const ROUTE_GRADES = {
+    'I':   { label: 'I级航路',   width: 20000, height: 8700,  color: Cesium.Color.fromCssColorString('#ef4444'), alpha: 0.20, lineColor: '#ef4444' },
+    'II':  { label: 'II级航路',  width: 10000, height: 6000,  color: Cesium.Color.fromCssColorString('#f59e0b'), alpha: 0.20, lineColor: '#f59e0b' },
+    'III': { label: 'III级航路', width: 4000,  height: 3000,  color: Cesium.Color.fromCssColorString('#22c55e'), alpha: 0.20, lineColor: '#22c55e' }
+};
+
+// =====================================================
+//  数据管理
+// =====================================================
+class RouteManager {
+    constructor() {
+        this.routes = [];
+        this.load();
+    }
+
+    load() {
+        try {
+            const d = localStorage.getItem('route_editor_v3');
+            if (d) this.routes = JSON.parse(d);
+        } catch(e) {}
+    }
+
+    save() {
+        localStorage.setItem('route_editor_v3', JSON.stringify(this.routes));
+    }
+
+    create(name, type, grade) {
+        const r = {
+            id: 'r_' + Date.now(),
+            name, type, grade,
+            created: new Date().toISOString(),
+            modified: new Date().toISOString(),
+            metadata: {
+                altMin: 8400,
+                altMax: 12500,
+                customWidth: 0
+            },
+            waypoints: []   // [{id, lon, lat, alt, label}]
+        };
+        this.routes.push(r);
+        this.save();
+        return r;
+    }
+
+    get(id) { return this.routes.find(r => r.id === id); }
+
+    update(id, patch) {
+        const r = this.get(id);
+        if (r) { Object.assign(r, patch, { modified: new Date().toISOString() }); this.save(); }
+        return r;
+    }
+
+    delete(id) {
+        this.routes = this.routes.filter(r => r.id !== id);
+        this.save();
+    }
+
+    // 返回航路的实际通道宽度（米）
+    getWidth(id) {
+        const r = this.get(id);
+        if (!r) return 0;
+        const cw = r.metadata.customWidth;
+        return (cw && cw > 0) ? cw : ROUTE_GRADES[r.grade].width;
+    }
+
+    // 计算航路总长度（米）
+    calcLength(id) {
+        const r = this.get(id);
+        if (!r || r.waypoints.length < 2) return 0;
+        let total = 0;
+        for (let i = 1; i < r.waypoints.length; i++) {
+            const a = r.waypoints[i - 1];
+            const b = r.waypoints[i];
+            const ca = Cesium.Cartesian3.fromDegrees(a.lon, a.lat, a.alt);
+            const cb = Cesium.Cartesian3.fromDegrees(b.lon, b.lat, b.alt);
+            total += Cesium.Cartesian3.distance(ca, cb);
+        }
+        return total;
+    }
+
+    toGeoJSON() {
+        const features = this.routes.map(r => {
+            const grade = ROUTE_GRADES[r.grade];
+            const width = (r.metadata.customWidth > 0) ? r.metadata.customWidth : grade.width;
+            return {
+                type: 'Feature',
+                properties: {
+                    id: r.id,
+                    name: r.name,
+                    type: r.type,
+                    grade: r.grade,
+                    width_m: width,
+                    height_m: grade.height,
+                    alt_min: r.metadata.altMin,
+                    alt_max: r.metadata.altMax,
+                    created: r.created,
+                    modified: r.modified
+                },
+                geometry: {
+                    type: 'LineString',
+                    coordinates: r.waypoints.map(wp => [wp.lon, wp.lat, wp.alt])
+                }
+            };
+        });
+        return { type: 'FeatureCollection', features };
+    }
+
+    toCZML() {
+        const czml = [{
+            id: 'document',
+            name: '航路数据',
+            version: '1.0'
+        }];
+
+        this.routes.forEach(r => {
+            if (r.waypoints.length < 2) return;
+            const grade = ROUTE_GRADES[r.grade];
+            const width = (r.metadata.customWidth > 0) ? r.metadata.customWidth : grade.width;
+            const color = grade.color;
+
+            // 中心线
+            const coords = [];
+            r.waypoints.forEach(wp => coords.push(wp.lon, wp.lat, wp.alt));
+
+            czml.push({
+                id: r.id + '_line',
+                name: r.name + ' (中心线)',
+                polyline: {
+                    positions: { cartographicDegrees: coords },
+                    width: 3,
+                    material: {
+                        solidColor: { color: { rgba: [
+                            Math.round(color.red * 255),
+                            Math.round(color.green * 255),
+                            Math.round(color.blue * 255),
+                            200
+                        ]}}
+                    },
+                    clampToGround: false
+                }
+            });
+
+            // 通道体（用corridor近似矩形通道）
+            czml.push({
+                id: r.id + '_corridor',
+                name: r.name + ' (通道)',
+                corridor: {
+                    positions: { cartographicDegrees: coords },
+                    width: { number: width },
+                    height: { number: r.metadata.altMin },
+                    extrudedHeight: { number: r.metadata.altMax },
+                    material: {
+                        solidColor: { color: { rgba: [
+                            Math.round(color.red * 255),
+                            Math.round(color.green * 255),
+                            Math.round(color.blue * 255),
+                            50
+                        ]}}
+                    },
+                    outline: true,
+                    outlineColor: { rgba: [
+                        Math.round(color.red * 255),
+                        Math.round(color.green * 255),
+                        Math.round(color.blue * 255),
+                        180
+                    ]}
+                }
+            });
+        });
+
+        return czml;
+    }
+}
+
+// =====================================================
+//  全局状态
+// =====================================================
+const rm = new RouteManager();
+const am = new AirspaceManager();   // 空域管理器
+
+let viewer = null;
+let currentMode = '2d';       // '2d' | '3d'
+let currentGrade = 'I';
+let currentPanel = 'route';   // 'route' | 'airspace' — 当前激活面板
+let currentRouteId = null;
+let isDrawing = false;
+let drawingWPs = [];          // 正在绘制的临时航点
+let drawEntities = [];        // 绘制中的临时实体
+let routeEntities = new Map(); // routeId -> entity数组
+const layerVisible = new Map(); // routeId -> boolean（图层可见性）
+
+// ----- 空域编辑状态 -----
+let currentAirspaceId = null;    // 当前激活空域 ID
+let currentAirspaceType = 'A';   // 当前选中空域类型
+let currentAirspaceShape = 'polygon'; // 'polygon' | 'circle'
+let isDrawingAirspace = false;   // 是否处于空域绘制模式
+let asDrawingVtx = [];           // 绘制中的临时顶点
+let asDrawEntities = [];         // 绘制中的临时实体
+let asEntities = new Map();      // airspaceId -> entity数组
+const asLayerVisible = new Map(); // airspaceId -> boolean
+
+// 节点编辑状态
+let selectedNodeIdx = null;   // 当前选中的航点索引
+let isDragging = false;       // 是否正在拖拽节点
+let dragRouteId  = null;      // 拖拽所属航路ID
+
+// =====================================================
+//  撤销历史栈（最多5级，仅记录编辑模式下的航点变更）
+// =====================================================
+const UNDO_MAX_LEVELS = 5;
+// 每条记录：{ routeId, waypoints: [...深拷贝] }
+const undoStack = [];
+
+// 在执行任何修改航点的操作前调用，快照当前状态
+function pushUndoState(routeId) {
+    const r = rm.get(routeId);
+    if (!r) return;
+    // 深拷贝航点
+    const snapshot = {
+        routeId,
+        waypoints: JSON.parse(JSON.stringify(r.waypoints))
+    };
+    undoStack.push(snapshot);
+    // 超出上限则移除最老的
+    if (undoStack.length > UNDO_MAX_LEVELS) {
+        undoStack.shift();
+    }
+    updateUndoBtn();
+}
+
+// 更新撤销按钮可用状态
+function updateUndoBtn() {
+    const btn = document.getElementById('toolUndo');
+    if (!btn) return;
+    const canUndo = undoStack.length > 0;
+    btn.disabled = !canUndo;
+    btn.style.opacity = canUndo ? '' : '0.4';
+    btn.title = canUndo
+        ? `撤销上一步操作 (Ctrl+Z)，还可撤销 ${undoStack.length} 步`
+        : '无可撤销的操作 (Ctrl+Z)';
+}
+
+
+// =====================================================
+//  面板切换（航路 / 空域）
+// =====================================================
+function switchPanel(panel) {
+    currentPanel = panel;
+
+    // Tab 高亮
+    document.getElementById('topTabRoute').className    = 'top-tab' + (panel === 'route'    ? ' active-route'    : '');
+    document.getElementById('topTabAirspace').className = 'top-tab' + (panel === 'airspace' ? ' active-airspace' : '');
+
+    // 面板显隐
+    document.getElementById('panelRoute').classList.toggle('active',    panel === 'route');
+    document.getElementById('panelAirspace').classList.toggle('active', panel === 'airspace');
+
+    // 工具栏模式标签
+    const modeTag = document.getElementById('etModeTag');
+    if (modeTag) {
+        if (panel === 'airspace') {
+            modeTag.textContent = '空域';
+            modeTag.style.background = 'rgba(139,92,246,0.2)';
+            modeTag.style.color = '#a78bfa';
+            document.getElementById('editToolbar').classList.add('airspace-mode');
+        } else {
+            modeTag.textContent = '航路';
+            modeTag.style.background = 'rgba(59,130,246,0.2)';
+            modeTag.style.color = '#60a5fa';
+            document.getElementById('editToolbar').classList.remove('airspace-mode');
+        }
+    }
+
+    // 切换时中止正在进行的操作
+    if (panel === 'airspace') {
+        if (isDrawing) { isDrawing = false; drawingWPs = []; clearDrawEntities(); }
+        clearNodeSelection();
+        // 更新工具栏可见性：空域面板在2D模式下始终显示（即使没有选中空域也可绘制）
+        if (currentMode === '2d') {
+            document.getElementById('editToolbar').classList.add('show');
+            // 同步为编辑模式 tab
+            enterEditModeAirspace();
+        }
+    } else {
+        if (isDrawingAirspace) { isDrawingAirspace = false; asDrawingVtx = []; clearAsDrawEntities(); }
+        clearAirspaceSelection();
+        // 更新工具栏：需要有航路才显示
+        if (currentMode === '2d' && currentRouteId) {
+            document.getElementById('editToolbar').classList.add('show');
+        } else if (!currentRouteId) {
+            document.getElementById('editToolbar').classList.remove('show');
+        }
+        refreshUI();
+    }
+}
+
+// 空域面板进入"编辑模式"（复用工具栏）
+function enterEditModeAirspace() {
+    if (isDrawingAirspace) {
+        isDrawingAirspace = false;
+        asDrawingVtx = [];
+        clearAsDrawEntities();
+    }
+    document.getElementById('etTabEdit').classList.add('active-edit');
+    document.getElementById('etTabEdit').classList.remove('active-draw');
+    document.getElementById('etTabDraw').classList.remove('active-draw');
+    document.getElementById('drawToolGroup').style.display = 'none';
+    document.getElementById('editToolGroup').style.display = 'flex';
+    setEditTool('select');
+    setHint('');
+}
+
+// 空域面板进入"绘制模式"
+function enterDrawModeAirspace() {
+    if (currentMode !== '2d') { toast('请先切换到 2D 编辑模式', 'info'); return; }
+    if (!currentAirspaceId) { showNewAirspaceModal(); return; }
+    document.getElementById('etTabDraw').classList.add('active-draw');
+    document.getElementById('etTabDraw').classList.remove('active-edit');
+    document.getElementById('etTabEdit').classList.remove('active-edit');
+    document.getElementById('drawToolGroup').style.display = 'flex';
+    document.getElementById('editToolGroup').style.display = 'none';
+    document.getElementById('editToolbar').classList.add('show');
+    isDrawingAirspace = true;
+    asDrawingVtx = [];
+    clearAsDrawEntities();
+    const a = am.get(currentAirspaceId);
+    if (a && a.vertices.length > 0) {
+        // 将已有顶点载入绘制缓冲，允许继续追加
+        asDrawingVtx = JSON.parse(JSON.stringify(a.vertices));
+        redrawAirspaceDraw();
+    }
+    const shapeHint = (a && a.shape === 'circle') ? '点击设置圆心，再点一下确定半径' : '点击地图添加顶点 · 右键或 Enter 完成';
+    setHint('🔷 ' + shapeHint);
+    toast('空域绘制模式：' + shapeHint, 'info');
+}
+
+// 覆盖工具栏绘制/编辑按钮逻辑——根据当前面板分派
+// （HTML 里的 enterDrawMode / enterEditMode 保持指向航路，这里接管点击逻辑）
+// 通过改写按钮 onclick 来实现
+function onEtTabDraw() {
+    if (currentPanel === 'airspace') enterDrawModeAirspace();
+    else enterDrawMode();
+}
+function onEtTabEdit() {
+    if (currentPanel === 'airspace') enterEditModeAirspace();
+    else enterEditMode();
+}
+
+// =====================================================
+//  空域类型 / 形状设置
+// =====================================================
+function setAirspaceType(t) {
+    currentAirspaceType = t;
+    document.querySelectorAll('.astype-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.astype === t);
+    });
+    const info = AIRSPACE_TYPES[t];
+    if (info) {
+        document.getElementById('astypeDesc').textContent = info.label + '：' + info.desc;
+    }
+    // 如果当前有激活空域，也切换其类型
+    if (currentAirspaceId) {
+        const a = am.get(currentAirspaceId);
+        if (a) { a.type = t; am.update(currentAirspaceId, a); renderAirspace(currentAirspaceId); }
+    }
+}
+
+function setAirspaceShape(shape) {
+    currentAirspaceShape = shape;
+    document.getElementById('shapePolygon').classList.toggle('active', shape === 'polygon');
+    document.getElementById('shapeCircle').classList.toggle('active',  shape === 'circle');
+    // 圆形才显示半径输入
+    document.getElementById('asRadiusField').style.display = shape === 'circle' ? '' : 'none';
+}
+
+// =====================================================
+//  空域撤销栈（简化版，只存快照）
+// =====================================================
+const asUndoStack = [];
+const AS_UNDO_MAX = 5;
+
+function pushAsUndoState(asId) {
+    const a = am.get(asId);
+    if (!a) return;
+    asUndoStack.push({
+        asId,
+        vertices: JSON.parse(JSON.stringify(a.vertices || [])),
+        center: a.center ? {...a.center} : null,
+        metadata: JSON.parse(JSON.stringify(a.metadata))
+    });
+    if (asUndoStack.length > AS_UNDO_MAX) asUndoStack.shift();
+}
+
+// =====================================================
+//  空域碰撞检测（复用 hitTestNode 思路）
+// =====================================================
+// 获取空域顶点的屏幕坐标
+function getAirspaceNodeScreenPositions(asId) {
+    const a = am.get(asId);
+    if (!a) return [];
+    const result = [];
+    if (a.shape === 'circle') {
+        if (a.center) {
+            const pos = getNodeScreenPosByProjection({ lon: a.center.lon, lat: a.center.lat });
+            if (pos) result.push({ idx: 0, sx: pos.x, sy: pos.y, type: 'center' });
+        }
+    } else {
+        a.vertices.forEach((v, idx) => {
+            const pos = getNodeScreenPosByProjection({ lon: v.lon, lat: v.lat });
+            if (pos) result.push({ idx, sx: pos.x, sy: pos.y });
+        });
+    }
+    return result;
+}
+
+function hitTestAirspaceNode(screenX, screenY, asId) {
+    const nodes = getAirspaceNodeScreenPositions(asId);
+    let bestIdx = -1, bestDist = NODE_HIT_RADIUS;
+    nodes.forEach(({ idx, sx, sy }) => {
+        const dist = Math.sqrt((screenX - sx) ** 2 + (screenY - sy) ** 2);
+        if (dist < bestDist) { bestDist = dist; bestIdx = idx; }
+    });
+    return bestIdx;
+}
+
+// 线段命中检测（空域多边形边）
+function hitTestAirspaceSegment(screenX, screenY, asId) {
+    const nodes = getAirspaceNodeScreenPositions(asId);
+    if (nodes.length < 2) return null;
+    const nodeHit = hitTestAirspaceNode(screenX, screenY, asId);
+    if (nodeHit >= 0) return null;
+
+    let best = null, bestDist = SEGMENT_HIT_DIST;
+    const n = nodes.length;
+    for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n; // 闭合多边形
+        const a = nodes[i], b = nodes[j];
+        const { dist, t } = pointToSegmentDist(screenX, screenY, a.sx, a.sy, b.sx, b.sy);
+        if (dist < bestDist) { bestDist = dist; best = { segIdx: i, t }; }
+    }
+    return best;
+}
+
+// =====================================================
+//  空域节点选中
+// =====================================================
+let selectedAsNodeIdx = null;
+
+function selectAirspaceNode(idx) {
+    selectedAsNodeIdx = idx;
+    // 高亮重渲
+    if (currentAirspaceId) renderAirspace(currentAirspaceId);
+}
+
+function clearAirspaceNodeSelection() {
+    selectedAsNodeIdx = null;
+    if (currentAirspaceId) renderAirspace(currentAirspaceId);
+}
+
+// =====================================================
+//  空域点击工具分发（编辑模式）
+// =====================================================
+function onAirspaceClickTool(e) {
+    if (!currentAirspaceId) return;
+    const a = am.get(currentAirspaceId);
+    if (!a) return;
+
+    // === 添加顶点工具 ===
+    if (editTool === 'add') {
+        const cartesian = viewer.camera.pickEllipsoid(e.position, viewer.scene.globe.ellipsoid);
+        if (!Cesium.defined(cartesian)) return;
+        const carto = Cesium.Cartographic.fromCartesian(cartesian);
+        const lon = Cesium.Math.toDegrees(carto.longitude);
+        const lat = Cesium.Math.toDegrees(carto.latitude);
+
+        if (a.shape === 'polygon') {
+            const segHit = hitTestAirspaceSegment(e.position.x, e.position.y, currentAirspaceId);
+            pushAsUndoState(currentAirspaceId);
+            if (segHit) {
+                const insertAt = segHit.segIdx + 1;
+                const newV = { id: 'av_' + Date.now(), lon, lat, label: `V${insertAt + 1}` };
+                a.vertices.splice(insertAt, 0, newV);
+                a.vertices.forEach((v, i) => { v.label = `V${i + 1}`; });
+                toast(`已在 V${insertAt + 1} 处插入顶点`, 'ok');
+            } else {
+                const newV = { id: 'av_' + Date.now(), lon, lat, label: `V${a.vertices.length + 1}` };
+                a.vertices.push(newV);
+                toast(`已追加顶点 V${a.vertices.length}`, 'info');
+            }
+            am.update(currentAirspaceId, a);
+            renderAirspace(currentAirspaceId);
+            refreshAirspaceUI();
+        }
+        return;
+    }
+
+    // === 删除顶点工具 ===
+    if (editTool === 'delete') {
+        const hitIdx = hitTestAirspaceNode(e.position.x, e.position.y, currentAirspaceId);
+        if (hitIdx >= 0) {
+            if (a.shape === 'polygon') {
+                if (a.vertices.length <= 3) { toast('多边形至少保留3个顶点', 'err'); return; }
+                const label = a.vertices[hitIdx].label;
+                pushAsUndoState(currentAirspaceId);
+                a.vertices.splice(hitIdx, 1);
+                a.vertices.forEach((v, i) => { v.label = `V${i + 1}`; });
+                am.update(currentAirspaceId, a);
+                renderAirspace(currentAirspaceId);
+                refreshAirspaceUI();
+                toast(`已删除 ${label}`, 'ok');
+            } else if (a.shape === 'circle') {
+                toast('圆形空域请直接拖拽圆心调整位置', 'info');
+            }
+        }
+        return;
+    }
+
+    // === 选择工具：空白处取消选中 ===
+    if (editTool === 'select') {
+        if (!isDragging) {
+            const hitIdx = hitTestAirspaceNode(e.position.x, e.position.y, currentAirspaceId);
+            if (hitIdx < 0) clearAirspaceNodeSelection();
+            else selectAirspaceNode(hitIdx);
+        }
+    }
+}
+
+// =====================================================
+//  空域绘制完成
+// =====================================================
+function finishAirspaceDraw() {
+    if (!isDrawingAirspace || !currentAirspaceId) return;
+    const a = am.get(currentAirspaceId);
+    if (!a) return;
+
+    if (a.shape === 'polygon') {
+        if (asDrawingVtx.length < 3) { toast('多边形至少需要3个顶点', 'err'); return; }
+        a.vertices = [...asDrawingVtx];
+        am.update(currentAirspaceId, a);
+        clearAsDrawEntities();
+        isDrawingAirspace = false;
+        asDrawingVtx = [];
+        renderAirspace(currentAirspaceId);
+        refreshAirspaceUI();
+        toast(`已完成多边形，共 ${a.vertices.length} 个顶点`, 'ok');
+    } else if (a.shape === 'circle') {
+        if (asDrawingVtx.length < 1) { toast('请先点击设置圆心', 'err'); return; }
+        const c = asDrawingVtx[0];
+        const radius = parseInt(document.getElementById('asRadius').value) || 2000;
+        a.center = { lon: c.lon, lat: c.lat };
+        a.metadata.radius = radius;
+        am.update(currentAirspaceId, a);
+        clearAsDrawEntities();
+        isDrawingAirspace = false;
+        asDrawingVtx = [];
+        renderAirspace(currentAirspaceId);
+        refreshAirspaceUI();
+        toast(`已完成圆形空域，半径 ${radius}m`, 'ok');
+    }
+
+    // 绘制完成后切回编辑模式
+    enterEditModeAirspace();
+}
+
+// =====================================================
+//  空域临时绘制渲染
+// =====================================================
+function redrawAirspaceDraw() {
+    clearAsDrawEntities();
+    if (asDrawingVtx.length === 0) return;
+
+    const a = currentAirspaceId ? am.get(currentAirspaceId) : null;
+    const type = a ? a.type : currentAirspaceType;
+    const typeInfo = AIRSPACE_TYPES[type] || AIRSPACE_TYPES['A'];
+    const lineColor = Cesium.Color.fromCssColorString(typeInfo.lineColor).withAlpha(0.9);
+
+    if (currentAirspaceShape === 'circle' || (a && a.shape === 'circle')) {
+        // 圆心点
+        const cv = asDrawingVtx[0];
+        const e = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(cv.lon, cv.lat, 0),
+            point: { pixelSize: 10, color: Cesium.Color.WHITE, outlineColor: lineColor, outlineWidth: 2 },
+            label: { text: '圆心', font: 'bold 11px sans-serif', fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 2, pixelOffset: new Cesium.Cartesian2(0, -18), verticalOrigin: Cesium.VerticalOrigin.BOTTOM }
+        });
+        asDrawEntities.push(e);
+    } else {
+        // 多边形
+        if (asDrawingVtx.length >= 2) {
+            const positions = asDrawingVtx.map(v => Cesium.Cartesian3.fromDegrees(v.lon, v.lat, 0));
+            // 临时折线
+            asDrawEntities.push(viewer.entities.add({
+                polyline: { positions: [...positions, positions[0]], width: 2, material: lineColor }
+            }));
+            // 填充（>=3点）
+            if (asDrawingVtx.length >= 3) {
+                asDrawEntities.push(viewer.entities.add({
+                    polygon: {
+                        hierarchy: new Cesium.PolygonHierarchy(positions),
+                        material: typeInfo.fillColor.withAlpha(typeInfo.alpha * 0.6),
+                        outline: false
+                    }
+                }));
+            }
+        }
+        // 各顶点
+        asDrawingVtx.forEach((v, i) => {
+            asDrawEntities.push(viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(v.lon, v.lat, 0),
+                point: { pixelSize: 8, color: Cesium.Color.WHITE, outlineColor: lineColor, outlineWidth: 2 },
+                label: { text: v.label, font: 'bold 11px sans-serif', fillColor: Cesium.Color.WHITE, outlineColor: Cesium.Color.BLACK, outlineWidth: 2, pixelOffset: new Cesium.Cartesian2(0, -16), verticalOrigin: Cesium.VerticalOrigin.BOTTOM }
+            }));
+        });
+    }
+}
+
+function clearAsDrawEntities() {
+    asDrawEntities.forEach(e => viewer.entities.remove(e));
+    asDrawEntities = [];
+}
+
+// =====================================================
+//  空域正式渲染
+// =====================================================
+function renderAirspace(asId) {
+    // 清除旧实体
+    if (asEntities.has(asId)) {
+        asEntities.get(asId).forEach(e => viewer.entities.remove(e));
+    }
+    const entities = [];
+    asEntities.set(asId, entities);
+
+    const a = am.get(asId);
+    if (!a) return;
+
+    // 图层不可见则跳过
+    if (asLayerVisible.get(asId) === false) return;
+
+    const typeInfo = AIRSPACE_TYPES[a.type] || AIRSPACE_TYPES['A'];
+    const fillColor = typeInfo.fillColor.withAlpha(typeInfo.alpha);
+    const lineColor = Cesium.Color.fromCssColorString(typeInfo.lineColor).withAlpha(typeInfo.lineAlpha);
+    const isActive = (asId === currentAirspaceId);
+
+    // 3D模式下使用高度进行立体拉伸
+    const is3D = (currentMode === '3d');
+    const altMin = a.metadata.altMin || 0;
+    const altMax = a.metadata.altMax || 3000;
+    const altMid = (altMin + altMax) / 2;   // 用于顶点/标签的悬停高度
+
+    if (a.shape === 'polygon' && a.vertices.length >= 3) {
+        // 2D 贴地坐标（用于顶点标记和轮廓线），3D 时放在 altMin 底面
+        const baseAlt = is3D ? altMin : 0;
+        const positions = a.vertices.map(v => Cesium.Cartesian3.fromDegrees(v.lon, v.lat, baseAlt));
+
+        // 填充面（3D 时拉伸为立体）
+        const polyProps = {
+            hierarchy: new Cesium.PolygonHierarchy(positions),
+            material: fillColor,
+            outline: true,
+            outlineColor: lineColor,
+            outlineWidth: isActive ? 2 : 1
+        };
+        if (is3D) {
+            polyProps.height = altMin;                        // 底面高度
+            polyProps.extrudedHeight = altMax;                // 顶面高度（拉伸）
+            polyProps.perPositionHeight = false;
+        } else {
+            polyProps.height = 0;
+            polyProps.outline = false;
+        }
+        entities.push(viewer.entities.add({ polygon: polyProps }));
+
+        if (!is3D) {
+            // 2D 轮廓线（闭合）
+            entities.push(viewer.entities.add({
+                polyline: {
+                    positions: [...positions, positions[0]],
+                    width: isActive ? 3 : 2,
+                    material: lineColor,
+                    clampToGround: false
+                }
+            }));
+        } else {
+            // 3D 顶面轮廓线
+            const topPositions = a.vertices.map(v => Cesium.Cartesian3.fromDegrees(v.lon, v.lat, altMax));
+            entities.push(viewer.entities.add({
+                polyline: {
+                    positions: [...topPositions, topPositions[0]],
+                    width: isActive ? 3 : 2,
+                    material: lineColor.withAlpha(0.9)
+                }
+            }));
+            // 3D 底面轮廓线
+            entities.push(viewer.entities.add({
+                polyline: {
+                    positions: [...positions, positions[0]],
+                    width: 1,
+                    material: lineColor.withAlpha(0.5)
+                }
+            }));
+            // 3D 高度范围标签（顶面中心）
+            const cx2 = a.vertices.reduce((s, v) => s + v.lon, 0) / a.vertices.length;
+            const cy2 = a.vertices.reduce((s, v) => s + v.lat, 0) / a.vertices.length;
+            entities.push(viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(cx2, cy2, altMax + 100),
+                label: {
+                    text: `${altMin}m ~ ${altMax}m`,
+                    font: '10px sans-serif',
+                    fillColor: lineColor,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 1,
+                    pixelOffset: new Cesium.Cartesian2(0, -6),
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    showBackground: false,
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                }
+            }));
+        }
+
+        // 顶点标记（仅激活状态显示）
+        if (isActive) {
+            const vtxAlt = is3D ? altMid : 0;
+            a.vertices.forEach((v, idx) => {
+                const isSel = (selectedAsNodeIdx === idx);
+                entities.push(viewer.entities.add({
+                    position: Cesium.Cartesian3.fromDegrees(v.lon, v.lat, vtxAlt),
+                    point: {
+                        pixelSize: isSel ? 13 : 8,
+                        color: isSel ? Cesium.Color.YELLOW : Cesium.Color.WHITE,
+                        outlineColor: lineColor,
+                        outlineWidth: isSel ? 3 : 2,
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY
+                    },
+                    label: {
+                        text: v.label,
+                        font: 'bold 10px sans-serif',
+                        fillColor: Cesium.Color.WHITE,
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 2,
+                        pixelOffset: new Cesium.Cartesian2(0, -14),
+                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                        disableDepthTestDistance: Number.POSITIVE_INFINITY
+                    }
+                }));
+            });
+        }
+
+        // 中心标签（名称）
+        const cx = a.vertices.reduce((s, v) => s + v.lon, 0) / a.vertices.length;
+        const cy = a.vertices.reduce((s, v) => s + v.lat, 0) / a.vertices.length;
+        entities.push(viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(cx, cy, is3D ? altMid : 0),
+            label: {
+                text: `[${a.type}] ${a.name}`,
+                font: 'bold 12px sans-serif',
+                fillColor: Cesium.Color.fromCssColorString(typeInfo.lineColor),
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 2,
+                pixelOffset: new Cesium.Cartesian2(0, 0),
+                showBackground: true,
+                backgroundColor: Cesium.Color.fromCssColorString('#0f1423').withAlpha(0.7),
+                backgroundPadding: new Cesium.Cartesian2(5, 3),
+                disableDepthTestDistance: Number.POSITIVE_INFINITY
+            }
+        }));
+
+    } else if (a.shape === 'circle' && a.center) {
+        const radius = a.metadata.radius || 2000;
+        // 用多边形近似圆（64段）
+        const segments = 64;
+        const baseAlt = is3D ? altMin : 0;
+        const circlePositions = [];
+        for (let i = 0; i < segments; i++) {
+            const angle = (i / segments) * Math.PI * 2;
+            const cosLat = Math.cos(Cesium.Math.toRadians(a.center.lat));
+            const dLon = (radius * Math.cos(angle)) / (111320 * cosLat);
+            const dLat = (radius * Math.sin(angle)) / 111320;
+            circlePositions.push(Cesium.Cartesian3.fromDegrees(a.center.lon + dLon, a.center.lat + dLat, baseAlt));
+        }
+
+        // 填充面（3D 时拉伸）
+        const circlePolyProps = {
+            hierarchy: new Cesium.PolygonHierarchy(circlePositions),
+            material: fillColor,
+            outline: true,
+            outlineColor: lineColor,
+            outlineWidth: isActive ? 2 : 1
+        };
+        if (is3D) {
+            circlePolyProps.height = altMin;
+            circlePolyProps.extrudedHeight = altMax;
+            circlePolyProps.perPositionHeight = false;
+        } else {
+            circlePolyProps.height = 0;
+            circlePolyProps.outline = false;
+        }
+        entities.push(viewer.entities.add({ polygon: circlePolyProps }));
+
+        if (!is3D) {
+            // 2D 轮廓线
+            entities.push(viewer.entities.add({
+                polyline: {
+                    positions: [...circlePositions, circlePositions[0]],
+                    width: isActive ? 3 : 2,
+                    material: lineColor
+                }
+            }));
+        } else {
+            // 3D 顶面轮廓线
+            const topCircle = [];
+            for (let i = 0; i < segments; i++) {
+                const angle = (i / segments) * Math.PI * 2;
+                const cosLat = Math.cos(Cesium.Math.toRadians(a.center.lat));
+                const dLon = (radius * Math.cos(angle)) / (111320 * cosLat);
+                const dLat = (radius * Math.sin(angle)) / 111320;
+                topCircle.push(Cesium.Cartesian3.fromDegrees(a.center.lon + dLon, a.center.lat + dLat, altMax));
+            }
+            entities.push(viewer.entities.add({
+                polyline: {
+                    positions: [...topCircle, topCircle[0]],
+                    width: isActive ? 3 : 2,
+                    material: lineColor.withAlpha(0.9)
+                }
+            }));
+            entities.push(viewer.entities.add({
+                polyline: {
+                    positions: [...circlePositions, circlePositions[0]],
+                    width: 1,
+                    material: lineColor.withAlpha(0.5)
+                }
+            }));
+            // 高度范围标签
+            entities.push(viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(a.center.lon, a.center.lat, altMax + 100),
+                label: {
+                    text: `${altMin}m ~ ${altMax}m`,
+                    font: '10px sans-serif',
+                    fillColor: lineColor,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 1,
+                    pixelOffset: new Cesium.Cartesian2(0, -6),
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    showBackground: false,
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                }
+            }));
+        }
+
+        // 圆心标记
+        if (isActive) {
+            const isSel = (selectedAsNodeIdx === 0);
+            entities.push(viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(a.center.lon, a.center.lat, is3D ? altMid : 0),
+                point: {
+                    pixelSize: isSel ? 13 : 9,
+                    color: isSel ? Cesium.Color.YELLOW : Cesium.Color.WHITE,
+                    outlineColor: lineColor,
+                    outlineWidth: 2,
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                }
+            }));
+        }
+
+        // 名称标签
+        entities.push(viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(a.center.lon, a.center.lat, is3D ? altMid : 0),
+            label: {
+                text: `[${a.type}] ${a.name}\nR=${(radius/1000).toFixed(1)}km`,
+                font: 'bold 12px sans-serif',
+                fillColor: Cesium.Color.fromCssColorString(typeInfo.lineColor),
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 2,
+                showBackground: true,
+                backgroundColor: Cesium.Color.fromCssColorString('#0f1423').withAlpha(0.7),
+                backgroundPadding: new Cesium.Cartesian2(5, 3),
+                disableDepthTestDistance: Number.POSITIVE_INFINITY
+            }
+        }));
+    }
+}
+
+// =====================================================
+//  空域管理 UI
+// =====================================================
+function selectAirspace(id) {
+    currentAirspaceId = id;
+    const a = am.get(id);
+    if (a) {
+        document.getElementById('asName').value = a.name;
+        document.getElementById('asAltMin').value = a.metadata.altMin;
+        document.getElementById('asAltMax').value = a.metadata.altMax;
+        document.getElementById('asRadius').value = a.metadata.radius || 2000;
+        setAirspaceType(a.type);
+        setAirspaceShape(a.shape);
+    }
+    // 切换时停止绘制
+    if (isDrawingAirspace) { isDrawingAirspace = false; asDrawingVtx = []; clearAsDrawEntities(); }
+    // 2D模式确保工具栏可见
+    if (currentMode === '2d') {
+        document.getElementById('editToolbar').classList.add('show');
+    }
+    selectedAsNodeIdx = null;
+    // 重渲所有空域（更新高亮）
+    am.airspaces.forEach(a2 => renderAirspace(a2.id));
+    refreshAirspaceUI();
+}
+
+function clearAirspaceSelection() {
+    currentAirspaceId = null;
+    selectedAsNodeIdx = null;
+    refreshAirspaceUI();
+}
+
+function refreshAirspaceUI() {
+    document.getElementById('asCount').textContent = am.airspaces.length;
+
+    const list = document.getElementById('airspaceList');
+    list.innerHTML = '';
+    am.airspaces.forEach(a => {
+        const isActive = (a.id === currentAirspaceId);
+        const isVis = asLayerVisible.get(a.id) !== false;
+        const typeInfo = AIRSPACE_TYPES[a.type] || AIRSPACE_TYPES['A'];
+
+        const item = document.createElement('div');
+        item.className = 'layer-item' + (isActive ? ' active' : '');
+
+        // 单选圆圈
+        const radioWrap = document.createElement('div');
+        radioWrap.className = 'li-radio-wrap';
+        radioWrap.title = '激活为当前编辑对象';
+        radioWrap.innerHTML = '<div class="li-radio"></div>';
+        radioWrap.onclick = () => selectAirspace(a.id);
+
+        // 可见性开关
+        const vis = document.createElement('div');
+        vis.className = 'li-vis' + (isVis ? '' : ' hidden');
+        vis.title = isVis ? '点击隐藏' : '点击显示';
+        vis.innerHTML = isVis ? '👁' : '🙈';
+        vis.onclick = (ev) => { ev.stopPropagation(); toggleAsLayerVisible(a.id); };
+
+        // 主体
+        const body = document.createElement('div');
+        body.className = 'li-body';
+        const shapeIcon = a.shape === 'circle' ? '○' : '⬡';
+        const areaOrRadius = a.shape === 'circle'
+            ? `R=${(a.metadata.radius/1000).toFixed(1)}km`
+            : (a.vertices.length >= 3 ? `${am.calcArea(a.id).toFixed(1)}km²` : `${a.vertices.length}点`);
+        body.innerHTML = `
+            <div class="li-name">
+                <span class="li-badge badge-${a.type}" style="display:inline-block;">${a.type}</span>
+                <span style="color:${isVis ? '#e2e8f0' : '#475569'}">${a.name}</span>
+            </div>
+            <div class="li-meta">${shapeIcon} ${areaOrRadius} · ${typeInfo.label.split('·')[1] || ''}</div>`;
+        body.onclick = () => selectAirspace(a.id);
+
+        // 删除按钮
+        const del = document.createElement('div');
+        del.className = 'li-del';
+        del.title = '删除此空域';
+        del.innerHTML = '🗑';
+        del.onclick = (ev) => { ev.stopPropagation(); deleteAirspace(a.id); };
+
+        item.appendChild(radioWrap);
+        item.appendChild(vis);
+        item.appendChild(body);
+        item.appendChild(del);
+        list.appendChild(item);
+    });
+
+    // 当前编辑空域提示条
+    const bar = document.getElementById('currentAirspaceBar');
+    const nameEl = document.getElementById('currentAirspaceName');
+    if (currentAirspaceId) {
+        const a = am.get(currentAirspaceId);
+        bar.style.display = 'block';
+        if (nameEl) nameEl.textContent = a ? a.name : '—';
+    } else {
+        bar.style.display = 'none';
+    }
+
+    // 顶点列表
+    const vtxSection = document.getElementById('asVtxSection');
+    const vtxList = document.getElementById('asVtxList');
+    if (currentAirspaceId) {
+        const a = am.get(currentAirspaceId);
+        if (a && a.shape === 'polygon' && a.vertices.length > 0) {
+            vtxSection.style.display = '';
+            document.getElementById('asVtxCount').textContent = a.vertices.length;
+            vtxList.innerHTML = '';
+            a.vertices.forEach(v => {
+                const d = document.createElement('div');
+                d.className = 'wp-item';
+                d.innerHTML = `<div class="wp-label">${v.label}</div><div class="wp-coord">${v.lon.toFixed(4)}, ${v.lat.toFixed(4)}</div>`;
+                vtxList.appendChild(d);
+            });
+        } else if (a && a.shape === 'circle') {
+            vtxSection.style.display = '';
+            document.getElementById('asVtxCount').textContent = a.center ? 1 : 0;
+            vtxList.innerHTML = a.center
+                ? `<div class="wp-item"><div class="wp-label">圆心</div><div class="wp-coord">${a.center.lon.toFixed(4)}, ${a.center.lat.toFixed(4)}</div></div>`
+                : '<div class="wp-item" style="color:#475569">尚未设置圆心</div>';
+        } else {
+            vtxSection.style.display = 'none';
+        }
+    } else {
+        vtxSection.style.display = 'none';
+    }
+}
+
+// =====================================================
+//  空域操作函数
+// =====================================================
+function showNewAirspaceModal() {
+    document.getElementById('newAirspaceModal').classList.add('show');
+    document.getElementById('newAsName').value = '';
+    document.getElementById('newAsType').value = currentAirspaceType;
+    document.getElementById('newAsShape').value = currentAirspaceShape;
+    document.getElementById('newAsName').focus();
+}
+
+function closeAirspaceModal() {
+    document.getElementById('newAirspaceModal').classList.remove('show');
+}
+
+function confirmNewAirspace() {
+    const name = document.getElementById('newAsName').value.trim();
+    if (!name) { toast('请输入空域名称', 'err'); return; }
+    const type  = document.getElementById('newAsType').value;
+    const shape = document.getElementById('newAsShape').value;
+    const a = am.create(name, type, shape);
+    currentAirspaceId = a.id;
+    currentAirspaceType = type;
+    currentAirspaceShape = shape;
+    setAirspaceType(type);
+    setAirspaceShape(shape);
+    closeAirspaceModal();
+    refreshAirspaceUI();
+    toast(`已创建空域：${name}`, 'ok');
+    // 自动进入绘制模式
+    if (currentMode === '2d') enterDrawModeAirspace();
+}
+
+function saveAirspaceProperties() {
+    if (!currentAirspaceId) { toast('请先选择空域', 'err'); return; }
+    const a = am.get(currentAirspaceId);
+    if (!a) return;
+    a.name = document.getElementById('asName').value || a.name;
+    a.type = currentAirspaceType;
+    a.metadata.altMin = parseInt(document.getElementById('asAltMin').value) || 0;
+    a.metadata.altMax = parseInt(document.getElementById('asAltMax').value) || 1000;
+    if (a.shape === 'circle') {
+        a.metadata.radius = parseInt(document.getElementById('asRadius').value) || 2000;
+    }
+    am.update(currentAirspaceId, a);
+    renderAirspace(currentAirspaceId);
+    refreshAirspaceUI();
+    toast('空域属性已保存', 'ok');
+}
+
+function deleteCurrentAirspace() {
+    if (!currentAirspaceId) return;
+    deleteAirspace(currentAirspaceId);
+}
+
+function deleteAirspace(id) {
+    if (!confirm('确认删除此空域？')) return;
+    if (asEntities.has(id)) {
+        asEntities.get(id).forEach(e => viewer.entities.remove(e));
+        asEntities.delete(id);
+    }
+    asLayerVisible.delete(id);
+    am.delete(id);
+    if (currentAirspaceId === id) {
+        currentAirspaceId = am.airspaces.length > 0 ? am.airspaces[0].id : null;
+        if (currentAirspaceId) selectAirspace(currentAirspaceId);
+    }
+    refreshAirspaceUI();
+    toast('已删除空域', 'info');
+}
+
+function toggleAsLayerVisible(id) {
+    const cur = asLayerVisible.get(id) !== false;
+    asLayerVisible.set(id, !cur);
+    renderAirspace(id);
+    refreshAirspaceUI();
+    toast(cur ? '已隐藏空域图层' : '已显示空域图层', 'info');
+}
+
+function clearAllAirspace() {
+    if (!confirm('确认清空全部空域数据？此操作不可恢复！')) return;
+    asEntities.forEach(arr => arr.forEach(e => viewer.entities.remove(e)));
+    asEntities.clear();
+    am.airspaces = [];
+    am.save();
+    currentAirspaceId = null;
+    clearAsDrawEntities();
+    isDrawingAirspace = false;
+    asDrawingVtx = [];
+    refreshAirspaceUI();
+    toast('已清空全部空域', 'info');
+}
+
+function exportAirspaceGeoJSON() {
+    if (am.airspaces.length === 0) { toast('无可导出的空域数据', 'err'); return; }
+    const data = am.toGeoJSON();
+    downloadJSON(data, `airspaces_${Date.now()}.geojson`);
+    toast('空域 GeoJSON 已导出', 'ok');
+    console.log('空域 GeoJSON：', JSON.stringify(data, null, 2));
+}
+
+function importAirspaceData() {
+    const input = document.getElementById('asFileInput');
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const d = JSON.parse(ev.target.result);
+                if (d.type === 'FeatureCollection') {
+                    d.features.forEach(f => {
+                        const p = f.properties;
+                        const shape = p.shape || (f.geometry.type === 'Polygon' ? 'polygon' : 'circle');
+                        const a = am.create(p.name || '导入空域', p.type || 'C', shape);
+                        a.metadata.altMin = p.alt_min || 0;
+                        a.metadata.altMax = p.alt_max || 1000;
+                        a.metadata.radius = p.radius_m || 2000;
+                        if (shape === 'polygon' && f.geometry.type === 'Polygon') {
+                            const ring = f.geometry.coordinates[0];
+                            a.vertices = ring.slice(0, -1).map((c, i) => ({ id: 'av_' + i, lon: c[0], lat: c[1], label: `V${i + 1}` }));
+                        } else if (shape === 'circle' && f.geometry.type === 'Point') {
+                            a.center = { lon: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] };
+                        }
+                        am.update(a.id, a);
+                    });
+                    am.airspaces.forEach(a => renderAirspace(a.id));
+                    refreshAirspaceUI();
+                    toast('空域导入成功', 'ok');
+                } else {
+                    toast('不支持的文件格式', 'err');
+                }
+            } catch (err) {
+                toast('文件解析错误', 'err');
+            }
+        };
+        reader.readAsText(file);
+        input.value = '';
+    };
+    input.click();
+}
+
+// 取消空域绘制
+function cancelAirspaceDraw() {
+    isDrawingAirspace = false;
+    asDrawingVtx = [];
+    clearAsDrawEntities();
+    enterEditModeAirspace();
+    toast('空域绘制已取消', 'info');
+}
+
+// =====================================================
+//  初始化 Cesium
+// =====================================================
+function initCesium() {
+    // 禁用 Ion，避免请求 api.cesium.com（代理环境下会失败）
+    Cesium.Ion.defaultAccessToken = '';
+
+    // 高德卫星影像（无注记），多子域负载均衡
+    const gaodeProvider = new Cesium.UrlTemplateImageryProvider({
+        url: 'https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+        subdomains: ['1', '2', '3', '4'],
+        tilingScheme: new Cesium.WebMercatorTilingScheme(),
+        maximumLevel: 18,
+        credit: '高德卫星影像'
+    });
+
+    viewer = new Cesium.Viewer('cesiumContainer', {
+        animation: false, timeline: false,
+        fullscreenButton: false, vrButton: false,
+        geocoder: false, navigationHelpButton: false,
+        homeButton: false, sceneModePicker: false,
+        baseLayerPicker: false,
+        imageryProvider: gaodeProvider,
+        terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+        sceneMode: Cesium.SceneMode.SCENE2D,   // 真正的正交平面，无透视无视差
+        requestRenderMode: false
+    });
+
+    // 移除可能残留的其他图层，确保只有高德
+    viewer.imageryLayers.removeAll();
+    viewer.imageryLayers.addImageryProvider(gaodeProvider);
+
+    // 去掉版权
+    viewer.cesiumWidget.creditContainer.style.display = 'none';
+
+    // 2D模式锁定旋转（只允许平移和缩放）
+    viewer.scene.screenSpaceCameraController.enableRotate = false;
+    viewer.scene.screenSpaceCameraController.enableTilt   = false;
+
+    // 初始相机位置（德清区域，用Rectangle确保屏幕正中）
+    viewer.camera.setView({
+        destination: Cesium.Rectangle.fromDegrees(119.75, 30.38, 120.18, 30.70)
+    });
+
+    // 鼠标点击事件（合并绘制模式和工具模式）
+    viewer.screenSpaceEventHandler.setInputAction(onMapClick,     Cesium.ScreenSpaceEventType.LEFT_CLICK);
+    // 右键取消
+    viewer.screenSpaceEventHandler.setInputAction(onRightClick,   Cesium.ScreenSpaceEventType.RIGHT_CLICK);
+    // 鼠标移动
+    viewer.screenSpaceEventHandler.setInputAction(onMouseMove,    Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+    // 鼠标按下/抬起（拖拽节点）
+    viewer.screenSpaceEventHandler.setInputAction(onMouseDown,    Cesium.ScreenSpaceEventType.LEFT_DOWN);
+    viewer.screenSpaceEventHandler.setInputAction(onMouseUp,      Cesium.ScreenSpaceEventType.LEFT_UP);
+
+    // 渲染已存储航路
+    rm.routes.forEach(r => renderRoute(r.id));
+    // 渲染已存储空域
+    am.airspaces.forEach(a => renderAirspace(a.id));
+    // 自动选中第一条航路（如果存在）
+    if (rm.routes.length > 0 && !currentRouteId) {
+        selectRoute(rm.routes[0].id);
+    }
+    // 初始化空域UI
+    refreshAirspaceUI();
+    // 初始化面板
+    switchPanel('route');
+    refreshUI();
+    // 启动自动保存定时器（独立 setInterval，与 save() 完全解耦）
+    startAutoSave();
+}
+
+// =====================================================
+//  模式切换
+// =====================================================
+// 辅助：计算一组航点的左右边界线（垂直于航路走向偏移）
+function calcBoundaryLines(wps, widthMeters) {
+    const leftLine = [], rightLine = [];
+    const n = wps.length;
+    for (let i = 0; i < n; i++) {
+        const wp = wps[i];
+        // 取相邻段的平均方向向量
+        let dx = 0, dy = 0, count = 0;
+        if (i < n - 1) {
+            dx += wps[i+1].lon - wp.lon;
+            dy += wps[i+1].lat - wp.lat;
+            count++;
+        }
+        if (i > 0) {
+            dx += wp.lon - wps[i-1].lon;
+            dy += wp.lat - wps[i-1].lat;
+            count++;
+        }
+        if (count > 1) { dx /= count; dy /= count; }
+        // 法向量（垂直方向）
+        const len = Math.sqrt(dx*dx + dy*dy) || 1;
+        const nx = -dy / len;  // 垂直于航路方向
+        const ny =  dx / len;
+        // 转换为度偏移（纬度方向1度≈111320m，经度方向需除cosLat）
+        const cosLat = Math.cos(Cesium.Math.toRadians(wp.lat));
+        const offsetLat = (widthMeters / 2) / 111320;
+        const offsetLon = offsetLat / (cosLat || 0.01);
+        leftLine.push( Cesium.Cartesian3.fromDegrees(wp.lon + nx * offsetLon, wp.lat + ny * offsetLat, wp.alt));
+        rightLine.push(Cesium.Cartesian3.fromDegrees(wp.lon - nx * offsetLon, wp.lat - ny * offsetLat, wp.alt));
+    }
+    return { leftLine, rightLine };
+}
+
+// 辅助：根据航点列表计算包围盒，返回 {minLon,maxLon,minLat,maxLat,cLon,cLat,spanDeg}
+function calcBBox(wps) {
+    let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    wps.forEach(wp => {
+        minLon = Math.min(minLon, wp.lon); maxLon = Math.max(maxLon, wp.lon);
+        minLat = Math.min(minLat, wp.lat); maxLat = Math.max(maxLat, wp.lat);
+    });
+    return {
+        minLon, maxLon, minLat, maxLat,
+        cLon: (minLon + maxLon) / 2,
+        cLat: (minLat + maxLat) / 2,
+        spanDeg: Math.max(maxLon - minLon, maxLat - minLat)
+    };
+}
+
+// 辅助：在 Columbus/2D 视图中，用 lookAt 把包围盒精确居中
+function flyTo2D(wps) {
+    const bb = calcBBox(wps);
+    // 用 Rectangle 方式：让 Cesium 自动计算合适的相机高度和中心
+    const rect = Cesium.Rectangle.fromDegrees(
+        bb.minLon - 0.02, bb.minLat - 0.02,
+        bb.maxLon + 0.02, bb.maxLat + 0.02
+    );
+    viewer.camera.setView({
+        destination: rect,
+        // Columbus View 下 setView(Rectangle) 会自动俯视居中
+    });
+}
+
+function setMode(mode) {
+    // 切换模式时清除节点选中
+    selectedNodeIdx = null;
+    isDragging = false;
+    document.getElementById('nodeToolbar').classList.remove('show');
+    currentMode = mode;
+    if (mode === '2d') {
+        // 切换到真正的2D正交平面，duration=0瞬切
+        viewer.scene.morphTo2D(0);
+        // 锁定旋转，2D下只允许平移和缩放
+        viewer.scene.screenSpaceCameraController.enableRotate = false;
+        viewer.scene.screenSpaceCameraController.enableTilt   = false;
+        document.getElementById('tab2d').classList.add('active');
+        document.getElementById('tab3d').classList.remove('active');
+        document.getElementById('stMode').textContent = '2D编辑';
+        document.getElementById('editSection').style.display = '';
+        // 显示编辑工具栏（仅当有航路时）
+        if (currentRouteId) {
+            document.getElementById('editToolbar').classList.add('show');
+        }
+        setHint('2D编辑模式：点击绘制航点，右键结束');
+        // 定位到当前航路
+        const r = currentRouteId ? rm.get(currentRouteId) : null;
+        const wps = r && r.waypoints.length > 0 ? r.waypoints
+                  : rm.routes.length > 0 && rm.routes[0].waypoints.length > 0 ? rm.routes[0].waypoints
+                  : null;
+        if (wps && wps.length > 0) {
+            flyTo2D(wps);
+        } else {
+            viewer.camera.setView({
+                destination: Cesium.Rectangle.fromDegrees(119.8, 30.4, 120.1, 30.7)
+            });
+        }
+    } else {
+        // 切换到3D，duration=0瞬切，解锁旋转
+        viewer.scene.morphTo3D(0);
+        viewer.scene.screenSpaceCameraController.enableRotate = true;
+        viewer.scene.screenSpaceCameraController.enableTilt   = true;
+        document.getElementById('tab3d').classList.add('active');
+        document.getElementById('tab2d').classList.remove('active');
+        document.getElementById('stMode').textContent = '3D预览';
+        document.getElementById('editToolbar').classList.remove('show');
+        if (isDrawing) finishDraw();
+        setHint('3D预览模式：查看透明通道，可旋转地球');
+        // 飞到航路上方
+        const r = currentRouteId ? rm.get(currentRouteId) : null;
+        const wps = r && r.waypoints.length > 0 ? r.waypoints
+                  : rm.routes.length > 0 && rm.routes[0].waypoints.length > 0 ? rm.routes[0].waypoints
+                  : null;
+        if (wps && wps.length > 0) {
+            const bb = calcBBox(wps);
+            const altitude = Math.min(Math.max(bb.spanDeg * 111320 * 3.5, 80000), 600000);
+            viewer.camera.flyTo({
+                destination: Cesium.Cartesian3.fromDegrees(bb.cLon, bb.cLat, altitude),
+                orientation: { heading: 0, pitch: Cesium.Math.toRadians(-40), roll: 0 },
+                duration: 1.5
+            });
+        }
+    }
+    // 重渲染所有航路
+    rm.routes.forEach(r => renderRoute(r.id));
+    // 重渲染所有空域
+    am.airspaces.forEach(a => renderAirspace(a.id));
+}
+
+// =====================================================
+//  操作模式切换：绘制 <-> 编辑
+// =====================================================
+function enterDrawMode() {
+    if (currentMode !== '2d') {
+        toast('请先切换到 2D 编辑模式', 'info'); return;
+    }
+    if (!currentRouteId) {
+        showNewModal(); return;
+    }
+    // 切换 tab 高亮（工具栏内）
+    document.getElementById('etTabDraw').classList.add('active-draw');
+    document.getElementById('etTabDraw').classList.remove('active-edit');
+    document.getElementById('etTabEdit').classList.remove('active-edit');
+    document.getElementById('etTabEdit').classList.remove('active-draw');
+    // 显示绘制操作组，隐藏编辑工具组
+    document.getElementById('drawToolGroup').style.display = 'flex';
+    document.getElementById('editToolGroup').style.display = 'none';
+    // 工具栏本身保持可见（绘制时也要显示）
+    document.getElementById('editToolbar').classList.add('show');
+    // 启动绘制
+    isDrawing = true;
+    drawingWPs = [];
+    clearDrawEntities();
+    clearNodeSelection();
+    setHint('✏️ 点击地图添加航点 · Enter或右键完成');
+    toast('绘制模式：点击地图连续添加航点', 'info');
+}
+
+function enterEditMode() {
+    // 如果正在绘制，先完成
+    if (isDrawing) {
+        if (drawingWPs.length >= 2) {
+            const r = rm.get(currentRouteId);
+            if (r) {
+                r.waypoints = [...r.waypoints, ...drawingWPs];
+                rm.update(currentRouteId, r);
+            }
+            clearDrawEntities();
+            renderRoute(currentRouteId);
+            updateLengthStatus();
+            toast(`已保存 ${drawingWPs.length} 个航点`, 'ok');
+        } else {
+            clearDrawEntities();
+            toast('绘制已取消（不足2个航点）', 'info');
+        }
+        isDrawing = false;
+        drawingWPs = [];
+    }
+    // 切换 tab 高亮（工具栏内）
+    document.getElementById('etTabEdit').classList.add('active-edit');
+    document.getElementById('etTabEdit').classList.remove('active-draw');
+    document.getElementById('etTabDraw').classList.remove('active-draw');
+    document.getElementById('etTabDraw').classList.remove('active-edit');
+    // 显示编辑工具组，隐藏绘制操作组
+    document.getElementById('drawToolGroup').style.display = 'none';
+    document.getElementById('editToolGroup').style.display = 'flex';
+    // 显示地图工具栏
+    if (currentRouteId) {
+        document.getElementById('editToolbar').classList.add('show');
+    }
+    setEditTool('select');
+    setHint('');
+    refreshUI();
+}
+
+// 兼容旧调用：startDraw → enterDrawMode
+function startDraw() { enterDrawMode(); }
+
+function finishDraw() {
+    if (!isDrawing) return;
+    if (drawingWPs.length < 2) {
+        toast('至少需要2个航点', 'err'); return;
+    }
+    const count = drawingWPs.length;
+    const r = rm.get(currentRouteId);
+    if (r) {
+        r.waypoints = [...r.waypoints, ...drawingWPs];
+        rm.update(currentRouteId, r);
+    }
+    drawingWPs = [];
+    isDrawing = false;
+    clearDrawEntities();
+    // 自动切回编辑模式
+    enterEditMode();
+    renderRoute(currentRouteId);
+    refreshUI();
+    updateLengthStatus();
+    toast(`已添加 ${count} 个航点`, 'ok');
+}
+
+function clearCurrentDraw() {
+    isDrawing = false;
+    drawingWPs = [];
+    clearDrawEntities();
+    // 取消绘制 → 回到编辑模式
+    enterEditMode();
+    toast('绘制已取消', 'info');
+}
+
+
+
+function undoLast() {
+    // 绘制模式：撤销最后一个临时航点（不走历史栈）
+    if (isDrawing) {
+        if (drawingWPs.length > 0) {
+            drawingWPs.pop();
+            clearDrawEntities();
+            redrawTempLine();
+            toast('已撤销最后一个绘制航点', 'info');
+        }
+        return;
+    }
+    // 编辑模式：从历史栈恢复
+    if (undoStack.length === 0) {
+        toast('没有可撤销的操作', 'err');
+        return;
+    }
+    const snapshot = undoStack.pop();
+    const r = rm.get(snapshot.routeId);
+    if (r) {
+        r.waypoints = snapshot.waypoints;
+        rm.update(snapshot.routeId, r);
+        renderRoute(snapshot.routeId);
+        refreshUI();
+        updateLengthStatus();
+        clearNodeSelection();
+        toast(`已撤销，还可再撤销 ${undoStack.length} 步`, 'info');
+    }
+    updateUndoBtn();
+}
+
+// =====================================================
+//  编辑工具模式：'select' | 'add' | 'delete'
+// =====================================================
+let editTool = 'select';
+
+function setEditTool(tool) {
+    editTool = tool;
+    // 更新按钮高亮
+    document.getElementById('toolSelect').className = 'et-btn' + (tool === 'select' ? ' active-select' : '');
+    document.getElementById('toolAdd').className    = 'et-btn' + (tool === 'add'    ? ' active-add'    : '');
+    document.getElementById('toolDelete').className = 'et-btn' + (tool === 'delete' ? ' active-delete'  : '');
+    // 更新提示文字
+    const hints = {
+        select: '点击节点选中，拖拽移动；空白处取消选中',
+        add:    '点击线段插入新节点；点击空白处追加到末尾',
+        delete: '直接点击节点删除'
+    };
+    document.getElementById('etHint').textContent = hints[tool];
+    // 取消当前选中
+    clearNodeSelection();
+    // 更新光标
+    viewer.container.style.cursor = tool === 'add' ? 'crosshair' : (tool === 'delete' ? 'not-allowed' : '');
+}
+
+// =====================================================
+//  节点屏幕坐标碰撞检测（替代 scene.pick，2D模式更可靠）
+// =====================================================
+const NODE_HIT_RADIUS = 14;   // 节点命中半径（像素）
+const SEGMENT_HIT_DIST = 10;  // 线段命中距离（像素）
+
+// SCENE2D 正交投影下，手动计算节点屏幕坐标
+function getNodeScreenPosByProjection(wp) {
+    try {
+        const scene = viewer.scene;
+        const camera = viewer.camera;
+        const canvas = viewer.canvas;
+        const W = canvas.clientWidth;
+        const H = canvas.clientHeight;
+        const frustum = camera.frustum;
+        if (!frustum || !frustum.right) return null;
+
+        const projection = scene.mapProjection;
+        const lonRad = Cesium.Math.toRadians(wp.lon);
+        const latRad = Cesium.Math.toRadians(wp.lat);
+        const carto = new Cesium.Cartographic(lonRad, latRad, 0);
+        const projected = projection.project(carto);
+
+        const camX = camera.position.x;
+        const camY = camera.position.y;
+        const viewW = frustum.right - frustum.left;
+        const viewH = frustum.top - frustum.bottom;
+
+        const dx = projected.x - camX;
+        const dy = projected.y - camY;
+        const sx = (dx / viewW + 0.5) * W;
+        const sy = (0.5 - dy / viewH) * H;
+
+        return { x: sx, y: sy };
+    } catch (ex) {
+        return null;
+    }
+}
+
+// 获取当前航路所有节点的屏幕坐标 [{idx, sx, sy}]
+function getNodeScreenPositions(routeId) {
+    const r = rm.get(routeId);
+    if (!r || r.waypoints.length === 0) return [];
+    const result = [];
+    r.waypoints.forEach((wp, idx) => {
+        const pos = getNodeScreenPosByProjection(wp);
+        if (pos) result.push({ idx, sx: pos.x, sy: pos.y });
+    });
+    return result;
+}
+
+// 找最近节点，在命中半径内则返回 idx，否则 -1
+function hitTestNode(screenX, screenY, routeId) {
+    const nodes = getNodeScreenPositions(routeId);
+    let bestIdx = -1, bestDist = NODE_HIT_RADIUS;
+    nodes.forEach(({ idx, sx, sy }) => {
+        const dist = Math.sqrt((screenX - sx) ** 2 + (screenY - sy) ** 2);
+        if (dist < bestDist) { bestDist = dist; bestIdx = idx; }
+    });
+    return bestIdx;
+}
+
+// 点到线段的垂直距离（像素），以及最近点参数 t∈[0,1]
+function pointToSegmentDist(px, py, ax, ay, bx, by) {
+    const dx = bx - ax, dy = by - ay;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return { dist: Math.hypot(px - ax, py - ay), t: 0 };
+    let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    const cx = ax + t * dx, cy = ay + t * dy;
+    return { dist: Math.hypot(px - cx, py - cy), t };
+}
+
+// 检测是否点击了某段线段（排除节点命中），返回 { segIdx, t } 或 null
+// segIdx = i 表示第 i 到第 i+1 节点之间
+function hitTestSegment(screenX, screenY, routeId) {
+    const nodes = getNodeScreenPositions(routeId);
+    if (nodes.length < 2) return null;
+    // 先确认没有命中节点
+    const nodeHit = hitTestNode(screenX, screenY, routeId);
+    if (nodeHit >= 0) return null;
+
+    let best = null, bestDist = SEGMENT_HIT_DIST;
+    for (let i = 0; i < nodes.length - 1; i++) {
+        const a = nodes[i], b = nodes[i + 1];
+        const { dist, t } = pointToSegmentDist(screenX, screenY, a.sx, a.sy, b.sx, b.sy);
+        if (dist < bestDist) { bestDist = dist; best = { segIdx: i, t }; }
+    }
+    return best;
+}
+
+// =====================================================
+//  地图事件（基于工具模式分发）
+// =====================================================
+
+// 拖拽状态
+let _mouseDownPos = null;
+let _pendingDragNodeIdx = null;
+const DRAG_START_DIST = 4;
+
+function onRightClick() {
+    if (currentPanel === 'airspace') {
+        if (isDrawingAirspace) finishAirspaceDraw();
+    } else {
+        if (isDrawing) finishDraw();
+    }
+}
+
+// LEFT_CLICK：统一点击处理（绘制模式 + 工具模式）
+function onMapClick(e) {
+    if (currentMode !== '2d') return;
+
+    // === 空域面板逻辑 ===
+    if (currentPanel === 'airspace') {
+        if (isDrawingAirspace) {
+            const cartesian = viewer.camera.pickEllipsoid(e.position, viewer.scene.globe.ellipsoid);
+            if (!Cesium.defined(cartesian)) return;
+            const carto = Cesium.Cartographic.fromCartesian(cartesian);
+            const lon = Cesium.Math.toDegrees(carto.longitude);
+            const lat = Cesium.Math.toDegrees(carto.latitude);
+
+            if (currentAirspaceShape === 'circle') {
+                // 圆形：第一点=圆心，第二点=半径
+                if (asDrawingVtx.length === 0) {
+                    asDrawingVtx.push({ id: 'cv_0', lon, lat, label: '圆心' });
+                    redrawAirspaceDraw();
+                    toast('已设置圆心，再点一下确定半径', 'info');
+                } else {
+                    // 计算半径
+                    const c = asDrawingVtx[0];
+                    const ca = Cesium.Cartesian3.fromDegrees(c.lon, c.lat, 0);
+                    const cb = Cesium.Cartesian3.fromDegrees(lon, lat, 0);
+                    const r = Cesium.Cartesian3.distance(ca, cb);
+                    document.getElementById('asRadius').value = Math.round(r);
+                    finishAirspaceDraw();
+                }
+            } else {
+                // 多边形：累积顶点
+                const vtx = {
+                    id: 'av_' + Date.now(),
+                    lon, lat,
+                    label: `V${asDrawingVtx.length + 1}`
+                };
+                asDrawingVtx.push(vtx);
+                redrawAirspaceDraw();
+            }
+        } else {
+            // 编辑模式：空域节点交互
+            if (!currentAirspaceId) return;
+            onAirspaceClickTool(e);
+        }
+        return;
+    }
+
+    // === 航路面板逻辑（原有代码）===
+
+    // === 绘制模式：添加航点 ===
+    if (isDrawing) {
+        const cartesian = viewer.camera.pickEllipsoid(e.position, viewer.scene.globe.ellipsoid);
+        if (!Cesium.defined(cartesian)) return;
+        const carto = Cesium.Cartographic.fromCartesian(cartesian);
+        const lon = Cesium.Math.toDegrees(carto.longitude);
+        const lat = Cesium.Math.toDegrees(carto.latitude);
+        const r = rm.get(currentRouteId);
+        const alt = r ? r.metadata.altMin : 1000;
+        const wp = {
+            id: 'wp_' + Date.now(), lon, lat, alt,
+            label: `WP${(r ? r.waypoints.length : 0) + drawingWPs.length + 1}`
+        };
+        drawingWPs.push(wp);
+        redrawTempLine();
+        return;
+    }
+
+    // === 非绘制模式：按工具分发 ===
+    if (!currentRouteId) return;
+    onMapClickTool(e);
+}
+
+// LEFT_DOWN：开始拖拽意图检测（仅 select 工具）
+function onMouseDown(e) {
+    if (currentMode !== '2d') return;
+
+    // 空域面板：拖拽顶点
+    if (currentPanel === 'airspace') {
+        if (isDrawingAirspace || editTool !== 'select') return;
+        if (!currentAirspaceId) return;
+        _mouseDownPos = { x: e.position.x, y: e.position.y };
+        _pendingDragNodeIdx = null;
+        const hitIdx = hitTestAirspaceNode(e.position.x, e.position.y, currentAirspaceId);
+        if (hitIdx >= 0) {
+            _pendingDragNodeIdx = hitIdx;
+            selectAirspaceNode(hitIdx);
+        }
+        return;
+    }
+
+    // 航路面板
+    if (isDrawing) return;
+    if (editTool !== 'select') return;
+    if (!currentRouteId) return;
+
+    _mouseDownPos = { x: e.position.x, y: e.position.y };
+    _pendingDragNodeIdx = null;
+
+    const hitIdx = hitTestNode(e.position.x, e.position.y, currentRouteId);
+    if (hitIdx >= 0) {
+        // 记录意图，等 mouseMove 确认真实拖拽后才锁平移
+        _pendingDragNodeIdx = hitIdx;
+        selectNode(hitIdx);
+    }
+}
+
+// MOUSE_MOVE：拖拽 + 光标提示
+function onMouseMove(e) {
+    // ---- 正在拖拽中 ----
+    if (isDragging && selectedNodeIdx !== null) {
+        const cartesian = viewer.camera.pickEllipsoid(e.endPosition, viewer.scene.globe.ellipsoid);
+        if (!Cesium.defined(cartesian)) return;
+        const carto = Cesium.Cartographic.fromCartesian(cartesian);
+
+        if (currentPanel === 'airspace' && dragRouteId && dragRouteId.startsWith('as_')) {
+            // 拖拽空域顶点
+            const a = am.get(dragRouteId);
+            if (!a) return;
+            if (a.shape === 'circle' && selectedNodeIdx === 0 && a.center) {
+                // 圆心拖拽
+                a.center.lon = Cesium.Math.toDegrees(carto.longitude);
+                a.center.lat = Cesium.Math.toDegrees(carto.latitude);
+            } else if (a.shape === 'polygon' && a.vertices[selectedNodeIdx]) {
+                a.vertices[selectedNodeIdx].lon = Cesium.Math.toDegrees(carto.longitude);
+                a.vertices[selectedNodeIdx].lat = Cesium.Math.toDegrees(carto.latitude);
+            }
+            am.update(dragRouteId, a);
+            renderAirspace(dragRouteId);
+            refreshAirspaceUI();
+        } else if (dragRouteId) {
+            // 拖拽航路航点
+            const r = rm.get(dragRouteId);
+            if (!r) return;
+            r.waypoints[selectedNodeIdx].lon = Cesium.Math.toDegrees(carto.longitude);
+            r.waypoints[selectedNodeIdx].lat = Cesium.Math.toDegrees(carto.latitude);
+            rm.update(dragRouteId, r);
+            renderRoute(dragRouteId);
+            updateLengthStatus();
+        }
+        return;
+    }
+
+    // ---- 待确认拖拽意图（select工具命中节点后） ----
+    if (_pendingDragNodeIdx !== null && _mouseDownPos) {
+        const dx = e.endPosition.x - _mouseDownPos.x;
+        const dy = e.endPosition.y - _mouseDownPos.y;
+        if (Math.sqrt(dx * dx + dy * dy) > DRAG_START_DIST) {
+            // 确认为真实拖拽，此时才锁平移
+            isDragging = true;
+            if (currentPanel === 'airspace') {
+                dragRouteId = currentAirspaceId;
+                pushAsUndoState(currentAirspaceId);
+            } else {
+                dragRouteId = currentRouteId;
+                pushUndoState(dragRouteId);
+            }
+            selectedNodeIdx = _pendingDragNodeIdx;
+            _pendingDragNodeIdx = null;
+            viewer.scene.screenSpaceCameraController.enableTranslate = false;
+            viewer.container.style.cursor = 'grabbing';
+        }
+        return;
+    }
+
+    // ---- 悬停光标（非拖拽状态） ----
+    if (currentMode === '2d' && !isDragging) {
+        const mx = e.endPosition.x, my = e.endPosition.y;
+        if (currentPanel === 'airspace' && !isDrawingAirspace && currentAirspaceId) {
+            const hitIdx = hitTestAirspaceNode(mx, my, currentAirspaceId);
+            if (editTool === 'select') {
+                viewer.container.style.cursor = hitIdx >= 0 ? 'grab' : '';
+            } else if (editTool === 'add') {
+                viewer.container.style.cursor = hitIdx >= 0 ? 'default' : 'crosshair';
+            } else if (editTool === 'delete') {
+                viewer.container.style.cursor = hitIdx >= 0 ? 'not-allowed' : 'default';
+            }
+        } else if (currentPanel === 'route' && !isDrawing && currentRouteId) {
+            const hitIdx = hitTestNode(mx, my, currentRouteId);
+            if (editTool === 'select') {
+                viewer.container.style.cursor = hitIdx >= 0 ? 'grab' : '';
+            } else if (editTool === 'add') {
+                if (hitIdx >= 0) {
+                    viewer.container.style.cursor = 'default';
+                } else {
+                    const segHit = hitTestSegment(mx, my, currentRouteId);
+                    viewer.container.style.cursor = segHit ? 'crosshair' : 'cell';
+                }
+            } else if (editTool === 'delete') {
+                viewer.container.style.cursor = hitIdx >= 0 ? 'not-allowed' : 'default';
+            }
+        }
+    }
+
+    // ---- 状态栏坐标 ----
+    let cartesian;
+    if (currentMode === '2d') {
+        cartesian = viewer.camera.pickEllipsoid(e.endPosition, viewer.scene.globe.ellipsoid);
+    } else {
+        cartesian = viewer.scene.pickPosition(e.endPosition);
+    }
+    if (Cesium.defined(cartesian)) {
+        const carto = Cesium.Cartographic.fromCartesian(cartesian);
+        const lon = Cesium.Math.toDegrees(carto.longitude).toFixed(4);
+        const lat = Cesium.Math.toDegrees(carto.latitude).toFixed(4);
+        document.getElementById('stCoord').textContent = `${lon}, ${lat}`;
+    }
+}
+
+// LEFT_UP：结束拖拽
+function onMouseUp(e) {
+    _pendingDragNodeIdx = null;
+    _mouseDownPos = null;
+    if (isDragging) {
+        isDragging = false;
+        const wasAirspace = dragRouteId && dragRouteId.startsWith('as_');
+        dragRouteId = null;
+        viewer.scene.screenSpaceCameraController.enableTranslate = true;
+        viewer.container.style.cursor = editTool === 'select' ? '' : (editTool === 'add' ? 'cell' : 'not-allowed');
+        if (wasAirspace) {
+            am.save();
+            refreshAirspaceUI();
+        } else {
+            rm.save();
+            updateLengthStatus();
+        }
+    }
+}
+
+// LEFT_CLICK（点击操作，由 Cesium handler 独立监听）
+// 用于 add / delete 工具的单击行为
+function onMapClickTool(e) {
+    if (currentMode !== '2d' || isDrawing || !currentRouteId) return;
+
+    // === 添加节点工具 ===
+    if (editTool === 'add') {
+        const cartesian = viewer.camera.pickEllipsoid(e.position, viewer.scene.globe.ellipsoid);
+        if (!Cesium.defined(cartesian)) return;
+        const carto = Cesium.Cartographic.fromCartesian(cartesian);
+        const lon = Cesium.Math.toDegrees(carto.longitude);
+        const lat = Cesium.Math.toDegrees(carto.latitude);
+        const r = rm.get(currentRouteId);
+        if (!r) return;
+
+        // 先检测线段命中 → 插入
+        const segHit = hitTestSegment(e.position.x, e.position.y, currentRouteId);
+        if (segHit) {
+            const insertAt = segHit.segIdx + 1;
+            const newWp = {
+                id: 'wp_' + Date.now(), lon, lat,
+                alt: r.metadata.altMin,
+                label: `WP${insertAt + 1}`
+            };
+            pushUndoState(currentRouteId);
+            r.waypoints.splice(insertAt, 0, newWp);
+            r.waypoints.forEach((wp, i) => { wp.label = `WP${i + 1}`; });
+            rm.update(currentRouteId, r);
+            renderRoute(currentRouteId);
+            refreshUI();
+            updateLengthStatus();
+            toast(`已在 WP${insertAt + 1} 处插入节点`, 'ok');
+        } else {
+            // 未命中线段 → 追加到末尾
+            const newWp = {
+                id: 'wp_' + Date.now(), lon, lat,
+                alt: r.metadata.altMin,
+                label: `WP${r.waypoints.length + 1}`
+            };
+            pushUndoState(currentRouteId);
+            r.waypoints.push(newWp);
+            rm.update(currentRouteId, r);
+            renderRoute(currentRouteId);
+            refreshUI();
+            updateLengthStatus();
+            toast(`已追加节点 WP${r.waypoints.length}`, 'info');
+        }
+        return;
+    }
+
+    // === 删除节点工具 ===
+    if (editTool === 'delete') {
+        const hitIdx = hitTestNode(e.position.x, e.position.y, currentRouteId);
+        if (hitIdx >= 0) {
+            const r = rm.get(currentRouteId);
+            if (!r || r.waypoints.length <= 2) {
+                toast('至少保留2个航点', 'err'); return;
+            }
+            const label = r.waypoints[hitIdx].label;
+            pushUndoState(currentRouteId);
+            r.waypoints.splice(hitIdx, 1);
+            r.waypoints.forEach((wp, i) => { wp.label = `WP${i + 1}`; });
+            rm.update(currentRouteId, r);
+            renderRoute(currentRouteId);
+            refreshUI();
+            updateLengthStatus();
+            toast(`已删除 ${label}`, 'ok');
+        }
+        return;
+    }
+
+    // === 选择工具：空白处取消选中 ===
+    if (editTool === 'select') {
+        if (!isDragging) {
+            const hitIdx = hitTestNode(e.position.x, e.position.y, currentRouteId);
+            if (hitIdx < 0) clearNodeSelection();
+        }
+    }
+}
+
+
+
+// =====================================================
+//  节点选中 / 删除
+// =====================================================
+function selectNode(idx) {
+    selectedNodeIdx = idx;
+    const r = rm.get(currentRouteId);
+    if (!r) return;
+    const wp = r.waypoints[idx];
+    document.getElementById('ntLabel').textContent =
+        `${wp.label}  (${wp.lon.toFixed(4)}, ${wp.lat.toFixed(4)})`;
+    document.getElementById('nodeToolbar').classList.add('show');
+    // 重渲染以高亮选中节点
+    renderRoute(currentRouteId);
+    setHint('拖拽节点移动位置 · Delete键删除');
+}
+
+function clearNodeSelection() {
+    if (selectedNodeIdx === null) return;
+    selectedNodeIdx = null;
+    document.getElementById('nodeToolbar').classList.remove('show');
+    if (currentRouteId) renderRoute(currentRouteId);
+    setHint('');
+}
+
+function deleteSelectedNode() {
+    if (selectedNodeIdx === null || !currentRouteId) return;
+    const r = rm.get(currentRouteId);
+    if (!r || r.waypoints.length <= 2) {
+        toast('至少保留2个航点', 'err');
+        return;
+    }
+    pushUndoState(currentRouteId);
+    r.waypoints.splice(selectedNodeIdx, 1);
+    // 修正后续航点label编号
+    r.waypoints.forEach((wp, i) => { wp.label = `WP${i + 1}`; });
+    rm.update(currentRouteId, r);
+    selectedNodeIdx = null;
+    document.getElementById('nodeToolbar').classList.remove('show');
+    renderRoute(currentRouteId);
+    refreshUI();
+    updateLengthStatus();
+    toast('节点已删除', 'info');
+    setHint('');
+}
+
+// =====================================================
+//  临时绘制线渲染
+// =====================================================
+function redrawTempLine() {
+    clearDrawEntities();
+    const r = rm.get(currentRouteId);
+    const existWPs = r ? r.waypoints : [];
+    const allWPs = [...existWPs, ...drawingWPs];
+    if (allWPs.length === 0) return;
+
+    const grade = ROUTE_GRADES[currentGrade];
+    const width = rm.getWidth(currentRouteId);
+
+    // 绘制中心线（高度0贴地，与pickEllipsoid取点一致）
+    if (allWPs.length >= 2) {
+        const positions = allWPs.map(wp => Cesium.Cartesian3.fromDegrees(wp.lon, wp.lat, 0));
+        const e = viewer.entities.add({
+            polyline: {
+                positions,
+                width: 3,
+                material: Cesium.Color.fromCssColorString(grade.lineColor).withAlpha(0.9),
+                clampToGround: false
+            }
+        });
+        drawEntities.push(e);
+
+        // 绘制左右边界线（垂直于航路方向偏移，高度贴地）
+        const wps0 = allWPs.map(wp => ({...wp, alt: 0}));
+        const { leftLine, rightLine } = calcBoundaryLines(wps0, width);
+
+        const eL = viewer.entities.add({
+            polyline: { positions: leftLine,  width: 1.5, material: Cesium.Color.fromCssColorString(grade.lineColor).withAlpha(0.5) }
+        });
+        const eR = viewer.entities.add({
+            polyline: { positions: rightLine, width: 1.5, material: Cesium.Color.fromCssColorString(grade.lineColor).withAlpha(0.5) }
+        });
+        drawEntities.push(eL, eR);
+    }
+
+    // 绘制各航点（贴地）
+    drawingWPs.forEach((wp, i) => {
+        const e = viewer.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(wp.lon, wp.lat, 0),
+            point: { pixelSize: 8, color: Cesium.Color.WHITE, outlineColor: Cesium.Color.fromCssColorString(grade.lineColor), outlineWidth: 2 },
+            label: {
+                text: wp.label,
+                font: 'bold 12px sans-serif',
+                fillColor: Cesium.Color.WHITE,
+                outlineColor: Cesium.Color.BLACK,
+                outlineWidth: 2,
+                pixelOffset: new Cesium.Cartesian2(0, -18),
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+            }
+        });
+        drawEntities.push(e);
+    });
+}
+
+function clearDrawEntities() {
+    drawEntities.forEach(e => viewer.entities.remove(e));
+    drawEntities = [];
+}
+
+// =====================================================
+//  正式航路渲染
+// =====================================================
+function renderRoute(routeId) {
+    // 清除旧实体
+    if (routeEntities.has(routeId)) {
+        routeEntities.get(routeId).forEach(e => viewer.entities.remove(e));
+    }
+    const entities = [];
+    routeEntities.set(routeId, entities);
+
+    const r = rm.get(routeId);
+    if (!r || r.waypoints.length < 2) return;
+
+    // 图层不可见时不渲染
+    if (layerVisible.get(routeId) === false) return;
+
+    const grade = ROUTE_GRADES[r.grade];
+    const width = rm.getWidth(routeId);
+    // 2D模式下高度贴地（alt=0），避免高空坐标产生渲染偏移；3D保留真实高度
+    const renderAlt = (wp) => currentMode === '2d' ? 0 : wp.alt;
+    const positions = r.waypoints.map(wp => Cesium.Cartesian3.fromDegrees(wp.lon, wp.lat, renderAlt(wp)));
+
+    // ---------- 2D 编辑模式：中心线 + 边界线 ----------
+    if (currentMode === '2d') {
+        // 中心线
+        entities.push(viewer.entities.add({
+            polyline: {
+                positions,
+                width: 3,
+                material: Cesium.Color.fromCssColorString(grade.lineColor).withAlpha(0.9),
+                clampToGround: false
+            }
+        }));
+
+        // 左右边界（垂直于航路方向，高度贴地）
+        const wps0 = r.waypoints.map(wp => ({...wp, alt: 0}));
+        const { leftLine, rightLine } = calcBoundaryLines(wps0, width);
+
+        entities.push(viewer.entities.add({
+            polyline: { positions: leftLine,  width: 1.5, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString(grade.lineColor).withAlpha(0.6), dashLength: 16 }) }
+        }));
+        entities.push(viewer.entities.add({
+            polyline: { positions: rightLine, width: 1.5, material: new Cesium.PolylineDashMaterialProperty({ color: Cesium.Color.fromCssColorString(grade.lineColor).withAlpha(0.6), dashLength: 16 }) }
+        }));
+
+        // 航点标注（高度0贴地，挂_wpIdx/_wpRouteId供点击拾取）
+        r.waypoints.forEach((wp, idx) => {
+            const isSelected = (selectedNodeIdx === idx && routeId === currentRouteId);
+            const ptEntity = viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(wp.lon, wp.lat, 0),
+                point: {
+                    pixelSize: isSelected ? 13 : 8,
+                    color: isSelected
+                        ? Cesium.Color.YELLOW
+                        : Cesium.Color.fromCssColorString(grade.lineColor),
+                    outlineColor: isSelected ? Cesium.Color.WHITE : Cesium.Color.WHITE,
+                    outlineWidth: isSelected ? 3 : 2
+                },
+                label: {
+                    text: `${idx + 1}`,
+                    font: 'bold 11px sans-serif',
+                    fillColor: Cesium.Color.WHITE,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                    pixelOffset: new Cesium.Cartesian2(0, -16),
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+                }
+            });
+            // 挂标记供拾取
+            ptEntity._wpIdx     = idx;
+            ptEntity._wpRouteId = routeId;
+            entities.push(ptEntity);
+        });
+
+    // ---------- 3D 预览模式：透明矩形通道 ----------
+    } else {
+        // 通道高度范围
+        const altMin3d  = r.metadata.altMin;
+        const altMax3d  = r.metadata.altMax;
+        const altMid3d  = (altMin3d + altMax3d) / 2;  // 通道中心高度，供中心线使用
+
+        // 中心线（走通道中心高度，与 corridor 对齐）
+        const centerLinePositions = r.waypoints.map(wp =>
+            Cesium.Cartesian3.fromDegrees(wp.lon, wp.lat, altMid3d)
+        );
+        entities.push(viewer.entities.add({
+            polyline: {
+                positions: centerLinePositions,
+                width: 2,
+                material: Cesium.Color.fromCssColorString(grade.lineColor).withAlpha(0.85),
+                clampToGround: false
+            }
+        }));
+
+        // 透明通道（corridor体，近似矩形截面）
+        // positions 的水平坐标决定路径，高度由 height/extrudedHeight 控制（positions z 被忽略）
+        const corridorPositions = r.waypoints.map(wp => Cesium.Cartesian3.fromDegrees(wp.lon, wp.lat, altMin3d));
+        entities.push(viewer.entities.add({
+            corridor: {
+                positions: corridorPositions,
+                width: width,
+                height: altMin3d,
+                extrudedHeight: altMax3d,
+                material: grade.color.withAlpha(0.18),
+                outline: true,
+                outlineColor: grade.color.withAlpha(0.7),
+                outlineWidth: 1.5
+            }
+        }));
+
+        // 起止点：矩形Box封口
+        const boxHeight = altMax3d - altMin3d;          // 通道高度
+        const boxWidth  = width * 0.12;                 // 截面宽度（通道宽的12%，方形截面）
+
+        [r.waypoints[0], r.waypoints[r.waypoints.length - 1]].forEach((wp, i) => {
+            const isStart = (i === 0);
+            // Box中心在通道截面中心
+            entities.push(viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(wp.lon, wp.lat, altMid3d),
+                box: {
+                    dimensions: new Cesium.Cartesian3(boxWidth, boxWidth, boxHeight),
+                    material: grade.color.withAlpha(isStart ? 0.9 : 0.7),
+                    outline: true,
+                    outlineColor: Cesium.Color.WHITE.withAlpha(0.8),
+                    outlineWidth: 1
+                },
+                label: {
+                    text: isStart ? '起点' : '终点',
+                    font: 'bold 13px sans-serif',
+                    fillColor: Cesium.Color.WHITE,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                    pixelOffset: new Cesium.Cartesian2(0, -24),
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    scaleByDistance: new Cesium.NearFarScalar(10000, 1.0, 800000, 0.3),
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                }
+            }));
+        });
+
+        // 中间航点：小point标记（放通道中心高度）
+        r.waypoints.forEach((wp, idx) => {
+            if (idx === 0 || idx === r.waypoints.length - 1) return; // 起止点已用Box
+            entities.push(viewer.entities.add({
+                position: Cesium.Cartesian3.fromDegrees(wp.lon, wp.lat, altMid3d),
+                point: {
+                    pixelSize: 7,
+                    color: grade.color.withAlpha(1.0),
+                    outlineColor: Cesium.Color.WHITE,
+                    outlineWidth: 1.5,
+                    scaleByDistance: new Cesium.NearFarScalar(10000, 1.2, 2000000, 0.4),
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                },
+                label: {
+                    text: `WP${idx + 1}`,
+                    font: '11px sans-serif',
+                    fillColor: Cesium.Color.WHITE,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 2,
+                    pixelOffset: new Cesium.Cartesian2(0, -16),
+                    verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                    scaleByDistance: new Cesium.NearFarScalar(10000, 0.9, 800000, 0.2),
+                    disableDepthTestDistance: Number.POSITIVE_INFINITY
+                }
+            }));
+        });
+    }
+}
+
+// =====================================================
+//  等级设置
+// =====================================================
+function setGrade(g) {
+    currentGrade = g;
+    document.querySelectorAll('.grade-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.grade === g);
+    });
+    const info = ROUTE_GRADES[g];
+    document.getElementById('gradeInfo').textContent =
+        `${info.label}: 宽度 ${(info.width/1000).toFixed(0)}km · 通道高度 ${info.height}m · 颜色${g === 'I' ? '红色' : g === 'II' ? '橙色' : '绿色'}`;
+    document.getElementById('stGrade').textContent = g;
+
+    // 更新当前绘制的临时线颜色
+    if (isDrawing) redrawTempLine();
+}
+
+// =====================================================
+//  航路管理
+// =====================================================
+function showNewModal() {
+    document.getElementById('newModal').classList.add('show');
+    document.getElementById('newName').value = '';
+    document.getElementById('newName').focus();
+}
+
+function closeModal() {
+    document.getElementById('newModal').classList.remove('show');
+}
+
+function confirmNew() {
+    const name = document.getElementById('newName').value.trim();
+    if (!name) { toast('请输入航路名称', 'err'); return; }
+    const type = document.getElementById('newType').value;
+    const r = rm.create(name, type, currentGrade);
+    currentRouteId = r.id;
+    closeModal();
+    refreshUI();
+    toast(`已创建 ${name}`, 'ok');
+
+    // 自动进入绘制
+    if (currentMode === '2d') startDraw();
+}
+
+function selectRoute(id) {
+    currentRouteId = id;
+    // 切换航路时清空撤销栈
+    undoStack.length = 0;
+    updateUndoBtn();
+    const r = rm.get(id);
+    if (r) {
+        document.getElementById('routeName').value = r.name;
+        document.getElementById('altMin').value = r.metadata.altMin;
+        document.getElementById('altMax').value = r.metadata.altMax;
+        document.getElementById('customWidth').value = r.metadata.customWidth;
+        setGrade(r.grade);
+    }
+    // 2D模式下选中航路，确保进入编辑模式（非绘制）
+    if (currentMode === '2d') {
+        if (isDrawing) {
+            // 切换航路时若在绘制中，直接取消绘制
+            isDrawing = false;
+            drawingWPs = [];
+            clearDrawEntities();
+        }
+        document.getElementById('editToolbar').classList.add('show');
+        // 同步工具栏到编辑模式
+        document.getElementById('etTabEdit').classList.add('active-edit');
+        document.getElementById('etTabEdit').classList.remove('active-draw');
+        document.getElementById('etTabDraw').classList.remove('active-draw');
+        document.getElementById('drawToolGroup').style.display = 'none';
+        document.getElementById('editToolGroup').style.display = 'flex';
+        setEditTool('select');
+    }
+    refreshUI();
+    updateLengthStatus();
+}
+
+function saveProperties() {
+    if (!currentRouteId) { toast('请先选择航路', 'err'); return; }
+    const r = rm.get(currentRouteId);
+    if (!r) return;
+    r.name = document.getElementById('routeName').value || r.name;
+    r.grade = currentGrade;
+    r.metadata.altMin = parseInt(document.getElementById('altMin').value) || r.metadata.altMin;
+    r.metadata.altMax = parseInt(document.getElementById('altMax').value) || r.metadata.altMax;
+    r.metadata.customWidth = parseInt(document.getElementById('customWidth').value) || 0;
+    rm.update(currentRouteId, r);
+    renderRoute(currentRouteId);
+    refreshUI();
+    toast('属性已保存', 'ok');
+}
+
+function deleteCurrentRoute() {
+    if (!currentRouteId) return;
+    deleteRoute(currentRouteId);
+}
+
+function deleteRoute(id) {
+    if (!confirm('确认删除此航路？')) return;
+    if (routeEntities.has(id)) {
+        routeEntities.get(id).forEach(e => viewer.entities.remove(e));
+        routeEntities.delete(id);
+    }
+    layerVisible.delete(id);
+    rm.delete(id);
+    if (currentRouteId === id) {
+        currentRouteId = rm.routes.length > 0 ? rm.routes[0].id : null;
+        if (currentRouteId) selectRoute(currentRouteId);
+    }
+    refreshUI();
+    toast('已删除', 'info');
+}
+
+function toggleLayerVisible(id) {
+    const cur = layerVisible.get(id) !== false; // 当前是否可见
+    layerVisible.set(id, !cur);
+    renderRoute(id); // 重渲染（不可见则清空实体）
+    refreshUI();
+    toast(cur ? '已隐藏图层' : '已显示图层', 'info');
+}
+
+
+
+function clearAll() {
+    if (!confirm('确认清空全部航路数据？此操作不可恢复！')) return;
+    routeEntities.forEach(arr => arr.forEach(e => viewer.entities.remove(e)));
+    routeEntities.clear();
+    rm.routes = [];
+    rm.save();
+    currentRouteId = null;
+    clearDrawEntities();
+    isDrawing = false;
+    refreshUI();
+    toast('已全部清空', 'info');
+}
+
+// =====================================================
+//  数据导出
+// =====================================================
+function exportGeoJSON() {
+    if (rm.routes.length === 0) { toast('无可导出数据', 'err'); return; }
+    const data = rm.toGeoJSON();
+    downloadJSON(data, `routes_${Date.now()}.geojson`);
+    toast('GeoJSON 已导出', 'ok');
+    console.log('GeoJSON 数据结构：', JSON.stringify(data, null, 2));
+}
+
+function exportCZML() {
+    if (rm.routes.length === 0) { toast('无可导出数据', 'err'); return; }
+    const data = rm.toCZML();
+    downloadJSON(data, `routes_${Date.now()}.czml`);
+    toast('CZML 已导出', 'ok');
+    console.log('CZML 数据结构：', JSON.stringify(data, null, 2));
+}
+
+// =====================================================
+//  自动保存（POST 到本地 save_server.py）
+//  策略：独立 setInterval 每 20 秒触发一次，与 save() 完全解耦
+//  不依赖任何事件链，彻底杜绝循环触发
+// =====================================================
+const AUTO_SAVE_URL = 'http://127.0.0.1:8765';
+let autoSaveConnected = false;  // 服务连接状态
+let autoSaveRunning   = false;  // 防重入标志（避免并发请求叠加）
+
+// 更新状态栏显示
+function setAutoSaveState(state, text) {
+    const dot  = document.getElementById('autoSaveDot');
+    const txt  = document.getElementById('autoSaveText');
+    if (!dot || !txt) return;
+    const colors = { idle: '#334155', saving: '#f59e0b', ok: '#22c55e', err: '#ef4444' };
+    dot.style.background = colors[state] || colors.idle;
+    txt.textContent = text;
+}
+
+// 实际 POST 数据到服务（5秒超时）
+async function _postData(path, data) {
+    const res = await fetch(AUTO_SAVE_URL + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal: AbortSignal.timeout(5000)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+}
+
+// 执行一次自动保存（带防重入）
+async function doAutoSave() {
+    if (autoSaveRunning) return;   // 上次还没完成，跳过
+    autoSaveRunning = true;
+    setAutoSaveState('saving', '保存中…');
+    try {
+        const rData = rm.toGeoJSON();
+        const aData = am.toGeoJSON();
+        await Promise.all([
+            _postData('/save/routes',    rData),
+            _postData('/save/airspaces', aData)
+        ]);
+        autoSaveConnected = true;
+        const ts = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        setAutoSaveState('ok', `已保存 ${ts}`);
+    } catch(e) {
+        autoSaveConnected = false;
+        setAutoSaveState('err', '保存服务未运行');
+    } finally {
+        autoSaveRunning = false;
+    }
+}
+
+// 启动自动保存定时器（每 20 秒触发一次，initCesium 末尾调用）
+function startAutoSave() {
+    // 先检测服务是否在线
+    fetch(AUTO_SAVE_URL + '/save/routes', {
+        method: 'OPTIONS', signal: AbortSignal.timeout(1500)
+    }).then(() => {
+        autoSaveConnected = true;
+        setAutoSaveState('idle', '自动保存就绪');
+        doAutoSave();  // 启动时立即保存一次
+    }).catch(() => {
+        setAutoSaveState('err', '保存服务未运行');
+    });
+
+    // 独立定时器，每 20 秒触发
+    setInterval(doAutoSave, 20000);
+}
+
+function downloadJSON(data, filename) {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+function importData() {
+    const input = document.getElementById('fileInput');
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            try {
+                const d = JSON.parse(ev.target.result);
+                // 支持 GeoJSON 导入
+                if (d.type === 'FeatureCollection') {
+                    d.features.forEach(f => {
+                        if (f.geometry.type !== 'LineString') return;
+                        const p = f.properties;
+                        const r = rm.create(p.name || '导入航路', p.type || 'airway', p.grade || 'I');
+                        r.metadata.altMin = p.alt_min || 8400;
+                        r.metadata.altMax = p.alt_max || 12500;
+                        r.metadata.customWidth = p.width_m || 0;
+                        r.waypoints = f.geometry.coordinates.map((c, i) => ({
+                            id: 'wp_' + i, lon: c[0], lat: c[1], alt: c[2] || r.metadata.altMin,
+                            label: `WP${i + 1}`
+                        }));
+                        rm.update(r.id, r);
+                    });
+                }
+                rm.routes.forEach(r => renderRoute(r.id));
+                refreshUI();
+                toast(`导入成功`, 'ok');
+            } catch (err) {
+                toast('文件格式错误', 'err');
+            }
+        };
+        reader.readAsText(file);
+        input.value = '';
+    };
+    input.click();
+}
+
+// =====================================================
+//  UI 刷新
+// =====================================================
+function refreshUI() {
+    document.getElementById('routeCount').textContent = rm.routes.length;
+
+    // ---- 图层列表 ----
+    const list = document.getElementById('routeList');
+    list.innerHTML = '';
+    rm.routes.forEach(r => {
+        const len = rm.calcLength(r.id);
+        const lenStr = len > 1000 ? (len / 1000).toFixed(1) + ' km' : len.toFixed(0) + ' m';
+        const isActive = r.id === currentRouteId;
+        const isVis = layerVisible.get(r.id) !== false; // 默认可见
+
+        const item = document.createElement('div');
+        item.className = 'layer-item' + (isActive ? ' active' : '');
+
+        // 单选圆圈
+        const radioWrap = document.createElement('div');
+        radioWrap.className = 'li-radio-wrap';
+        radioWrap.title = '激活为当前编辑对象';
+        radioWrap.innerHTML = `<div class="li-radio"></div>`;
+        radioWrap.onclick = () => selectRoute(r.id);
+
+        // 可见性开关
+        const vis = document.createElement('div');
+        vis.className = 'li-vis' + (isVis ? '' : ' hidden');
+        vis.title = isVis ? '点击隐藏' : '点击显示';
+        vis.innerHTML = isVis ? '👁' : '🙈';
+        vis.onclick = (e) => { e.stopPropagation(); toggleLayerVisible(r.id); };
+
+        // 主体内容（点击也激活）
+        const body = document.createElement('div');
+        body.className = 'li-body';
+        body.innerHTML = `
+            <div class="li-name">
+                <span class="li-badge badge-${r.grade}">${r.grade}</span>
+                <span style="color:${isVis ? '#e2e8f0' : '#475569'}">${r.name}</span>
+            </div>
+            <div class="li-meta">${r.waypoints.length} 航点 · ${lenStr}</div>`;
+        body.onclick = () => selectRoute(r.id);
+
+        // 删除按钮
+        const del = document.createElement('div');
+        del.className = 'li-del';
+        del.title = '删除此航路';
+        del.innerHTML = '🗑';
+        del.onclick = (e) => { e.stopPropagation(); deleteRoute(r.id); };
+
+        item.appendChild(radioWrap);
+        item.appendChild(vis);
+        item.appendChild(body);
+        item.appendChild(del);
+        list.appendChild(item);
+    });
+
+    // ---- 当前编辑航路提示条 ----
+    const bar = document.getElementById('currentRouteBar');
+    const nameEl = document.getElementById('currentRouteName');
+    const etName = document.getElementById('etRouteName');
+    const stRoute = document.getElementById('stRoute');
+    if (currentRouteId) {
+        const r = rm.get(currentRouteId);
+        const name = r ? r.name : '—';
+        bar.classList.add('show');
+        nameEl.textContent = name;
+        if (etName) etName.textContent = name;
+        if (stRoute) stRoute.textContent = name;
+    } else {
+        bar.classList.remove('show');
+        if (etName) etName.textContent = '';
+        if (stRoute) stRoute.textContent = '—';
+    }
+
+    // ---- 航点列表 ----
+    const wpSection = document.getElementById('wpSection');
+    const wpList = document.getElementById('wpList');
+    if (currentRouteId) {
+        const r = rm.get(currentRouteId);
+        wpSection.style.display = '';
+        document.getElementById('wpCount').textContent = r ? r.waypoints.length : 0;
+        wpList.innerHTML = '';
+        if (r) {
+            r.waypoints.forEach((wp, idx) => {
+                const d = document.createElement('div');
+                d.className = 'wp-item';
+                d.innerHTML = `
+                    <div class="wp-label">${wp.label}</div>
+                    <div class="wp-coord">${wp.lon.toFixed(4)}, ${wp.lat.toFixed(4)}, ${wp.alt}m</div>`;
+                wpList.appendChild(d);
+            });
+        }
+        document.getElementById('stWp').textContent = r ? r.waypoints.length : 0;
+    } else {
+        wpSection.style.display = 'none';
+        document.getElementById('stWp').textContent = '0';
+    }
+
+    // ---- 操作模式 tab 同步（工具栏内） ----
+    if (isDrawing) {
+        document.getElementById('etTabDraw').classList.add('active-draw');
+        document.getElementById('etTabDraw').classList.remove('active-edit');
+        document.getElementById('etTabEdit').classList.remove('active-edit');
+        document.getElementById('drawToolGroup').style.display = 'flex';
+        document.getElementById('editToolGroup').style.display = 'none';
+    } else {
+        document.getElementById('etTabEdit').classList.add('active-edit');
+        document.getElementById('etTabEdit').classList.remove('active-draw');
+        document.getElementById('etTabDraw').classList.remove('active-draw');
+        document.getElementById('drawToolGroup').style.display = 'none';
+        document.getElementById('editToolGroup').style.display = 'flex';
+    }
+
+
+    // ---- 工具栏可见性（绘制模式也保持可见）----
+    const toolbar = document.getElementById('editToolbar');
+    if (currentMode === '2d' && (currentRouteId || currentPanel === 'airspace')) {
+        toolbar.classList.add('show');
+    } else if (currentMode !== '2d') {
+        toolbar.classList.remove('show');
+    }
+}
+
+
+function updateLengthStatus() {
+    if (!currentRouteId) { document.getElementById('stLen').textContent = '--'; return; }
+    const len = rm.calcLength(currentRouteId);
+    document.getElementById('stLen').textContent = len > 1000
+        ? (len / 1000).toFixed(1) + ' km'
+        : len.toFixed(0) + ' m';
+}
+
+// =====================================================
+//  辅助函数
+// =====================================================
+function setHint(msg) {
+    const el = document.getElementById('hint');
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+}
+
+function toast(msg, type = 'ok') {
+    const t = document.createElement('div');
+    t.className = `toast ${type}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2200);
+}
+
+// 键盘快捷键
+document.addEventListener('keydown', e => {
+    // 忽略输入框内的快捷键
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    if (e.code === 'Escape') {
+        if (currentPanel === 'airspace') cancelAirspaceDraw();
+        else { clearCurrentDraw(); clearNodeSelection(); }
+    }
+    if (e.code === 'Enter') {
+        if (currentPanel === 'airspace') finishAirspaceDraw();
+        else finishDraw();
+    }
+    if (e.ctrlKey && e.code === 'KeyZ') {
+        e.preventDefault();
+        if (currentPanel === 'airspace' && isDrawingAirspace) {
+            // 撤销最后一个绘制顶点
+            if (asDrawingVtx.length > 0) {
+                asDrawingVtx.pop();
+                redrawAirspaceDraw();
+                toast('已撤销最后一个顶点', 'info');
+            }
+        } else {
+            undoLast();
+        }
+    }
+    if (e.code === 'KeyE') setMode('2d');
+    if (e.code === 'KeyV') setMode('3d');
+    // 工具快捷键（2D编辑模式下）
+    if (currentMode === '2d' && !isDrawing && !isDrawingAirspace) {
+        if (e.code === 'KeyS') setEditTool('select');
+        if (e.code === 'KeyA') setEditTool('add');
+        if (e.code === 'KeyD') setEditTool('delete');
+    }
+    if (e.code === 'Delete' || e.code === 'Backspace') {
+        if (selectedNodeIdx !== null && currentPanel !== 'airspace') { e.preventDefault(); deleteSelectedNode(); }
+        else if (selectedAsNodeIdx !== null && currentPanel === 'airspace') { e.preventDefault(); onAirspaceClickTool({position: {x: -999, y: -999}}); }
+    }
+});
+
+// =====================================================
+//  启动
+// =====================================================
+window.addEventListener('load', () => {
+    initCesium();
+    setGrade('I');
+    updateUndoBtn();
+    toast('航路编辑系统已就绪 · E=编辑 V=预览 Enter=完成 Esc=取消', 'info');
+});
+</script>
+</body>
+</html>

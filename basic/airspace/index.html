@@ -1,0 +1,1874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>基础模型管理子系统 | 空域航路 (独立版)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/iconify/3.1.0/iconify.min.js"></script>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        body { background-color: #030a1c; color: #e2e8f0; font-family: 'PingFang SC', sans-serif; height: 100vh; overflow: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 170, 255, 0.2); backdrop-filter: blur(12px); }
+        .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1) !important; }
+        a.nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1) !important; }
+        .map-bg { background: linear-gradient(to right, #0f172a, #1e293b, #0f172a); }
+        .side-panel {
+            width: 340px;
+            min-width: 340px;
+            transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .side-panel.collapsed {
+            width: 0 !important;
+            min-width: 0 !important;
+            opacity: 0;
+        }
+        .panel-toggle-btn {
+            flex-shrink: 0;
+            width: 14px;
+            align-self: stretch;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(0, 170, 255, 0.25);
+            color: #60a5fa;
+            font-size: 9px;
+            transition: background 0.2s;
+            z-index: 30;
+            user-select: none;
+        }
+        .panel-toggle-btn:hover { background: rgba(0, 170, 255, 0.18); color: #fff; }
+        .tree-node { cursor: pointer; transition: all 0.2s; border-left: 2px solid transparent; }
+        .tree-node:hover { background: rgba(59, 130, 246, 0.1); border-left: 2px solid #3b82f6; }
+        .tree-node.active { background: rgba(59, 130, 246, 0.2); border-left: 2px solid #3b82f6; color: #60a5fa; }
+        .node-tag { font-size: 10px; padding: 1px 4px; border-radius: 2px; margin-left: auto; }
+
+        /* 彩色区块样式 */
+        .bg-tag-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .bg-tag-orange { background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
+        .bg-tag-yellow { background: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .bg-tag-green { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .bg-tag-blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .bg-tag-purple { background: rgba(168, 85, 247, 0.2); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .bg-tag-cyan { background: rgba(6, 182, 212, 0.2); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); }
+
+        .route-line { stroke: rgba(16, 185, 129, 0.6); stroke-dasharray: 5; animation: dash 10s linear infinite; }
+        @keyframes dash { to { stroke-dashoffset: -100; } }
+
+        #cesiumContainer { width: 100%; height: 100%; }
+        .cesium-viewer-bottom { display: none; }
+        .cesium-widget-credits { display: none; }
+
+        /* 折叠动画：所有目录内容区统一过渡 */
+        .section-content {
+            transition: max-height 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+                        opacity 0.22s ease;
+            overflow: hidden;
+        }
+        /* chevron 箭头旋转动画 */
+        .iconify[data-icon="lucide:chevron-down"],
+        .category-arrow {
+            transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+    </style>
+    <style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-6{bottom:1.5rem}.left-6{left:1.5rem}.z-20{z-index:20}.z-50{z-index:50}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.ml-6{margin-left:1.5rem}.mr-2{margin-right:0.5rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.flex{display:flex}.h-10{height:2.5rem}.h-16{height:4rem}.h-full{height:100%}.w-10{width:2.5rem}.w-full{width:100%}.flex-1{flex:1 1 0%}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-2{gap:0.5rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-l{border-left-width:1px}.border-l-4{border-left-width:4px}.border-r{border-right-width:1px}.border-t{border-top-width:1px}.border-blue-500\/20{border-color:rgb(59 130 246 / 0.2)}.border-blue-500\/40{border-color:rgb(59 130 246 / 0.4)}.border-emerald-500{--tw-border-opacity:1;border-color:rgb(16 185 129 / var(--tw-border-opacity, 1))}.border-red-500\/20{border-color:rgb(239 68 68 / 0.2)}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.bg-blue-500\/5{background-color:rgb(59 130 246 / 0.05)}.bg-blue-600\/20{background-color:rgb(37 99 235 / 0.2)}.bg-red-500\/10{background-color:rgb(239 68 68 / 0.1)}.bg-red-500\/20{background-color:rgb(239 68 68 / 0.2)}.bg-slate-900\/40{background-color:rgb(15 23 42 / 0.4)}.bg-slate-900\/60{background-color:rgb(15 23 42 / 0.6)}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-blue-400{--tw-gradient-from:#60a5fa var(--tw-gradient-from-position);--tw-gradient-to:rgb(96 165 250 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-cyan-300{--tw-gradient-to:#67e8f9 var(--tw-gradient-to-position)}.bg-cover{background-size:cover}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.px-4{padding-left:1rem;padding-right:1rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.text-right{text-align:right}.text-justify{text-align:justify}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[10px\]{font-size:10px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.tracking-tighter{letter-spacing:-0.05em}.tracking-widest{letter-spacing:0.1em}.text-blue-400{--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.text-blue-500{--tw-text-opacity:1;color:rgb(59 130 246 / var(--tw-text-opacity, 1))}.text-cyan-500{--tw-text-opacity:1;color:rgb(6 182 212 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-green-500{--tw-text-opacity:1;color:rgb(34 197 94 / var(--tw-text-opacity, 1))}.text-orange-500{--tw-text-opacity:1;color:rgb(249 115 22 / var(--tw-text-opacity, 1))}.text-purple-500{--tw-text-opacity:1;color:rgb(168 85 247 / var(--tw-text-opacity, 1))}.text-red-200{--tw-text-opacity:1;color:rgb(254 202 202 / var(--tw-text-opacity, 1))}.text-red-400{--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-yellow-500{--tw-text-opacity:1;color:rgb(234 179 8 / var(--tw-text-opacity, 1))}.opacity-30{opacity:0.3}.mix-blend-overlay{mix-blend-mode:overlay}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-200{transition-duration:200ms}.duration-300{transition-duration:300ms}.hover\:bg-blue-600\/40:hover{background-color:rgb(37 99 235 / 0.4)}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800\/50:hover{background-color:rgb(30 41 59 / 0.5)}.hover\:bg-slate-800\/80:hover{background-color:rgb(30 41 59 / 0.8)}</style>
+    <style>
+        /* 嵌入模式：隐藏导航栏，内容区填满全屏 */
+        body.embed-mode > header {
+            display: none !important;
+        }
+        body.embed-mode > div.flex-1 {
+            height: 100vh !important;
+        }
+    </style>
+</head>
+<body class="flex flex-col is-mb-ai-setting">
+<!-- 顶部导航 -->
+<header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+<div class="flex items-center gap-3">
+<span class="iconify text-3xl text-blue-400" data-icon="material-symbols:airplanemode-active"></span>
+<h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真基础模型管理系统</h1>
+</div>
+<nav class="flex gap-1 h-full justify-center">
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../terrain.html">
+<span class="iconify mr-2" data-icon="lucide:map"></span>地理环境</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../electromagnetic/electromagnetic.html">
+<span class="iconify mr-2" data-icon="lucide:waves"></span>电磁环境</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../weather/weather_cesium.html">
+<span class="iconify mr-2" data-icon="lucide:cloud-sun"></span>气象环境</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="index.html">
+<span class="iconify mr-2" data-icon="lucide:layers"></span>空域航路</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../rules/index.html">
+<span class="iconify mr-2" data-icon="lucide:gavel"></span>飞行规则</a>
+<a class="flex items-center px-4 transition-all hover:bg-slate-800" href="../assets/index.html">
+<span class="iconify mr-2" data-icon="lucide:database"></span>装备库</a>
+</nav>
+<div class="flex items-center gap-2 ml-4 pr-2">
+  <a href="../index.html" title="基础管理主页" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:rgba(0,170,255,0.12);border:1px solid rgba(0,170,255,0.35);color:#60c8ff;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='rgba(0,170,255,0.25)'" onmouseout="this.style.background='rgba(0,170,255,0.12)'">
+    <span class="iconify" data-icon="lucide:layout-dashboard" style="font-size:17px;"></span>
+  </a>
+  <a href="../../main.html" title="系统主页面" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:6px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.35);color:#c084fc;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.background='rgba(139,92,246,0.25)'" onmouseout="this.style.background='rgba(139,92,246,0.12)'">
+    <span class="iconify" data-icon="lucide:home" style="font-size:17px;"></span>
+  </a>
+</div>
+</header><!-- 主体布局 -->
+<div class="flex-1 flex overflow-hidden">
+<!-- 左边栏：空域结构管理 -->
+<aside class="side-panel glass-panel border-r border-slate-700 flex flex-col z-20" id="leftPanel">
+<div class="p-4 border-b border-slate-800 bg-slate-900/40">
+<h2 class="font-bold flex items-center gap-2 text-blue-400">
+<span class="iconify" data-icon="lucide:layers"></span> 资源树状模型
+                </h2>
+</div>
+<div class="flex-1 overflow-y-auto p-2 space-y-1" id="resourceTree">
+<!-- 空域管理模型 -->
+<div class="mb-4">
+<div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 group cursor-pointer hover:bg-slate-800/50 rounded transition-colors">
+<div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+<span class="iconify text-blue-400 transition-transform duration-200 -rotate-90" data-icon="lucide:chevron-down"></span>
+<span class="iconify" data-icon="lucide:hard-drive"></span>
+                        空域管理模型
+                    </div>
+<button class="toggle-btn p-1 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('zones', this)">
+<span class="iconify text-green-400" data-icon="lucide:eye"></span>
+</button>
+</div>
+<!-- 外部加载的空域数据列表 -->
+<div class="ml-6 space-y-1 section-content" id="airspaceList" style="max-height: 0px; overflow: hidden;" data-collapsed="true">
+</div>
+</div>
+<!-- 三级航路网络层（一级目录） -->
+<div class="mb-4 text-slate-400">
+<div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-colors">
+<div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+<span class="iconify text-blue-400 transition-transform duration-200 -rotate-90" data-icon="lucide:chevron-down"></span>
+<span class="iconify" data-icon="lucide:network"></span>
+                        三级航路网络层
+                    </div>
+<button class="toggle-btn p-1 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('routes-all', this)">
+    <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+</button>
+</div>
+<!-- 按等级分组（动态渲染） -->
+<div class="ml-3 space-y-1 section-content" style="max-height: 0px; overflow: hidden;" data-collapsed="true" id="routeGradeContainer">
+    <!-- JS 动态填充 grade I/II/III 分组及航路列表 -->
+    <div class="p-2 text-xs text-slate-500 italic">加载中…</div>
+</div>
+</div>
+<!-- 固定航线 -->
+<div class="mb-4 text-slate-400">
+<div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-colors">
+<div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+<span class="iconify text-blue-400 transition-transform duration-200 -rotate-90" data-icon="lucide:chevron-down"></span>
+<span class="iconify text-blue-400" data-icon="lucide:route"></span>
+                        固定航线
+                    </div>
+<button class="toggle-btn p-1 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('fixed-routes', this)">
+<span class="iconify text-green-400" data-icon="lucide:eye"></span>
+</button>
+</div>
+<div class="ml-3 space-y-1 section-content" style="max-height: 0px; overflow: hidden;" data-collapsed="true" id="fixedRoutesContainer">
+<!-- 动态加载航线类型筛选和列表 -->
+</div>
+</div>
+<!-- 两级调度管理层 -->
+<div class="mb-4 text-slate-400">
+<div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-colors">
+<div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+<span class="iconify text-blue-400 transition-transform duration-200 -rotate-90" data-icon="lucide:chevron-down"></span>
+<span class="iconify" data-icon="lucide:shantytown"></span>
+                        两级调度管理层
+                    </div>
+<button class="toggle-btn p-1 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('dispatch', this)">
+<span class="iconify text-green-400" data-icon="lucide:eye"></span>
+</button>
+</div>
+<div class="ml-6 space-y-1 section-content" style="max-height: 0px; overflow: hidden;" data-collapsed="true">
+<div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="showDetail('区域总调度中心', '负责跨区域Ⅰ/Ⅱ级航路流量与时间统筹。', 'purple')">
+<span class="iconify text-slate-400" data-icon="lucide:layout-grid"></span>
+                            区域总调度中心
+                        </div>
+<div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="showDetail('本地调度节点', '负责Ⅲ级航路与末端流量精确调配。', 'purple')">
+<span class="iconify text-slate-400" data-icon="lucide:map-pin"></span>
+                            本地调度节点
+                        </div>
+</div>
+</div>
+<!-- 全要素保障层 -->
+<div class="mb-4 text-slate-400">
+<div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-colors">
+<div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+<span class="iconify text-blue-400 transition-transform duration-200 -rotate-90" data-icon="lucide:chevron-down"></span>
+<span class="iconify" data-icon="lucide:settings-2"></span>
+                        全要素保障层
+                    </div>
+<button class="toggle-btn p-1 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('support', this)">
+<span class="iconify text-green-400" data-icon="lucide:eye"></span>
+</button>
+</div>
+<div class="ml-6 space-y-1 section-content" style="max-height: 0px; overflow: hidden;" data-collapsed="true">
+<!-- 通讯设备 -->
+<div class="mb-3">
+<div class="flex items-center justify-between p-1 text-xs font-bold text-slate-400 cursor-pointer hover:bg-slate-800/30 rounded transition-colors">
+<div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+<span class="iconify text-blue-400 transition-transform duration-200 text-[10px]" data-icon="lucide:chevron-down" style="transform: rotate(-90deg);"></span>
+<span class="iconify text-emerald-400" data-icon="lucide:radio"></span>
+                            通讯设备 (8)
+                        </div>
+<button class="toggle-btn p-0.5 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('communication', this)">
+<span class="iconify text-green-400 text-[10px]" data-icon="lucide:eye"></span>
+</button>
+</div>
+<div class="ml-4 space-y-1 hidden" id="communication-devices">
+</div>
+</div>
+<!-- 导航设备 -->
+<div class="mb-3">
+<div class="flex items-center justify-between p-1 text-xs font-bold text-slate-400 cursor-pointer hover:bg-slate-800/30 rounded transition-colors">
+<div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+<span class="iconify text-blue-400 transition-transform duration-200 text-[10px]" data-icon="lucide:chevron-down" style="transform: rotate(-90deg);"></span>
+<span class="iconify text-blue-400" data-icon="lucide:compass"></span>
+                            导航设备 (5)
+                        </div>
+<button class="toggle-btn p-0.5 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('navigation', this)">
+<span class="iconify text-green-400 text-[10px]" data-icon="lucide:eye"></span>
+</button>
+</div>
+<div class="ml-4 space-y-1 hidden" id="navigation-devices">
+</div>
+</div>
+<!-- 监视设备 -->
+<div class="mb-3">
+<div class="flex items-center justify-between p-1 text-xs font-bold text-slate-400 cursor-pointer hover:bg-slate-800/30 rounded transition-colors">
+<div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+<span class="iconify text-blue-400 transition-transform duration-200 text-[10px]" data-icon="lucide:chevron-down" style="transform: rotate(-90deg);"></span>
+<span class="iconify text-purple-400" data-icon="lucide:radar"></span>
+                            监视设备 (4)
+                        </div>
+<button class="toggle-btn p-0.5 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('surveillance', this)">
+<span class="iconify text-green-400 text-[10px]" data-icon="lucide:eye"></span>
+</button>
+</div>
+<div class="ml-4 space-y-1 hidden" id="surveillance-devices">
+</div>
+</div>
+<div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="showDetail('气象服务与起降点', '气象服务、起降设施（含临时起降区）、应急救援服务。', 'emerald')">
+<span class="iconify text-slate-400" data-icon="lucide:life-buoy"></span>
+                            气象/起降/应急
+                        </div>
+</div>
+</div>
+</div>
+<div class="p-4 border-t border-slate-800 bg-slate-900/60 text-[10px] text-slate-500 flex justify-between">
+<span>模型版本: V2.1.5 (独立版)</span>
+<span>更新: 2026-03-20</span>
+</div>
+</aside>
+<div class="panel-toggle-btn" id="leftToggleBtn" onclick="togglePanel('left')" title="收起/展开左侧">&#10094;</div>
+<!-- 中间：Cesium地图区域 -->
+<main class="flex-1 relative map-bg overflow-hidden">
+<div id="cesiumContainer"></div>
+<div class="absolute bottom-6 left-6 flex items-center gap-4 z-10">
+<div class="glass-panel px-4 py-2 rounded-lg text-xs font-mono border-l-4 border-emerald-500 pointer-events-none">
+                    当前在线飞行器: 42 | 在途航运: 15
+                </div>
+</div>
+</main>
+<div class="panel-toggle-btn" id="rightToggleBtn" onclick="togglePanel('right')" title="收起/展开右侧">&#10095;</div>
+<!-- 右边栏：详情监控 -->
+<aside class="side-panel glass-panel border-l border-slate-700 flex flex-col z-20" id="rightPanel">
+<div class="p-4 border-b border-slate-800 bg-slate-900/40 font-bold flex items-center justify-between">
+<span class="flex items-center gap-2"><span class="iconify text-blue-400" data-icon="lucide:info"></span> 节点详情信息</span>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-6">
+<!-- 动态展现详情 -->
+<div class="space-y-4">
+<div id="detailHeader">
+<h3 class="font-bold text-red-400 flex items-center gap-2" id="detailTitle">
+                            禁飞区-核心枢纽
+                        </h3>
+<p class="text-xs text-slate-400 mt-2 leading-relaxed" id="detailDesc">
+                            严格封锁 | 全高度层。此类空域针对政府办公区、重要交通枢纽及军事管理区，禁止一切未经专项审批的飞行活动。
+                        </p>
+</div>
+<div class="p-3 bg-red-500/10 border border-red-500/20 rounded flex items-center gap-3" id="alertBox">
+<div class="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
+<span class="iconify text-red-500 animate-pulse" data-icon="lucide:alert-circle"></span>
+</div>
+<div class="text-[10px]">
+<p class="font-bold text-red-200 uppercase">当前选中: 禁飞区-核心枢纽</p>
+<p class="text-slate-400 italic font-mono mt-1">STATUS: HIGH_ALERT</p>
+<p class="text-slate-400 italic">检测到 0 架次违规进入</p>
+</div>
+</div>
+</div>
+<hr class="border-slate-800"/>
+<!-- 预设参数 -->
+<div>
+<h3 class="text-xs font-semibold text-slate-500 mb-3 uppercase">仿真规则参数</h3>
+<ul class="space-y-2 text-xs">
+<li class="flex justify-between items-center py-2 border-b border-slate-800">
+<span class="flex items-center gap-2 text-slate-300"> 垂直精度要求</span>
+<span class="font-mono text-emerald-400 italic">1.0m</span>
+</li>
+<li class="flex justify-between items-center py-2 border-b border-slate-800">
+<span class="flex items-center gap-2 text-slate-300"> 栅格物理尺寸</span>
+<span class="font-mono text-emerald-400 italic">1x1x1m Cube</span>
+</li>
+<li class="flex justify-between items-center py-2 border-b border-slate-800">
+<span class="flex items-center gap-2 text-slate-300"> 冲突检测响应</span>
+<span class="font-mono text-blue-400 italic">≤ 1.0s</span>
+</li>
+</ul>
+</div>
+<div class="p-3 bg-blue-500/5 border border-blue-500/20 rounded mt-4">
+<p class="text-[10px] text-slate-500 uppercase font-mono">数据来源</p>
+<p class="text-[10px] text-slate-400 italic leading-relaxed mt-2 text-justify">
+                        遵循《低空仿真系统规则配置表》，自动同步空域管理类的"空域分类与动态划设规则"。
+                    </p>
+</div>
+</div>
+<div class="p-4 border-t border-slate-800">
+<button class="w-full py-2 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/40 rounded text-xs font-bold transition">
+                    导出子系统模型
+                </button>
+</div>
+</aside>
+</div>
+<script>
+        // 设置Cesium Ion Token为空,使用其他地图服务
+        // Cesium.Ion.defaultAccessToken = '';
+
+        function togglePanel(side) {
+            const panel = document.getElementById(side === 'left' ? 'leftPanel' : 'rightPanel');
+            const btn   = document.getElementById(side === 'left' ? 'leftToggleBtn' : 'rightToggleBtn');
+            const isCollapsed = panel.classList.toggle('collapsed');
+
+            if (side === 'left') {
+                btn.innerHTML = isCollapsed ? '&#10095;' : '&#10094;';
+            } else {
+                btn.innerHTML = isCollapsed ? '&#10094;' : '&#10095;';
+            }
+        }
+
+        function toggleSection(header) {
+            // 找紧跟在 header 后面的兄弟元素（内容区）
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.iconify[data-icon="lucide:chevron-down"]');
+
+            if (!content) return;
+
+            // 统一用 max-height 动画实现平滑折叠
+            const isCollapsed = content.style.maxHeight === '0px' || content.dataset.collapsed === 'true';
+
+            if (isCollapsed) {
+                // 展开
+                content.dataset.collapsed = 'false';
+                content.style.overflow = 'hidden';
+                content.style.maxHeight = content.scrollHeight + 'px';
+                content.style.opacity = '1';
+                if (icon) icon.style.transform = 'rotate(0deg)';
+                // 展开完成后取消 max-height 限制，允许动态内容撑开
+                content.addEventListener('transitionend', function onEnd() {
+                    if (content.dataset.collapsed === 'false') {
+                        content.style.maxHeight = 'none';
+                        content.style.overflow = '';
+                    }
+                    content.removeEventListener('transitionend', onEnd);
+                });
+            } else {
+                // 折叠：先固定当前高度，再动画到 0
+                content.dataset.collapsed = 'true';
+                content.style.overflow = 'hidden';
+                content.style.maxHeight = content.scrollHeight + 'px';
+                // 强制触发 reflow
+                content.offsetHeight;
+                content.style.maxHeight = '0px';
+                content.style.opacity = '0';
+                if (icon) icon.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        // 图层可见性管理
+        const layerVisibility = {
+            zones: true,
+            'routes-all': true,
+            'fixed-routes': true,
+            dispatch: true,
+            support: true,
+            communication: true,
+            navigation: true,
+            surveillance: true
+        };
+
+        function toggleLayerVisibility(layerType, button) {
+            const isVisible = !layerVisibility[layerType];
+            layerVisibility[layerType] = isVisible;
+
+            // 更新按钮图标
+            const icon = button.querySelector('.iconify');
+            if (icon) {
+                icon.setAttribute('data-icon', isVisible ? 'lucide:eye' : 'lucide:eye-off');
+                icon.className = `iconify ${isVisible ? 'text-green-400' : 'text-slate-500'}`;
+            }
+
+            // 根据图层类型显示/隐藏对应的地图实体
+            if (layerType === 'zones') {
+                // 控制所有空域区域
+                Object.values(zoneEntities).forEach(entities => {
+                    entities.forEach(entity => {
+                        if (entity) {
+                            entity.show = isVisible;
+                        }
+                    });
+                });
+            } else if (layerType === 'routes-all') {
+                // 控制所有航路实体（GeoJSON版本）
+                Object.values(routeEntitiesByGrade).forEach(entities => {
+                    entities.forEach(entity => {
+                        if (entity) entity.show = isVisible;
+                    });
+                });
+            } else if (layerType === 'communication' || layerType === 'navigation' || layerType === 'surveillance') {
+                // 控制设备图层
+                Object.keys(deviceEntities).forEach(name => {
+                    const entity = deviceEntities[name];
+                    if (entity && entity.properties && entity.properties.category === layerType) {
+                        entity.show = isVisible;
+                    }
+                });
+            }
+            // 其他图层类型暂时没有对应的实体，可以后续扩展
+        }
+
+        function showDeviceDetail(name, category, color) {
+            // 更新设备节点选中状态
+            document.querySelectorAll('#communication-devices .tree-node, #navigation-devices .tree-node, #surveillance-devices .tree-node').forEach(node => {
+                node.classList.remove('active');
+                if (node.textContent.includes(name)) {
+                    node.classList.add('active');
+                }
+            });
+
+            // 获取类别信息
+            const categoryInfo = {
+                communication: { name: '通讯设备', icon: 'lucide:radio', desc: '5G通信基站，为低空飞行器提供实时数据传输和通信保障' },
+                navigation: { name: '导航设备', icon: 'lucide:compass', desc: 'CORS连续运行参考站，提供高精度定位服务' },
+                surveillance: { name: '监视设备', icon: 'lucide:radar', desc: '监视雷达，实时监控低空飞行器位置和状态' }
+            };
+
+            const info = categoryInfo[category];
+
+            // 更新右侧详情面板
+            const detailTitle = document.getElementById('detailTitle');
+            const detailDesc = document.getElementById('detailDesc');
+            const alertBox = document.getElementById('alertBox');
+
+            if (detailTitle) {
+                detailTitle.innerHTML = `<span class="iconify mr-2" data-icon="${info.icon}"></span>${name}`;
+                detailTitle.style.color = color;
+            }
+
+            if (detailDesc) {
+                detailDesc.textContent = `${info.name} | ${info.desc}`;
+            }
+
+            // 更新警告框样式
+            if (alertBox) {
+                alertBox.className = `p-3 border rounded flex items-center gap-3`;
+                alertBox.style.borderColor = color;
+                alertBox.style.backgroundColor = `${color}15`;
+
+                const alertIcon = alertBox.querySelector('.iconify');
+                if (alertIcon) {
+                    alertIcon.className = `iconify animate-pulse`;
+                    alertIcon.style.color = color;
+                    alertIcon.setAttribute('data-icon', info.icon);
+                }
+
+                const alertText = alertBox.querySelector('.text-red-200');
+                if (alertText) {
+                    alertText.textContent = `当前选中: ${name}`;
+                    alertText.style.color = color;
+                }
+            }
+        }
+
+        function showDetail(name, desc, colorClass) {
+            // 更新节点选中状态
+            document.querySelectorAll('.tree-node').forEach(node => {
+                node.classList.remove('active');
+                if (node.textContent.includes(name)) {
+                    node.classList.add('active');
+                }
+            });
+
+            // 更新右侧详情面板内容
+            const detailTitle = document.getElementById('detailTitle');
+            const detailDesc = document.getElementById('detailDesc');
+            const alertBox = document.getElementById('alertBox');
+
+            if (detailTitle) {
+                detailTitle.textContent = name;
+                detailTitle.className = `font-bold text-${colorClass}-400 flex items-center gap-2`;
+            }
+            if (detailDesc) detailDesc.textContent = desc;
+
+            // 联动警告框样式
+            if (alertBox) {
+                alertBox.className = `p-3 bg-${colorClass}-500/10 border border-${colorClass}-500/20 rounded flex items-center gap-3`;
+                const alertIcon = alertBox.querySelector('.iconify');
+                if (alertIcon) alertIcon.className = `iconify text-${colorClass}-500 animate-pulse`;
+                const alertText = alertBox.querySelector('.text-red-200');
+                if (alertText) {
+                    alertText.textContent = `当前选中: ${name}`;
+                    alertText.className = `font-bold text-${colorClass}-200 uppercase`;
+                }
+            }
+
+            // 高亮地图上对应的空域区域
+            highlightZoneByName(name);
+        }
+
+        // 初始化Cesium地图
+        console.log('开始初始化Cesium...');
+
+        // 全局变量存储空域实体
+        let zoneEntities = {};
+        let selectedEntity = null;
+
+            // 直接使用高德卫星影像底图
+            let imageryProvider = new Cesium.UrlTemplateImageryProvider({
+                url: 'https://webst0{s}.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+                subdomains: ['1', '2', '3', '4'],
+                maximumLevel: 18,
+                credit: '高德卫星影像'
+            });
+
+            // ========== 航路数据管理（GeoJSON版本）==========
+            // 按 grade 分组存储 Cesium 实体
+            let routeEntitiesByGrade = { 'I': [], 'II': [], 'III': [] };
+            let currentSelectedRouteId = null; // 当前选中的航路 id
+
+            const viewer = new Cesium.Viewer('cesiumContainer', {
+                imageryProvider: imageryProvider,
+                terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+                baseLayerPicker: false,
+                geocoder: false,
+                homeButton: false,
+                sceneModePicker: false,
+                navigationHelpButton: false,
+                animation: false,
+                timeline: false,
+                fullscreenButton: false,
+                vrButton: false,
+                infoBox: true,
+                selectionIndicator: true,
+                shadows: false,
+                shouldAnimate: false
+            });
+
+            console.log('Viewer创建成功');
+
+            // 直接加载高德卫星影像
+            viewer.imageryLayers.removeAll();
+            viewer.imageryLayers.addImageryProvider(imageryProvider);
+
+
+
+
+
+
+            // 监听影像图层加载事件
+            console.log('ImageryLayer添加成功, 图层数:', viewer.imageryLayers.length);
+
+            // 监听瓦片加载
+            viewer.scene.globe.tileLoadProgressEvent.addEventListener(function(numberOfPendingRequests, numberOfTilesProcessing) {
+                console.log('瓦片加载状态 - 待加载:', numberOfPendingRequests, '处理中:', numberOfTilesProcessing);
+            });
+
+            // 定位到德清县 (经度: 119.995842, 纬度: 30.382550, 高度: 19879m)
+            viewer.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(119.995842, 30.382550, 19879),
+                orientation: {
+                    heading: Cesium.Math.toRadians(0),
+                    pitch: Cesium.Math.toRadians(-45),
+                    roll: Cesium.Math.toRadians(0)
+                }
+            });
+
+            console.log('初始化完成,定位到德清县');
+
+            // 将viewer暴露到全局作用域，方便调试
+            window.viewer = viewer;
+
+            // 颜色映射
+            const colorMap = {
+                'red': Cesium.Color.RED.withAlpha(0.3),
+                'orange': Cesium.Color.ORANGE.withAlpha(0.3),
+                'yellow': Cesium.Color.YELLOW.withAlpha(0.3),
+                'green': Cesium.Color.GREEN.withAlpha(0.3),
+                'cyan': Cesium.Color.CYAN.withAlpha(0.3),
+                'purple': Cesium.Color.PURPLE.withAlpha(0.3),
+                'blue': Cesium.Color.BLUE.withAlpha(0.3)
+            };
+
+            const outlineColorMap = {
+                'red': Cesium.Color.RED,
+                'orange': Cesium.Color.ORANGE,
+                'yellow': Cesium.Color.YELLOW,
+                'green': Cesium.Color.GREEN,
+                'cyan': Cesium.Color.CYAN,
+                'purple': Cesium.Color.PURPLE,
+                'blue': Cesium.Color.BLUE
+            };
+
+            // 空域数据现在通过 loadAirspaceData() 从外部 JS 文件加载
+            // 航路数据通过 loadRouteDataFromGeoJSON() 从编辑器标准 GeoJSON 加载
+
+            console.log('初始化完成');
+
+            // ========== 航路配置（与 route_editor_olcesium.html 保持一致）==========
+            const ROUTE_GRADES = {
+                'I':   { label: 'Ⅰ级主干', color: Cesium.Color.fromCssColorString('#ef4444'), width: 20000, height: 8700 },
+                'II':  { label: 'Ⅱ级支线', color: Cesium.Color.fromCssColorString('#f97316'), width: 10000, height: 6000 },
+                'III': { label: 'Ⅲ级末端', color: Cesium.Color.fromCssColorString('#22c55e'), width: 4000,  height: 3000 },
+            };
+            const GRADE_INFO = {
+                'I':   { tag: '核心', tagClass: 'bg-tag-red',    desc: '跨区域长距离骨干通道，实现"主干-支线-末端"全链路覆盖中的核心骨骼。' },
+                'II':  { tag: '连接', tagClass: 'bg-tag-orange', desc: '区域连接通道，连接跨区主干与本地作业网点。' },
+                'III': { tag: '覆盖', tagClass: 'bg-tag-green',  desc: '面向社区最后1公里的精细化路径。' },
+            };
+
+            // ========== 从 GeoJSON 加载航路数据 ==========
+            async function loadRouteDataFromGeoJSON() {
+                // 优先从编辑器自动保存路径加载；也支持相对路径备用
+                const urls = [
+                    '../routes/data/routes_autosave.geojson',
+                    './data/routes_autosave.geojson',
+                ];
+
+                let geojson = null;
+                for (const url of urls) {
+                    try {
+                        const resp = await fetch(url);
+                        if (resp.ok) { geojson = await resp.json(); break; }
+                    } catch(e) {}
+                }
+
+                if (!geojson || !geojson.features) {
+                    console.warn('航路 GeoJSON 未找到，尝试旧版 JSON 备用…');
+                    return loadRouteDataFallback();
+                }
+
+                console.log(`航路 GeoJSON 加载完成，共 ${geojson.features.length} 条`);
+                buildRouteEntities(geojson.features);
+                buildRouteMenuTree(geojson.features);
+                // 默认显示 III 级
+                showRoutesByGrade('III');
+            }
+
+            // 构建 Cesium 实体（corridor 通道体 + 中心线 + 起止点标记）
+            function buildRouteEntities(features) {
+                features.forEach(feat => {
+                    const p     = feat.properties;
+                    const grade = p.grade || 'III';
+                    const gi    = ROUTE_GRADES[grade] || ROUTE_GRADES['III'];
+                    const coords = feat.geometry && feat.geometry.coordinates;
+                    if (!coords || coords.length < 2) return;
+
+                    const altMin = p.alt_min != null ? p.alt_min : 0;
+                    const altMax = p.alt_max != null ? p.alt_max : (altMin + gi.height);
+                    const altMid = (altMin + altMax) / 2;
+                    const width  = p.width_m || gi.width;
+
+                    // 通道 corridor（高度体）
+                    const corridorPositions = coords.map(c =>
+                        Cesium.Cartesian3.fromDegrees(c[0], c[1], altMid));
+
+                    const corridorEntity = viewer.entities.add({
+                        id:   'route_corridor_' + p.id,
+                        name: p.name || p.id,
+                        show: false,  // 默认隐藏，由 showRoutesByGrade 控制
+                        corridor: {
+                            positions:      corridorPositions,
+                            width:          width,
+                            height:         altMin,
+                            extrudedHeight: altMax,
+                            material:       gi.color.withAlpha(0.45),
+                            outline:        true,
+                            outlineColor:   gi.color.withAlpha(0.9),
+                        },
+                        description: buildRouteDescription(p),
+                    });
+
+                    // 中心线（细线，走 altMid）
+                    const lineEntity = viewer.entities.add({
+                        id:   'route_line_' + p.id,
+                        show: false,
+                        polyline: {
+                            positions: corridorPositions,
+                            width:     2,
+                            material:  gi.color.withAlpha(0.95),
+                            clampToGround: false,
+                        }
+                    });
+
+                    // 起止点标签
+                    const startPos = Cesium.Cartesian3.fromDegrees(coords[0][0], coords[0][1], altMid);
+                    const endPos   = Cesium.Cartesian3.fromDegrees(
+                        coords[coords.length-1][0], coords[coords.length-1][1], altMid);
+
+                    const startLabel = viewer.entities.add({
+                        id: 'route_start_' + p.id, show: false,
+                        position: startPos,
+                        point: { pixelSize: 7, color: gi.color, outlineColor: Cesium.Color.WHITE, outlineWidth: 1 },
+                    });
+                    const endLabel = viewer.entities.add({
+                        id: 'route_end_' + p.id, show: false,
+                        position: endPos,
+                        point: { pixelSize: 7, color: gi.color, outlineColor: Cesium.Color.WHITE, outlineWidth: 1 },
+                        label: {
+                            text: p.route_code || p.id,
+                            font: '10px sans-serif',
+                            fillColor: Cesium.Color.WHITE,
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 2,
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            pixelOffset: new Cesium.Cartesian2(0, -14),
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                        }
+                    });
+
+                    if (!routeEntitiesByGrade[grade]) routeEntitiesByGrade[grade] = [];
+                    routeEntitiesByGrade[grade].push(corridorEntity, lineEntity, startLabel, endLabel);
+                });
+            }
+
+            // 构建右侧详情描述 HTML
+            function buildRouteDescription(p) {
+                const typeLabel = { A: 'A类（标准）', B: 'B类（辅助）', C: 'C类（无人机）', D: 'D类（临时）' };
+                return `
+                    <table style="font-size:12px;color:#e2e8f0;border-collapse:collapse;width:100%">
+                    <tr><td style="padding:3px 8px;color:#94a3b8">航路编号</td><td style="padding:3px 8px">${p.route_code || p.id}</td></tr>
+                    <tr><td style="padding:3px 8px;color:#94a3b8">名称</td><td style="padding:3px 8px">${p.name || '-'}</td></tr>
+                    <tr><td style="padding:3px 8px;color:#94a3b8">等级</td><td style="padding:3px 8px">${p.grade} 级</td></tr>
+                    <tr><td style="padding:3px 8px;color:#94a3b8">类型</td><td style="padding:3px 8px">${typeLabel[p.route_type] || p.route_type || '-'}</td></tr>
+                    <tr><td style="padding:3px 8px;color:#94a3b8">通道宽度</td><td style="padding:3px 8px">${p.width_m} m</td></tr>
+                    <tr><td style="padding:3px 8px;color:#94a3b8">高度范围</td><td style="padding:3px 8px">${p.alt_min} ~ ${p.alt_max} m</td></tr>
+                    <tr><td style="padding:3px 8px;color:#94a3b8">航路长度</td><td style="padding:3px 8px">${p.length_m ? (p.length_m/1000).toFixed(2) + ' km' : '-'}</td></tr>
+                    <tr><td style="padding:3px 8px;color:#94a3b8">半宽 / 半高</td><td style="padding:3px 8px">${p.half_width_m || '-'} m / ${p.half_height_m || '-'} m</td></tr>
+                    </table>`;
+            }
+
+            // 按等级显示/隐藏航路（互斥：只显示指定等级）
+            function showRoutesByGrade(grade) {
+                Object.keys(routeEntitiesByGrade).forEach(g => {
+                    const visible = (g === grade);
+                    routeEntitiesByGrade[g].forEach(e => { if (e) e.show = visible; });
+                });
+                // 高亮选中的菜单项
+                document.querySelectorAll('.route-grade-item').forEach(el => {
+                    el.classList.toggle('active', el.dataset.grade === grade);
+                });
+            }
+
+            // 构建左侧等级目录树
+            function buildRouteMenuTree(features) {
+                const container = document.getElementById('routeGradeContainer');
+                if (!container) return;
+
+                // 统计各等级数量
+                const gradeCount = { I: 0, II: 0, III: 0 };
+                features.forEach(f => { const g = f.properties.grade || 'III'; if (gradeCount[g] != null) gradeCount[g]++; });
+
+                const gradeOrder = ['I', 'II', 'III'];
+                let html = '';
+                gradeOrder.forEach(grade => {
+                    const gi   = GRADE_INFO[grade];
+                    const gr   = ROUTE_GRADES[grade];
+                    const cnt  = gradeCount[grade] || 0;
+                    const desc = gi.desc;
+                    html += `
+                        <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-colors mb-1">
+                            <div class="flex items-center gap-2 w-full tree-node route-grade-item rounded"
+                                 data-grade="${grade}"
+                                 onclick="showRoutesByGrade('${grade}'); showDetail('${gr.label}航路', '${desc}', '${grade === 'I' ? 'red' : grade === 'II' ? 'orange' : 'green'}')">
+                                <span class="iconify text-slate-400" data-icon="lucide:move-right"></span>
+                                <span>${gr.label}</span>
+                                <span class="node-tag ${gi.tagClass} ml-1">${gi.tag}</span>
+                                <span class="ml-auto text-slate-500 font-normal text-[10px]">${cnt} 条</span>
+                            </div>
+                        </div>`;
+                });
+
+                container.innerHTML = html;
+            }
+
+            // 旧版 JSON 备用加载（保持向后兼容）
+            async function loadRouteDataFallback() {
+                try {
+                    const response = await fetch('./data/airroute/航线信息表_含CZML.json');
+                    if (!response.ok) return;
+                    const routeData = await response.json();
+                    console.log(`备用航路数据: ${routeData.length} 条`);
+                    // 转为 GeoJSON features 格式后复用同一渲染函数
+                    const features = routeData.map(r => {
+                        let coords = [];
+                        try {
+                            const czml = JSON.parse(r['CZML'] || '{}');
+                            const raw = (czml.corridor || {}).positions?.cartographicDegrees || [];
+                            let idx = 0;
+                            while (idx < raw.length) {
+                                if (Array.isArray(raw[idx])) {
+                                    const [lon, lat] = raw[idx]; idx++;
+                                    const alt = typeof raw[idx] === 'number' ? raw[idx] : 70;
+                                    coords.push([lon, lat, alt]);
+                                }
+                                idx++;
+                            }
+                        } catch(e) {}
+                        const rawLevel = (r['航路级别'] || 'Ⅲ').replace('级','');
+                        const gradeMap = { 'Ⅰ':'I','Ⅱ':'II','Ⅲ':'III','I':'I','II':'II','III':'III' };
+                        const grade = gradeMap[rawLevel] || 'III';
+                        const halfW = r['半宽(m)'] || 30;
+                        const halfH = r['半高(m)'] || 20;
+                        const avAlt = coords.length ? coords.reduce((s,c)=>s+c[2],0)/coords.length : 70;
+                        return {
+                            type: 'Feature',
+                            properties: {
+                                id: r['航路编号'], name: r['航路编号'],
+                                grade, type: 'airway',
+                                width_m: halfW * 2, height_m: halfH * 2,
+                                alt_min: avAlt - halfH, alt_max: avAlt + halfH,
+                                route_code: r['航路编号'], route_type: r['航路类型'],
+                                half_width_m: halfW, half_height_m: halfH,
+                            },
+                            geometry: { type: 'LineString', coordinates: coords }
+                        };
+                    }).filter(f => f.geometry.coordinates.length >= 2);
+                    buildRouteEntities(features);
+                    buildRouteMenuTree(features);
+                    showRoutesByGrade('III');
+                } catch(e) { console.error('备用航路加载失败:', e); }
+            }
+
+            // 将 showRouteByLevel 保留为向后兼容的空函数（其他地方可能引用）
+            window.showRouteByLevel = function() {};
+
+            // 加载航路数据
+            loadRouteDataFromGeoJSON();
+
+            // ========== 空域数据加载 ==========
+            // 从JSON文件加载空域数据
+            async function loadAirspaceData() {
+                try {
+                    const response = await fetch('./空域划分_含CZML.json');
+                    if (!response.ok) {
+                        throw new Error('Failed to load airspace data');
+                    }
+                    const airspaceZones = await response.json();
+                    console.log(`开始加载空域数据，共 ${airspaceZones.length} 个区域`);
+
+                    // 清空左侧空域列表容器
+                    const airspaceListContainer = document.getElementById('airspaceList');
+                    if (airspaceListContainer) {
+                        airspaceListContainer.innerHTML = '';
+                    }
+
+                    // 先按禁飞区/限飞区分类存储
+                    const prohibitedZones = [];  // 禁飞区
+                    const restrictedZones = []; // 限飞区
+
+                    // 遍历加载每个空域并分类
+                    airspaceZones.forEach((zone) => {
+                        const czmlStr = zone['CZML'];
+                        if (!czmlStr) {
+                            console.warn(`空域 ${zone['空域名称']} 无CZML数据`);
+                            return;
+                        }
+
+                        // 获取分类
+                        const classification = classifyAirspace(zone['空域名称']);
+                        
+                        // 根据分类加入对应数组
+                        if (classification.category === '禁飞区') {
+                            prohibitedZones.push({ zone, classification });
+                        } else {
+                            restrictedZones.push({ zone, classification });
+                        }
+                    });
+
+                    // 创建两级目录结构函数
+                    function createCategorySection(categoryName, categoryColor, categoryIcon, zones) {
+                        if (zones.length === 0) return '';
+                        
+                        const zoneItems = zones.map(item => {
+                            const { zone, classification } = item;
+                            const timeValid = zone['时间限制-是否生效'] === '是' ? '限时' : '全时';
+                            return `
+                                <div class="tree-node p-2 text-xs flex items-center gap-2 rounded ml-4" 
+                                     data-zone='${JSON.stringify(zone).replace(/'/g, "&#39;")}'>
+                                    <span class="iconify" style="color: ${categoryColor}" data-icon="lucide:map-pin"></span>
+                                    ${zone['空域名称']}
+                                    <span class="node-tag bg-tag-${categoryColor}" style="font-size: 9px;">${timeValid}</span>
+                                </div>
+                            `;
+                        }).join('');
+
+                        return `
+                            <div class="category-group mb-2">
+                                <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 group cursor-pointer hover:bg-slate-800/50 rounded transition-colors" 
+                                     onclick="toggleAirspaceCategory(this)">
+                                    <div class="flex items-center gap-2">
+                                        <span class="iconify text-${categoryColor} transition-transform duration-200 category-arrow" data-icon="lucide:chevron-right" style="transform: rotate(90deg);"></span>
+                                        <span class="iconify text-${categoryColor}" data-icon="${categoryIcon}"></span>
+                                        ${categoryName} (${zones.length})
+                                    </div>
+                                    <button class="toggle-btn p-1 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleCategoryVisibility('${categoryName}', this)">
+                                        <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+                                    </button>
+                                </div>
+                                <div class="category-content ml-2 space-y-1 section-content">
+                                    ${zoneItems}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    // 生成禁飞区和限飞区HTML
+                    const prohibitedHTML = createCategorySection('禁飞区', 'red', 'lucide:ban', prohibitedZones);
+                    const restrictedHTML = createCategorySection('限飞区', 'orange', 'lucide:arrow-down-to-line', restrictedZones);
+
+                    // 插入到左侧列表
+                    if (airspaceListContainer) {
+                        airspaceListContainer.innerHTML = prohibitedHTML + restrictedHTML;
+                        
+                        // 绑定点击事件
+                        airspaceListContainer.querySelectorAll('.tree-node[data-zone]').forEach(node => {
+                            node.onclick = function() {
+                                const zoneData = JSON.parse(this.getAttribute('data-zone').replace(/&#39;/g, "'"));
+                                const name = zoneData['空域名称'];
+                                const entities = zoneEntities[name];
+                                if (entities && entities.length > 0) {
+                                    showAirspaceDetail(zoneData);
+                                    viewer.flyTo(entities[0]);
+                                }
+                            };
+                        });
+                    }
+
+                    // 添加目录展开/折叠函数到全局
+                    window.toggleAirspaceCategory = function(element) {
+                        const content = element.nextElementSibling;
+                        const arrow = element.querySelector('.category-arrow');
+                        const isCollapsed = content.dataset.collapsed === 'true';
+
+                        if (isCollapsed) {
+                            content.dataset.collapsed = 'false';
+                            content.style.overflow = 'hidden';
+                            content.style.maxHeight = content.scrollHeight + 'px';
+                            content.style.opacity = '1';
+                            if (arrow) arrow.style.transform = 'rotate(90deg)';
+                            content.addEventListener('transitionend', function onEnd() {
+                                if (content.dataset.collapsed === 'false') {
+                                    content.style.maxHeight = 'none';
+                                    content.style.overflow = '';
+                                }
+                                content.removeEventListener('transitionend', onEnd);
+                            });
+                        } else {
+                            content.dataset.collapsed = 'true';
+                            content.style.overflow = 'hidden';
+                            content.style.maxHeight = content.scrollHeight + 'px';
+                            content.offsetHeight;
+                            content.style.maxHeight = '0px';
+                            content.style.opacity = '0';
+                            if (arrow) arrow.style.transform = 'rotate(0deg)';
+                        }
+                    };
+
+                    // 添加分类显示/隐藏函数到全局
+                    window.toggleCategoryVisibility = function(categoryName, btn) {
+                        // 暂时只显示/隐藏所有空域
+                        const isVisible = btn.querySelector('.iconify').getAttribute('data-icon') === 'lucide:eye';
+                        const icon = btn.querySelector('.iconify');
+                        if (isVisible) {
+                            icon.setAttribute('data-icon', 'lucide:eye-off');
+                            icon.classList.remove('text-green-400');
+                            icon.classList.add('text-red-400');
+                            // 隐藏该分类下所有实体
+                            viewer.entities.values.forEach(entity => {
+                                const cat = entity.properties?.category?.getValue();
+                                if (cat === categoryName) {
+                                    entity.show = false;
+                                }
+                            });
+                        } else {
+                            icon.setAttribute('data-icon', 'lucide:eye');
+                            icon.classList.remove('text-red-400');
+                            icon.classList.add('text-green-400');
+                            // 显示该分类下所有实体
+                            viewer.entities.values.forEach(entity => {
+                                const cat = entity.properties?.category?.getValue();
+                                if (cat === categoryName) {
+                                    entity.show = true;
+                                }
+                            });
+                        }
+                    };
+
+                    // 遍历加载每个空域（创建实体）
+                    airspaceZones.forEach((zone) => {
+                        const czmlStr = zone['CZML'];
+                        if (!czmlStr) return;
+
+                        let czml;
+                        try {
+                            czml = JSON.parse(czmlStr);
+                        } catch (e) {
+                            console.error(`解析CZML失败: ${zone['空域名称']}`, e);
+                            return;
+                        }
+
+                        const classification = classifyAirspace(zone['空域名称']);
+                        let entity = null;
+
+                        try {
+                            if (czml.polygon) {
+                                const polygon = czml.polygon;
+                                const positions = polygon.positions?.cartographicDegrees;
+                                const extrudedHeight = polygon.extrudedHeight || zone['最高高度(m)'] || 120;
+                                const height = polygon.height || 0;
+
+                                if (positions && positions.length >= 6) {
+                                    const coords = [];
+                                    for (let i = 0; i < positions.length; i += 3) {
+                                        coords.push(Cesium.Cartesian3.fromDegrees(positions[i], positions[i+1], positions[i+2]));
+                                    }
+
+                                    let material;
+                                    if (classification.category === '禁飞区') {
+                                        material = [255, 0, 0, 100];
+                                    } else {
+                                        material = [255, 165, 0, 100];
+                                    }
+                                    const color = Cesium.Color.fromBytes(material[0], material[1], material[2], material[3]);
+
+                                    entity = viewer.entities.add({
+                                        name: czml.name || zone['空域名称'],
+                                        polygon: {
+                                            hierarchy: new Cesium.PolygonHierarchy(coords),
+                                            material: color.withAlpha(0.4),
+                                            outline: true,
+                                            outlineColor: color,
+                                            outlineWidth: 2,
+                                            height: height,
+                                            extrudedHeight: extrudedHeight,
+                                            perPositionHeight: false
+                                        },
+                                        properties: {
+                                            name: czml.name || zone['空域名称'],
+                                            category: classification.category,
+                                            categoryReason: classification.reason,
+                                            zoneData: zone
+                                        }
+                                    });
+                                }
+                            } else if (czml.ellipse) {
+                                const ellipse = czml.ellipse;
+                                const position = czml.position?.cartographicDegrees || [0, 0, 0];
+                                const semiMajorAxis = parseFloat(ellipse.semiMajorAxis) || 300;
+                                const semiMinorAxis = parseFloat(ellipse.semiMinorAxis) || 300;
+                                const extrudedHeight = ellipse.extrudedHeight || zone['最高高度(m)'] || 120;
+
+                                // 判断是否为机场，机场用点表示
+                                const isAirport = zone['空域名称'] && zone['空域名称'].includes('机场');
+
+                                let material;
+                                if (classification.category === '禁飞区') {
+                                    material = [255, 0, 0, 100];
+                                } else {
+                                    material = [255, 165, 0, 100];
+                                }
+                                const color = Cesium.Color.fromBytes(material[0], material[1], material[2], material[3]);
+
+                                if (isAirport) {
+                                    // 机场用点+标签表示
+                                    entity = viewer.entities.add({
+                                        name: czml.name || zone['空域名称'],
+                                        position: Cesium.Cartesian3.fromDegrees(position[0], position[1], extrudedHeight),
+                                        point: {
+                                            pixelSize: 14,
+                                            color: Cesium.Color.fromCssColorString('#3b82f6'),
+                                            outlineColor: Cesium.Color.WHITE,
+                                            outlineWidth: 2,
+                                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                                        },
+                                        label: {
+                                            text: czml.name || zone['空域名称'],
+                                            font: '14px PingFang SC',
+                                            fillColor: Cesium.Color.WHITE,
+                                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                                            outlineWidth: 2,
+                                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                                            pixelOffset: new Cesium.Cartesian2(0, -15),
+                                            heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                                        },
+                                        properties: {
+                                            name: czml.name || zone['空域名称'],
+                                            category: classification.category,
+                                            categoryReason: classification.reason,
+                                            zoneData: zone
+                                        }
+                                    });
+                                    console.log(`机场用点表示: ${zone['空域名称']}`);
+                                } else {
+                                    // 普通圆形区域用圆柱体表示
+                                    entity = viewer.entities.add({
+                                        name: czml.name || zone['空域名称'],
+                                        position: Cesium.Cartesian3.fromDegrees(position[0], position[1], position[2]),
+                                        ellipse: {
+                                            semiMinorAxis: semiMinorAxis,
+                                            semiMajorAxis: semiMajorAxis,
+                                            material: color.withAlpha(0.4),
+                                            outline: true,
+                                            outlineColor: color,
+                                            outlineWidth: 2,
+                                            extrudedHeight: extrudedHeight,
+                                            height: 0
+                                        },
+                                        properties: {
+                                            name: czml.name || zone['空域名称'],
+                                            category: classification.category,
+                                            categoryReason: classification.reason,
+                                            zoneData: zone
+                                        }
+                                    });
+                                }
+                            }
+
+                            if (entity) {
+                                // 额外保存分类信息到实体
+                                entity.properties.category = classification.category;
+                                
+                                if (!zoneEntities[czml.name || zone['空域名称']]) {
+                                    zoneEntities[czml.name || zone['空域名称']] = [];
+                                }
+                                zoneEntities[czml.name || zone['空域名称']].push(entity);
+                            }
+                        } catch (e) {
+                            console.error(`创建空域实体失败: ${zone['空域名称']}`, e);
+                        }
+                    });
+
+                    console.log('空域数据加载完成');
+                } catch (error) {
+                    console.error('加载空域数据失败:', error);
+                }
+            }
+
+            // 根据空域类型获取颜色
+            function getZoneColor(spaceType) {
+                const colorMap = {
+                    'P': 'green',      // 允许飞行
+                    'WG': 'orange',     // 警告
+                    'W': 'red',         // 禁飞
+                    'R': 'red',         // 限制
+                    'C': 'blue',        // 机场
+                    'D': 'purple',      // 危险
+                    'E': 'cyan'         // 演练
+                };
+                return colorMap[spaceType] || 'blue';
+            }
+
+            // 根据空域名称判断禁飞区或限飞区
+            function classifyAirspace(name) {
+                if (!name) return { category: '限飞区', reason: '其他' };
+                
+                const nameStr = name.toString();
+                
+                // 禁飞区关键词（完全禁止飞行）
+                const prohibitedKeywords = [
+                    '机场', '派出所', '拘留所', '看守所', '戒毒所', '武警', '军队',
+                    '政府', '县委', '县政府', '公安', '法院', '检察院', '监狱',
+                    '军用', '雷达', '导航台', '气象站'
+                ];
+                
+                // 限飞区关键词（需要报备或有条件限制）
+                const restrictedKeywords = [
+                    '体育馆', '篮球馆', '羽毛球', '游泳馆', '大剧院', '博物馆',
+                    '图书馆', '学校', '医院', '车站', '火车站', '高铁站', '轻轨',
+                    '广场', '公园', '景区', '工厂', '企业', '公司', '水务', '污水处理',
+                    '供电', '变电站', '加油站', '加气站'
+                ];
+                
+                for (const keyword of prohibitedKeywords) {
+                    if (nameStr.includes(keyword)) {
+                        return { category: '禁飞区', reason: keyword };
+                    }
+                }
+                
+                for (const keyword of restrictedKeywords) {
+                    if (nameStr.includes(keyword)) {
+                        return { category: '限飞区', reason: keyword };
+                    }
+                }
+                
+                return { category: '限飞区', reason: '其他' };
+            }
+
+            // 根据分类获取颜色
+            function getCategoryColor(category) {
+                return category === '禁飞区' ? 'red' : 'orange';
+            }
+
+            // 显示空域详情 - 显示完整属性
+            function showAirspaceDetail(zone) {
+                const detailTitle = document.getElementById('detailTitle');
+                const detailDesc = document.getElementById('detailDesc');
+                const alertBox = document.getElementById('alertBox');
+
+                // 获取所有属性
+                const name = zone['空域名称'] || zone.name || '';
+                const id = zone['ID'] || '';
+                const airspaceCode = zone['空域编号'] || '';
+                const spaceType = zone['空域类型'] || '';
+                const spaceAttr = zone['空域属性'] || '-';
+                const shape = zone['形状类型'] || '-';
+                const altType = zone['高度类型'] || '-';
+                const altMax = zone['最高高度(m)'] || 0;
+                const altMin = zone['最低高度(m)'] || 0;
+                const timeValid = zone['时间限制-是否生效'] || '-';
+                const timeDays = zone['时间限制-生效日'] || '-';
+                const timeRange = zone['时间限制-时段'] || '-';
+                const condition = zone['条件说明'] || '-';
+                const remark = zone['备注'] || '-';
+                const smallCap = zone['容量-小型机'] || 0;
+                const mediumCap = zone['容量-中型机'] || 0;
+                const largeCap = zone['容量-大型机'] || 0;
+                const radius = zone['圆形半径(m)'] || '-';
+
+                // 获取空域分类
+                const classification = classifyAirspace(name);
+                const categoryColor = getCategoryColor(classification.category);
+
+                if (detailTitle) {
+                    detailTitle.textContent = name;
+                    detailTitle.className = `font-bold text-${categoryColor}-400 flex items-center gap-2`;
+                }
+
+                if (detailDesc) {
+                    detailDesc.innerHTML = `
+                        <div class="space-y-2 text-sm">
+                            <!-- 基本信息 -->
+                            <div class="border-b border-slate-700 pb-2 mb-2">
+                                <div class="text-xs text-slate-500 mb-1">基本信息</div>
+                                <div class="grid grid-cols-2 gap-1">
+                                    <div><span class="text-slate-400">空域编号:</span> <span class="text-slate-200">${airspaceCode}</span></div>
+                                    <div><span class="text-slate-400">形状:</span> <span class="text-slate-200">${shape}</span></div>
+                                    <div><span class="text-slate-400">空域类型:</span> <span class="text-slate-200">${spaceType}</span></div>
+                                    <div><span class="text-slate-400">类型属性:</span> <span class="text-slate-200">${spaceAttr}</span></div>
+                                    <div><span class="text-slate-400">高度类型:</span> <span class="text-slate-200">${altType === 3 ? '相对高度' : altType}</span></div>
+                                    <div><span class="text-slate-400">圆形半径:</span> <span class="text-slate-200">${radius === '-' ? '-' : radius + 'm'}</span></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 高度限制 -->
+                            <div class="border-b border-slate-700 pb-2 mb-2">
+                                <div class="text-xs text-slate-500 mb-1">高度限制</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-slate-400">限高:</span>
+                                    <span class="text-${categoryColor}-400 font-bold">${altMin}m - ${altMax}m</span>
+                                </div>
+                            </div>
+                            
+                            <!-- 时间限制 -->
+                            <div class="border-b border-slate-700 pb-2 mb-2">
+                                <div class="text-xs text-slate-500 mb-1">时间限制</div>
+                                <div class="grid grid-cols-1 gap-1">
+                                    <div><span class="text-slate-400">是否生效:</span> <span class="${timeValid === '是' ? 'text-orange-400' : 'text-green-400'}">${timeValid}</span></div>
+                                    <div><span class="text-slate-400">生效日:</span> <span class="text-slate-200">${timeDays}</span></div>
+                                    <div><span class="text-slate-400">时段:</span> <span class="text-slate-200">${timeRange}</span></div>
+                                    <div><span class="text-slate-400">条件说明:</span> <span class="text-slate-200">${condition}</span></div>
+                                </div>
+                            </div>
+                            
+                            <!-- 容量信息 -->
+                            <div class="border-b border-slate-700 pb-2 mb-2">
+                                <div class="text-xs text-slate-500 mb-1">容量信息</div>
+                                <div class="grid grid-cols-3 gap-1 text-center">
+                                    <div class="bg-slate-800/50 rounded p-1">
+                                        <div class="text-xs text-slate-500">小型机</div>
+                                        <div class="text-green-400 font-bold">${smallCap.toLocaleString()}</div>
+                                    </div>
+                                    <div class="bg-slate-800/50 rounded p-1">
+                                        <div class="text-xs text-slate-500">中型机</div>
+                                        <div class="text-blue-400 font-bold">${mediumCap.toLocaleString()}</div>
+                                    </div>
+                                    <div class="bg-slate-800/50 rounded p-1">
+                                        <div class="text-xs text-slate-500">大型机</div>
+                                        <div class="text-yellow-400 font-bold">${largeCap.toLocaleString()}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 分类信息 -->
+                            <div class="pb-1">
+                                <div class="text-xs text-slate-500 mb-1">分类信息</div>
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-1 bg-${categoryColor}-500/20 border border-${categoryColor}-500/30 rounded text-${categoryColor}-400 font-bold">
+                                        ${classification.category}
+                                    </span>
+                                    <span class="text-slate-400 text-xs">依据: ${classification.reason}</span>
+                                </div>
+                                ${remark !== '-' ? `<div class="mt-1"><span class="text-slate-400">备注:</span> <span class="text-slate-200 text-xs">${remark}</span></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (alertBox) {
+                    alertBox.className = `p-3 bg-${categoryColor}-500/10 border border-${categoryColor}-500/20 rounded flex items-center gap-3`;
+                    const alertIcon = alertBox.querySelector('.iconify');
+                    if (alertIcon) alertIcon.className = `iconify text-${categoryColor}-500 animate-pulse`;
+                    const alertText = alertBox.querySelector('.text-red-200');
+                    if (alertText) {
+                        alertText.textContent = `${name} [${classification.category}]`;
+                        alertText.className = `font-bold text-${categoryColor}-200 uppercase`;
+                    }
+                }
+            }
+
+            // 加载空域数据
+            loadAirspaceData();
+
+            // ========== 固定航线数据加载 ==========
+            let fixedRouteEntities = []; // 存储固定航线实体
+            
+            async function loadFixedRoutesData() {
+                try {
+                    // 从 route_library.json 加载数据
+                    const response = await fetch('../../flyplan/route_library.json');
+                    if (!response.ok) {
+                        throw new Error('Failed to load route_library.json: ' + response.status);
+                    }
+                    const routes = await response.json();
+                    console.log(`固定航线数据加载完成，共 ${routes.length} 条`);
+                    
+                    // geojson 已经是标准 JSON 格式，直接使用
+                    routes.forEach(function(route) {
+                        route.geojson_parsed = route.geojson;
+                    });
+                    
+                    // 按业务类型分组
+                    const routesByType = {};
+                    routes.forEach(route => {
+                        const bizType = route.biz_type || '其他';
+                        if (!routesByType[bizType]) {
+                            routesByType[bizType] = [];
+                        }
+                        routesByType[bizType].push(route);
+                    });
+                    
+                    // 渲染左侧目录
+                    renderFixedRoutesMenu(routesByType);
+                    
+                    // 加载所有航线到地图
+                    loadFixedRoutesToMap(routes);
+                    
+                } catch (error) {
+                    console.error('加载固定航线数据失败:', error);
+                }
+            }
+            
+            // 渲染固定航线左侧菜单
+            function renderFixedRoutesMenu(routesByType) {
+                const container = document.getElementById('fixedRoutesContainer');
+                if (!container) return;
+                
+                let html = '';
+                Object.keys(routesByType).forEach((bizType, index) => {
+                    const routes = routesByType[bizType];
+                    const typeId = `fixed-route-type-${index}`;
+                    html += `
+                        <div class="mb-2">
+                            <div class="flex items-center justify-between p-2 text-xs font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-colors" onclick="toggleSection(this)">
+                                <div class="flex items-center gap-2">
+                                    <span class="iconify text-blue-400 transition-transform duration-200 -rotate-90" data-icon="lucide:chevron-down"></span>
+                                    <span class="iconify text-cyan-400" data-icon="lucide:folder"></span>
+                                    ${bizType} (${routes.length})
+                                </div>
+                            </div>
+                            <div class="ml-4 space-y-1 section-content" style="max-height: 0px; overflow: hidden;" data-collapsed="true">
+                                ${routes.map((route, rIndex) => `
+                                    <div class="tree-node p-2 text-xs flex items-center gap-2 rounded hover:bg-slate-800/80 cursor-pointer" onclick="showFixedRouteDetail('${route.route_id}', ${index}, ${rIndex})">
+                                        <span class="iconify text-slate-400" data-icon="lucide:plane"></span>
+                                        ${route.route_name || route.route_id}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+            
+            // 加载固定航线到地图
+            function loadFixedRoutesToMap(routes) {
+                routes.forEach(route => {
+                    // 从 GeoJSON 获取坐标
+                    const geojson = route.geojson_parsed;
+                    if (!geojson || !geojson.coordinates || geojson.coordinates.length < 2) {
+                        console.warn(`航线 ${route.route_id} 没有有效的 GeoJSON 数据`);
+                        return;
+                    }
+                    
+                    // 解析坐标点
+                    const positions = [];
+                    const heights = [];
+                    geojson.coordinates.forEach(coord => {
+                        if (coord.length >= 2) {
+                            const lon = coord[0];
+                            const lat = coord[1];
+                            const alt = coord[2] || 100;
+                            positions.push(Cesium.Cartesian3.fromDegrees(lon, lat, alt));
+                            heights.push(alt);
+                        }
+                    });
+                    
+                    if (positions.length < 2) return;
+                    
+                    // 根据业务类型设置颜色
+                    const colorMap = {
+                        '快递物流': Cesium.Color.MAGENTA,
+                        '巡检巡查': Cesium.Color.YELLOW,
+                        '应急救援': Cesium.Color.RED,
+                        '农林植保': Cesium.Color.GREEN,
+                        '航拍测绘': Cesium.Color.CYAN,
+                        '其他': Cesium.Color.BLUE
+                    };
+                    const routeColor = colorMap[route.biz_type] || Cesium.Color.BLUE;
+                    
+                    // 创建航线实体
+                    const entity = viewer.entities.add({
+                        name: `${route.route_name} (${route.biz_type})`,
+                        polyline: {
+                            positions: positions,
+                            width: 3,
+                            material: routeColor.withAlpha(0.8),
+                            clampToGround: false
+                        },
+                        properties: {
+                            routeId: route.route_id,
+                            routeData: route
+                        }
+                    });
+                    
+                    fixedRouteEntities.push({
+                        entity: entity,
+                        routeId: route.route_id,
+                        routeData: route
+                    });
+                });
+                
+                console.log(`固定航线渲染完成，共 ${fixedRouteEntities.length} 条`);
+            }
+            
+            // 显示固定航线详情（弹出窗口）
+            window.showFixedRouteDetail = function(routeId, typeIndex, routeIndex) {
+                const routeInfo = fixedRouteEntities.find(r => r.routeId === routeId);
+                if (!routeInfo) return;
+                
+                const route = routeInfo.routeData;
+                const coordinates = route.geojson_parsed ? route.geojson_parsed.coordinates : [];
+                
+                // 构建详情HTML
+                const detailHtml = `
+                    <div class="fixed-route-detail">
+                        <h3 class="text-lg font-bold text-blue-400 mb-3">${route.route_name || route.route_id}</h3>
+                        <div class="space-y-2 text-sm">
+                            <p><span class="text-slate-400">航线ID:</span> ${route.route_id}</p>
+                            <p><span class="text-slate-400">航线类型:</span> ${route.route_type || '未分类'}</p>
+                            <p><span class="text-slate-400">业务类型:</span> ${route.biz_type || '未分类'}</p>
+                            <p><span class="text-slate-400">飞行频次:</span> ${route.fly_freq || '未指定'}</p>
+                            <p><span class="text-slate-400">数据来源:</span> ${route.data_source || '未指定'}</p>
+                            <p><span class="text-slate-400">起点:</span> ${route.start_point || '未指定'}</p>
+                            <p><span class="text-slate-400">终点:</span> ${route.end_point || '未指定'}</p>
+                            <p><span class="text-slate-400">航路点数:</span> ${route.waypoint_count || coordinates.length}</p>
+                            <p><span class="text-slate-400">航线长度:</span> ${route.route_length_m ? (route.route_length_m / 1000).toFixed(2) + ' km' : '未指定'}</p>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-sm font-bold text-slate-300 mb-2">坐标点列表 (前10个)</h4>
+                            <div class="max-h-40 overflow-y-auto space-y-1">
+                                ${coordinates.slice(0, 10).map((coord, i) => `
+                                    <div class="text-xs p-2 bg-slate-800/50 rounded">
+                                        <span class="text-cyan-400">${i + 1}.</span> 
+                                        <span class="text-slate-500">[${coord[0].toFixed(6)}, ${coord[1].toFixed(6)}${coord[2] ? ', ' + coord[2] + 'm' : ''}]</span>
+                                    </div>
+                                `).join('')}
+                                ${coordinates.length > 10 ? `<div class="text-xs text-slate-500 text-center">... 还有 ${coordinates.length - 10} 个点</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // 显示在右侧详情面板
+                const detailTitle = document.getElementById('detailTitle');
+                const detailDesc = document.getElementById('detailDesc');
+                const alertBox = document.getElementById('alertBox');
+                
+                if (detailTitle) {
+                    detailTitle.innerHTML = `<span class="iconify mr-2" data-icon="lucide:plane"></span>${route.route_name || route.route_id}`;
+                    detailTitle.style.color = '#60a5fa';
+                }
+                if (detailDesc) {
+                    detailDesc.innerHTML = detailHtml;
+                }
+                if (alertBox) {
+                    alertBox.className = 'mt-4 p-3 rounded text-xs bg-blue-900/30 border border-blue-500/30';
+                    alertBox.innerHTML = '<p class="font-bold text-blue-200">固定航线信息</p>';
+                }
+                
+                // 高亮显示该航线
+                highlightFixedRoute(routeId);
+            };
+            
+            // 高亮固定航线
+            function highlightFixedRoute(routeId) {
+                fixedRouteEntities.forEach(item => {
+                    if (item.entity.polyline) {
+                        if (item.routeId === routeId) {
+                            item.entity.polyline.width = 5;
+                            item.entity.polyline.material = Cesium.Color.WHITE.withAlpha(0.9);
+                        } else {
+                            item.entity.polyline.width = 3;
+                            // 恢复原色
+                            const route = item.routeData;
+                            const colorMap = {
+                                '快递物流': Cesium.Color.MAGENTA,
+                                '巡检巡查': Cesium.Color.YELLOW,
+                                '应急救援': Cesium.Color.RED,
+                                '农林植保': Cesium.Color.GREEN,
+                                '航拍测绘': Cesium.Color.CYAN,
+                                '其他': Cesium.Color.BLUE
+                            };
+                            item.entity.polyline.material = (colorMap[route.biz_type] || Cesium.Color.BLUE).withAlpha(0.8);
+                        }
+                    }
+                });
+            }
+            
+            // 加载固定航线数据
+            loadFixedRoutesData();
+
+            // 内联 CNS 设备数据（通讯、导航、监视）
+            const cnsDeviceData = {
+                communication: {
+                    name: '通讯设备',
+                    icon: 'lucide:radio',
+                    color: '#10b981', // emerald-500
+                    devices: [
+                        { name: '5G基站-1', coordinates: [119.9712967977313, 30.52355836887861] },
+                        { name: '5G基站-2', coordinates: [119.9624061139184, 30.51517207893123] },
+                        { name: '5G基站-3', coordinates: [119.9762522651380, 30.51426268892555] },
+                        { name: '5G基站-4', coordinates: [119.9591012335834, 30.52901861304756] },
+                        { name: '5G基站-5', coordinates: [119.9185180664063, 30.55856553798283] },
+                        { name: '5G基站-6', coordinates: [119.8819541931152, 30.59846854371451] },
+                        { name: '5G基站-7', coordinates: [120.0372219085693, 30.52910807064572] },
+                        { name: '5G基站-8', coordinates: [120.0234031677246, 30.54688710949595] }
+                    ]
+                },
+                navigation: {
+                    name: '导航设备',
+                    icon: 'lucide:compass',
+                    color: '#3b82f6', // blue-500
+                    devices: [
+                        { name: 'CORS-1', coordinates: [119.9030685424805, 30.57999697131928] },
+                        { name: 'CORS-2', coordinates: [119.9806594848633, 30.56078280238087] },
+                        { name: 'CORS-3', coordinates: [119.9349975585938, 30.54156482797521] },
+                        { name: 'CORS-4', coordinates: [119.9967956542969, 30.49128445210019] },
+                        { name: 'CORS-5', coordinates: [120.0771331787109, 30.52116004661714] }
+                    ]
+                },
+                surveillance: {
+                    name: '监视设备',
+                    icon: 'lucide:radar',
+                    color: '#a855f7', // purple-500
+                    devices: [
+                        { name: '监视雷达-1', coordinates: [119.904785156250, 30.53860787885457] },
+                        { name: '监视雷达-2', coordinates: [119.9657893180847, 30.51820247638195] },
+                        { name: '监视雷达-3', coordinates: [120.0446891784668, 30.50134260771591] },
+                        { name: '监视雷达-4', coordinates: [120.0156784057617, 30.56433032003468] }
+                    ]
+                }
+            };
+
+            // 全局存储CNS设备实体
+            let deviceEntities = {};
+
+            // 用 Canvas 绘制设备图标
+            function createDeviceIcon(category, color) {
+                const size = 48;
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                const cx = size / 2, cy = size / 2;
+
+                ctx.clearRect(0, 0, size, size);
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 2;
+
+                if (category === 'communication') {
+                    // 5G基站：信号塔 —— 底座三角 + 向上辐射弧线
+                    // 底座
+                    ctx.beginPath();
+                    ctx.moveTo(cx, 8);
+                    ctx.lineTo(cx - 8, 40);
+                    ctx.lineTo(cx + 8, 40);
+                    ctx.closePath();
+                    ctx.globalAlpha = 0.25;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    ctx.stroke();
+                    // 顶部竖线
+                    ctx.beginPath();
+                    ctx.moveTo(cx, 8);
+                    ctx.lineTo(cx, 4);
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                    // 三道信号弧（向上辐射）
+                    [10, 16, 22].forEach((r, i) => {
+                        ctx.beginPath();
+                        ctx.arc(cx, 8, r, Math.PI * 1.1, Math.PI * 1.9);
+                        ctx.globalAlpha = 1 - i * 0.25;
+                        ctx.lineWidth = 1.8;
+                        ctx.stroke();
+                    });
+                    ctx.globalAlpha = 1;
+
+                } else if (category === 'navigation') {
+                    // CORS导航：卫星定位 —— 圆形底盘 + 十字 + 外圈虚线
+                    // 外圈
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+                    ctx.globalAlpha = 0.2;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([3, 3]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    // 内圈
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 10, 0, Math.PI * 2);
+                    ctx.lineWidth = 1.8;
+                    ctx.stroke();
+                    // 中心点
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    // 十字瞄准线
+                    ctx.lineWidth = 1.5;
+                    ctx.globalAlpha = 0.7;
+                    [[cx, cy - 22, cx, cy - 12], [cx, cy + 12, cx, cy + 22],
+                     [cx - 22, cy, cx - 12, cy], [cx + 12, cy, cx + 22, cy]].forEach(([x1, y1, x2, y2]) => {
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.stroke();
+                    });
+                    ctx.globalAlpha = 1;
+
+                } else if (category === 'surveillance') {
+                    // 监视雷达：扫描扇形 + 同心圆弧
+                    // 三道同心弧
+                    [8, 14, 20].forEach((r, i) => {
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, r, -Math.PI * 0.9, Math.PI * 0.9);
+                        ctx.globalAlpha = 1 - i * 0.2;
+                        ctx.lineWidth = 1.5;
+                        ctx.stroke();
+                    });
+                    ctx.globalAlpha = 1;
+                    // 扫描扇形（半透明填充）
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.arc(cx, cy, 20, -Math.PI * 0.15, Math.PI * 0.15);
+                    ctx.closePath();
+                    ctx.globalAlpha = 0.35;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+                    // 中心点
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    // 底座横线
+                    ctx.beginPath();
+                    ctx.moveTo(cx - 10, cy + 20);
+                    ctx.lineTo(cx + 10, cy + 20);
+                    ctx.lineWidth = 2.5;
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.lineTo(cx, cy + 20);
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+
+                return canvas;
+            }
+
+            // 添加CNS设备到地图
+            Object.keys(cnsDeviceData).forEach(category => {
+                const categoryData = cnsDeviceData[category];
+                const containerId = category === 'communication' ? 'communication-devices' :
+                                   category === 'navigation' ? 'navigation-devices' : 'surveillance-devices';
+                const container = document.getElementById(containerId);
+
+                // 每类只生成一次图标 canvas
+                const iconCanvas = createDeviceIcon(category, categoryData.color);
+
+                categoryData.devices.forEach(device => {
+                    const position = Cesium.Cartesian3.fromDegrees(
+                        device.coordinates[0],
+                        device.coordinates[1]
+                    );
+
+                    // 创建设备实体（用 billboard 显示自定义图标）
+                    const entity = viewer.entities.add({
+                        name: device.name,
+                        position: position,
+                        billboard: {
+                            image: iconCanvas,
+                            width: 36,
+                            height: 36,
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                            scaleByDistance: new Cesium.NearFarScalar(1000, 1.2, 200000, 0.6)
+                        },
+                        label: {
+                            text: device.name,
+                            font: '11px sans-serif',
+                            fillColor: Cesium.Color.WHITE,
+                            outlineColor: Cesium.Color.BLACK,
+                            outlineWidth: 2,
+                            style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                            verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                            pixelOffset: new Cesium.Cartesian2(0, -38),
+                            disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                            scaleByDistance: new Cesium.NearFarScalar(1000, 1.0, 200000, 0.5)
+                        },
+                        properties: {
+                            name: device.name,
+                            category: category,
+                            type: 'cns_device',
+                            description: `${categoryData.name} - ${device.name}`
+                        }
+                    });
+
+                    // 存储实体
+                    if (!deviceEntities[device.name]) {
+                        deviceEntities[device.name] = entity;
+                    }
+
+                    // 添加到左侧树
+                    if (container) {
+                        const node = document.createElement('div');
+                        node.className = 'tree-node p-1 text-[10px] flex items-center gap-2 rounded hover:bg-slate-800/50 cursor-pointer';
+                        node.innerHTML = `
+                            <span class="iconify text-[9px]" style="color: ${categoryData.color}" data-icon="${categoryData.icon}"></span>
+                            ${device.name}
+                        `;
+                        node.onclick = () => {
+                            showDeviceDetail(device.name, category, categoryData.color);
+                            viewer.flyTo(entity);
+                        };
+                        container.appendChild(node);
+                    }
+
+                    console.log(`已添加${categoryData.name}: ${device.name}`);
+                });
+            });
+
+            // 高亮指定名称的空域
+            window.highlightZoneByName = function(name) {
+                // 重置所有实体样式
+                Object.values(zoneEntities).forEach(entities => {
+                    entities.forEach(entity => {
+                        if (entity.polygon) {
+                            entity.polygon.material = colorMap[entity.properties.color];
+                            entity.polygon.outlineWidth = 3;
+                        }
+                    });
+                });
+
+                // 高亮指定空域
+                if (zoneEntities[name]) {
+                    zoneEntities[name].forEach(entity => {
+                        if (entity.polygon) {
+                            entity.polygon.material = Cesium.Color.WHITE.withAlpha(0.6);
+                            entity.polygon.outlineWidth = 5;
+                        }
+                    });
+                }
+            };
+
+            // 点击实体事件处理
+            viewer.selectedEntityChanged.addEventListener(function(entity) {
+                if (entity && entity.properties) {
+                    const props = entity.properties;
+                    const name = props.name?.getValue();
+                    const type = props.type?.getValue();
+
+                    if (type === 'cns_device') {
+                        // CNS设备
+                        const category = props.category?.getValue();
+                        const color = category === 'communication' ? '#10b981' :
+                                     category === 'navigation' ? '#3b82f6' : '#a855f7';
+                        showDeviceDetail(name, category, color);
+                    } else if (name) {
+                        // 空域区域
+                        const desc = props.description?.getValue() || '';
+                        const colorClass = props.color?.getValue() || 'blue';
+
+                        // 更新树节点选中状态
+                        document.querySelectorAll('.tree-node').forEach(node => {
+                            node.classList.remove('active');
+                            if (node.textContent.includes(name)) {
+                                node.classList.add('active');
+                            }
+                        });
+
+                        // 更新详情面板
+                        showDetail(name, desc, colorClass);
+                    }
+                }
+            });
+
+    </script>
+
+    <!-- 嵌入模式检测：当被 iframe 嵌入时自动隐藏顶部导航栏 -->
+    <script>
+        (function() {
+            try {
+                // 检测是否运行在 iframe 内
+                if (window.self !== window.top) {
+                    document.body.classList.add('embed-mode');
+                }
+            } catch (e) {
+                // 跨域情况下 window.top 访问会报错，说明确实在 iframe 内
+                document.body.classList.add('embed-mode');
+            }
+        })();
+    </script>
+</body>
+</html>

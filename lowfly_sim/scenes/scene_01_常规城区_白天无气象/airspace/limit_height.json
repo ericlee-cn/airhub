@@ -1,0 +1,20 @@
+{
+  "airspace_list": [
+    {
+      "area_id": "AREA_003",
+      "area_name": "商业区限高120m",
+      "area_type": "limit_h",
+      "priority": 3,
+      "min_alt": 120,
+      "max_alt": 400,
+      "time_mode": "always",
+      "geo_shape": "polygon",
+      "points": [
+        [120.14, 30.27],
+        [120.18, 30.27],
+        [120.18, 30.30],
+        [120.14, 30.30]
+      ]
+    }
+  ]
+}

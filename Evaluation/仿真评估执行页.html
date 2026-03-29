@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>仿真评估执行页 - 低空经济仿真验证平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<style>
+        body { background-color: #0b1222; color: #94a3b8; font-family: "Inter", system-ui, sans-serif; }
+        .tech-card { background: rgba(13, 25, 48, 0.8); border: 1px solid #1e3a8a; backdrop-filter: blur(10px); }
+        .neon-btn { background: #1677ff; color: white; box-shadow: 0 0 15px rgba(22, 119, 255, 0.4); }
+        .neon-btn:hover { background: #4096ff; }
+        .nav-active { background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%); border-left: 4px solid #3b82f6; color: white; }
+    </style>
+</head>
+<body class="overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- 左侧导航 -->
+<aside class="w-64 border-r border-blue-900/50 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<span class="iconify text-3xl text-blue-500" data-icon="solar:Widget-5-bold-duotone"></span>
+<h1 class="text-white font-bold tracking-wider">仿真评估子系统</h1>
+</div>
+<nav class="flex-1 mt-4">
+<a class="flex items-center px-6 py-4 hover:bg-blue-900/20 transition" href="仿真评估首页.html">
+<span class="iconify mr-3 text-xl" data-icon="solar:home-2-bold"></span> 评估首页
+                </a>
+<a class="flex items-center px-6 py-4 nav-active" href="仿真评估执行页.html">
+<span class="iconify mr-3 text-xl" data-icon="solar:play-bold"></span> 评估执行
+                </a>
+<a class="flex items-center px-6 py-4 hover:bg-blue-900/20 transition" href="评估模型管理页.html">
+<span class="iconify mr-3 text-xl" data-icon="solar:box-bold"></span> 模型管理
+                </a>
+<a class="flex items-center px-6 py-4 hover:bg-blue-900/20 transition" href="评估结果管理页.html">
+<span class="iconify mr-3 text-xl" data-icon="solar:document-bold"></span> 结果档案
+                </a>
+</nav>
+</aside>
+<main class="flex-1 flex flex-col">
+<header class="h-16 border-b border-blue-900/50 flex items-center px-8">
+<h2 class="text-white font-medium">评估执行控制台</h2>
+</header>
+<div class="p-8 max-w-4xl mx-auto w-full">
+<div class="tech-card p-10 mb-8 overflow-hidden relative">
+<div class="absolute top-0 right-0 p-4 opacity-10">
+<span class="iconify text-8xl" data-icon="solar:cpu-bolt-bold-duotone"></span>
+</div>
+<h3 class="text-white text-lg mb-8 flex items-center gap-2">
+<span class="iconify text-blue-400" data-icon="solar:settings-bold"></span> 评估任务配置
+                    </h3>
+<div class="space-y-6">
+<div class="grid grid-cols-2 gap-6">
+<div>
+<label class="block text-sm mb-2">仿真实体选择</label>
+<select class="w-full bg-[#0d1930] border border-blue-900/50 p-3 rounded text-white focus:border-blue-500 outline-none">
+<option>Nansha_Logistics_Group_01 (48架无人机)</option>
+<option>City_Emergency_Team_A (12架直升机)</option>
+<option>Tianhe_District_Patrol (24架巡检无人机)</option>
+</select>
+</div>
+<div>
+<label class="block text-sm mb-2">评估模型选择</label>
+<select class="w-full bg-[#0d1930] border border-blue-900/50 p-3 rounded text-white focus:border-blue-500 outline-none">
+<option>MOD-001 | 低空物流通用模型</option>
+<option>MOD-002 | 空域巡检专项模型</option>
+<option>MOD-003 | 应急救援评估模型</option>
+</select>
+</div>
+</div>
+<div>
+<label class="block text-sm mb-2">场景特征定义</label>
+<div class="flex gap-4">
+<label class="flex items-center gap-2 cursor-pointer bg-blue-900/20 px-4 py-2 border border-blue-900/50 rounded">
+<input checked="" class="accent-blue-500" type="checkbox"/> 高密度空域
+                                </label>
+<label class="flex items-center gap-2 cursor-pointer bg-blue-900/20 px-4 py-2 border border-blue-900/50 rounded">
+<input class="accent-blue-500" type="checkbox"/> 气象干扰干扰
+                                </label>
+<label class="flex items-center gap-2 cursor-pointer bg-blue-900/20 px-4 py-2 border border-blue-900/50 rounded flex-1">
+                                    数据采集频率: 10Hz
+                                </label>
+</div>
+</div>
+<div class="pt-6 border-t border-blue-900/30">
+<button class="neon-btn w-full py-4 rounded-lg font-bold text-lg flex items-center justify-center gap-2" id="startBtn">
+<span class="iconify" data-icon="solar:play-circle-bold"></span> 开启实时仿真评估
+                            </button>
+</div>
+</div>
+</div>
+<!-- 进度区 -->
+<div class="tech-card p-10 hidden" id="progressArea">
+<div class="flex justify-between mb-4">
+<span class="text-white font-medium flex items-center gap-2">
+<span class="iconify animate-spin text-blue-400" data-icon="solar:refresh-bold"></span> 评估计算运行中...
+                        </span>
+<span class="text-blue-400 font-bold" id="percent">45%</span>
+</div>
+<div class="w-full h-3 bg-blue-900/30 rounded-full overflow-hidden">
+<div class="h-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500" id="progressBar" style="width: 45%;"></div>
+</div>
+<div class="mt-8 grid grid-cols-3 gap-4 text-xs">
+<div class="p-3 bg-blue-900/10 border border-blue-900/30">
+<div class="text-blue-500 mb-1">当前吞吐量</div>
+<div class="text-white text-base">1,240 pkts/s</div>
+</div>
+<div class="p-3 bg-blue-900/10 border border-blue-900/30">
+<div class="text-blue-500 mb-1">资源占用</div>
+<div class="text-white text-base">CPU 24% | RAM 4.2G</div>
+</div>
+<div class="p-3 bg-blue-900/10 border border-blue-900/30">
+<div class="text-blue-500 mb-1">预计剩余时间</div>
+<div class="text-white text-base">00:04:15</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<script>
+        document.getElementById('startBtn').addEventListener('click', function() {
+            this.disabled = true;
+            this.innerHTML = '任务已启动';
+            this.classList.replace('neon-btn', 'bg-slate-700');
+            document.getElementById('progressArea').classList.remove('hidden');
+            
+            let p = 0;
+            const iv = setInterval(() => {
+                p += Math.floor(Math.random() * 5);
+                if (p >= 100) {
+                    p = 100;
+                    clearInterval(iv);
+                    setTimeout(() => window.location.href = '评估报告详情页.html', 1000);
+                }
+                document.getElementById('progressBar').style.width = p + '%';
+                document.getElementById('percent').innerText = p + '%';
+            }, 500);
+        });
+    </script>
+</body>
+</html>

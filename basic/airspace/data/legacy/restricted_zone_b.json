@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "name": "法规限制区-B",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "法规限制区-B",
+        "type": "temp_restricted",
+        "description": "临时管制 | 活动期生效",
+        "status": "TEMPORARY_CONTROL",
+        "color": "cyan"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [119.97, 30.46],
+            [119.97, 30.49],
+            [120.00, 30.49],
+            [120.00, 30.46],
+            [119.97, 30.46]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>航路编辑系统 - Route Editor</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        #cesiumContainer {
+            width: 100%;
+            height: 100vh;
+        }
+
+        .sidebar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: rgba(20, 24, 38, 0.95);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+
+        .sidebar-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-section {
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .input-field {
+            margin-bottom: 10px;
+        }
+
+        .input-field label {
+            display: block;
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        .input-field input,
+        .input-field select {
+            width: 100%;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            color: #e2e8f0;
+            font-size: 12px;
+        }
+
+        .input-field input:focus,
+        .input-field select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+        }
+
+        .route-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .route-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .route-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .route-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
+        .route-item-name {
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .route-item-meta {
+            font-size: 11px;
+            color: #94a3b8;
+        }
+
+        .waypoint-list {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .waypoint-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-left: 2px solid #3b82f6;
+            padding: 8px 10px;
+            margin-bottom: 6px;
+            border-radius: 2px;
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+
+        .waypoint-item-label {
+            font-weight: 500;
+            color: #e2e8f0;
+            margin-bottom: 2px;
+        }
+
+        .waypoint-item-coords {
+            font-family: monospace;
+            color: #94a3b8;
+            font-size: 10px;
+        }
+
+        .status-bar {
+            position: absolute;
+            bottom: 0;
+            left: 320px;
+            right: 0;
+            height: 40px;
+            background: rgba(20, 24, 38, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            gap: 30px;
+            font-size: 12px;
+            color: #cbd5e1;
+            z-index: 99;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-label {
+            color: #94a3b8;
+        }
+
+        .status-value {
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+
+        .toolbar {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 100;
+        }
+
+        .toolbar-btn {
+            width: 44px;
+            height: 44px;
+            background: rgba(59, 130, 246, 0.9);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(59, 130, 246, 1);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+        }
+
+        .toolbar-btn.active {
+            background: #10b981;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 50px;
+            left: 320px;
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            animation: slideUp 0.3s ease-out;
+            z-index: 1001;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cesium容器 -->
+    <div id="cesiumContainer"></div>
+
+    <!-- 左侧侧边栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>✈️ 航路编辑系统</h2>
+            <p style="font-size: 11px; color: #94a3b8;">v1.0 Route Editor</p>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="sidebar-section">
+            <div class="section-title">操作</div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="createNewRoute()">➕ 新建</button>
+                <button class="btn btn-secondary" onclick="importRoute()">📂 导入</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="exportRoute()">💾 导出</button>
+                <button class="btn btn-secondary" onclick="clearAll()">🔄 清空</button>
+            </div>
+        </div>
+
+        <!-- 编辑模式 -->
+        <div class="sidebar-section" id="editSection" style="display: none;">
+            <div class="section-title">编辑模式</div>
+            <div class="btn-group">
+                <button class="btn btn-primary" id="editModeBtn" onclick="toggleEditMode()">开始编辑</button>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="undoWaypoint()">↶ 撤销</button>
+                <button class="btn btn-secondary" onclick="redoWaypoint()">↷ 重做</button>
+            </div>
+            <button class="btn btn-secondary" style="width: 100%; margin-top: 10px;" onclick="finishEditing()">✓ 完成编辑</button>
+        </div>
+
+        <!-- 航路属性 -->
+        <div class="sidebar-section" id="propertiesSection" style="display: none;">
+            <div class="section-title">航路属性</div>
+            <div class="input-field">
+                <label>航路名称</label>
+                <input type="text" id="routeName" placeholder="输入航路名称">
+            </div>
+            <div class="input-field">
+                <label>航路类型</label>
+                <select id="routeType">
+                    <option value="commercial">商业航线</option>
+                    <option value="military">军事航线</option>
+                    <option value="uav">无人机航线</option>
+                </select>
+            </div>
+            <div class="input-field">
+                <label>通道宽度 (米)</label>
+                <input type="number" id="routeWidth" min="100" max="5000" value="2000">
+            </div>
+            <div class="input-field">
+                <label>通道高度 (米)</label>
+                <input type="number" id="routeHeight" min="100" max="2000" value="800">
+            </div>
+            <div class="input-field">
+                <label>最低高度 (米)</label>
+                <input type="number" id="minAltitude" min="0" max="10000" value="500">
+            </div>
+            <div class="input-field">
+                <label>最高高度 (米)</label>
+                <input type="number" id="maxAltitude" min="0" max="10000" value="5000">
+            </div>
+            <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="saveRouteProperties()">💾 保存属性</button>
+        </div>
+
+        <!-- 航路列表 -->
+        <div class="sidebar-section">
+            <div class="section-title">航路列表</div>
+            <div class="route-list" id="routeList"></div>
+        </div>
+
+        <!-- 途径点列表 -->
+        <div class="sidebar-section" id="waypointsSection" style="display: none;">
+            <div class="section-title">途径点 (<span id="waypointCount">0</span>)</div>
+            <div class="waypoint-list" id="waypointList"></div>
+        </div>
+    </div>
+
+    <!-- 右上角工具栏 -->
+    <div class="toolbar">
+        <button class="toolbar-btn" id="drawToolBtn" title="点击地球添加途径点" onclick="toggleDrawMode()">📍</button>
+        <button class="toolbar-btn" title="3D/2D切换" onclick="toggleCameraMode()">🔄</button>
+        <button class="toolbar-btn" title="回到家位置" onclick="goHome()">🏠</button>
+    </div>
+
+    <!-- 状态栏 -->
+    <div class="status-bar">
+        <div class="status-item">
+            <span class="status-label">当前航路:</span>
+            <span class="status-value" id="currentRouteName">无</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">途径点:</span>
+            <span class="status-value" id="statusWaypointCount">0</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">模式:</span>
+            <span class="status-value" id="statusMode">浏览</span>
+        </div>
+        <div class="status-item">
+            <span class="status-label">坐标:</span>
+            <span class="status-value" id="statusCoords">--</span>
+        </div>
+    </div>
+
+    <!-- 模态框 -->
+    <div class="modal" id="newRouteModal">
+        <div class="modal-content">
+            <div class="modal-title">创建新航路</div>
+            <div class="input-field">
+                <label>航路名称</label>
+                <input type="text" id="newRouteName" placeholder="例如: 北上航线">
+            </div>
+            <div class="input-field">
+                <label>航路类型</label>
+                <select id="newRouteType">
+                    <option value="commercial">商业航线</option>
+                    <option value="military">军事航线</option>
+                    <option value="uav">无人机航线</option>
+                </select>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" style="flex: 1;" onclick="confirmCreateRoute()">创建</button>
+                <button class="btn btn-secondary" style="flex: 1;" onclick="closeModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 核心业务模块 -->
+    <script>
+        // ==================== 数据管理模块 ====================
+        class RouteManager {
+            constructor(storageKey = 'routes_library') {
+                this.storageKey = storageKey;
+                this.routes = this.load();
+                this.history = [];
+                this.historyIndex = -1;
+            }
+
+            load() {
+                const data = localStorage.getItem(this.storageKey);
+                if (data) {
+                    try {
+                        return JSON.parse(data).routes || [];
+                    } catch (e) {
+                        console.error('加载数据失败:', e);
+                        return [];
+                    }
+                }
+                return [];
+            }
+
+            save() {
+                const payload = {
+                    version: "1.0",
+                    timestamp: new Date().toISOString(),
+                    routes: this.routes
+                };
+                localStorage.setItem(this.storageKey, JSON.stringify(payload));
+                return payload;
+            }
+
+            exportToJSON() {
+                const data = this.save();
+                return JSON.stringify(data, null, 2);
+            }
+
+            importFromJSON(jsonString) {
+                try {
+                    const data = JSON.parse(jsonString);
+                    this.routes = data.routes || [];
+                    this.save();
+                    return true;
+                } catch (e) {
+                    console.error('导入数据失败:', e);
+                    return false;
+                }
+            }
+
+            createRoute(name, type = 'commercial') {
+                const route = {
+                    id: `route_${Date.now()}`,
+                    name,
+                    type,
+                    description: '',
+                    priority: 1,
+                    enabled: true,
+                    created: new Date().toISOString(),
+                    modified: new Date().toISOString(),
+                    metadata: {
+                        maxAltitude: 5000,
+                        minAltitude: 500
+                    },
+                    geometry: {
+                        type: "RouteChannel3D",
+                        centerline: { type: "LineString", coordinates: [] },
+                        profile: { width: 2000, height: 800, widthUnit: "meters", heightUnit: "meters" }
+                    },
+                    waypoints: [],
+                    restrictions: []
+                };
+                this.routes.push(route);
+                this.save();
+                return route;
+            }
+
+            getRoute(routeId) {
+                return this.routes.find(r => r.id === routeId);
+            }
+
+            updateRoute(routeId, updates) {
+                const route = this.getRoute(routeId);
+                if (route) {
+                    Object.assign(route, updates, { modified: new Date().toISOString() });
+                    this.save();
+                }
+                return route;
+            }
+
+            deleteRoute(routeId) {
+                this.routes = this.routes.filter(r => r.id !== routeId);
+                this.save();
+            }
+
+            getAllRoutes() {
+                return this.routes;
+            }
+        }
+
+        // ==================== 全局状态 ====================
+        let viewer, manager;
+        let currentRoute = null;
+        let editMode = false;
+        let drawMode = false;
+        let cameraMode = '3d'; // 3d or 2d
+
+        // ==================== 初始化 ====================
+        function initCesium() {
+            // 使用 OpenStreetMap 卫星影像（稳定可用）
+            viewer = new Cesium.Viewer('cesiumContainer', {
+                animation: false,
+                timeline: false,
+                fullscreenButton: false,
+                vrButton: false,
+                geocoder: false,
+                navigationHelpButton: false,
+                homeButton: false,
+                sceneModePicker: false,
+                baseLayerPicker: false,
+                imageryProvider: new Cesium.OpenStreetMapImageryProvider({
+                    url: 'https://a.tile.openstreetmap.org/'
+                })
+            });
+
+            // 添加高德卫星影像图层（备用）
+            try {
+                viewer.imageryLayers.addImageryProvider(
+                    new Cesium.UrlTemplateImageryProvider({
+                        url: 'https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+                        tilingScheme: new Cesium.WebMercatorTilingScheme(),
+                        maximumLevel: 18,
+                        minimumLevel: 0
+                    })
+                );
+                console.log('高德卫星影像已加载');
+            } catch (e) {
+                console.log('高德卫星影像加载失败，使用 OSM 底图');
+            }
+
+            console.log('Cesium viewer initialized successfully');
+
+            // 设置初始位置 (杭州周边)
+            viewer.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(120.1, 30.5, 80000),
+                orientation: {
+                    heading: Cesium.Math.toRadians(0),
+                    pitch: Cesium.Math.toRadians(-45),
+                    roll: 0
+                }
+            });
+
+            // 禁用默认鼠标事件
+            viewer.screenSpaceEventHandler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+            // 添加鼠标点击事件
+            viewer.screenSpaceEventHandler.setInputAction((click) => {
+                if (drawMode && editMode && currentRoute) {
+                    const pickedObject = viewer.scene.pick(click.position);
+                    const cartesian = viewer.scene.pickPosition(click.position);
+                    
+                    if (Cesium.defined(cartesian)) {
+                        const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+                        const lon = Cesium.Math.toDegrees(cartographic.longitude);
+                        const lat = Cesium.Math.toDegrees(cartographic.latitude);
+                        const alt = cartographic.height;
+                        
+                        addWaypoint(lon, lat, alt);
+                        showToast(`已添加途径点 (${lon.toFixed(3)}, ${lat.toFixed(3)})`);
+                    }
+                }
+            }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+            // 鼠标移动 - 更新状态栏坐标
+            viewer.screenSpaceEventHandler.setInputAction((move) => {
+                const cartesian = viewer.scene.pickPosition(move.endPosition);
+                if (Cesium.defined(cartesian)) {
+                    const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+                    const lon = Cesium.Math.toDegrees(cartographic.longitude).toFixed(4);
+                    const lat = Cesium.Math.toDegrees(cartographic.latitude).toFixed(4);
+                    document.getElementById('statusCoords').textContent = `${lon}, ${lat}`;
+                }
+            }, Cesium.ScreenSpaceEventType.MOUSE_MOVE);
+
+            manager = new RouteManager();
+            refreshRouteList();
+        }
+
+        // ==================== 航路操作 ====================
+        function createNewRoute() {
+            document.getElementById('newRouteModal').classList.add('active');
+        }
+
+        function confirmCreateRoute() {
+            const name = document.getElementById('newRouteName').value;
+            const type = document.getElementById('newRouteType').value;
+
+            if (!name.trim()) {
+                showToast('请输入航路名称');
+                return;
+            }
+
+            const route = manager.createRoute(name, type);
+            currentRoute = route;
+            
+            closeModal();
+            document.getElementById('newRouteName').value = '';
+            refreshRouteList();
+            updateEditUI();
+            showToast(`已创建航路: ${name}`);
+        }
+
+        function selectRoute(routeId) {
+            currentRoute = manager.getRoute(routeId);
+            updateEditUI();
+            refreshRouteList();
+            refreshWaypointList();
+            renderRoute();
+        }
+
+        function deleteRoute(routeId) {
+            if (confirm('确认删除此航路?')) {
+                manager.deleteRoute(routeId);
+                if (currentRoute && currentRoute.id === routeId) {
+                    currentRoute = null;
+                    editMode = false;
+                    updateEditUI();
+                }
+                refreshRouteList();
+                clearRouteFromMap();
+            }
+        }
+
+        // ==================== 编辑操作 ====================
+        function toggleEditMode() {
+            if (!currentRoute) {
+                showToast('请先选择或创建航路');
+                return;
+            }
+
+            editMode = !editMode;
+            drawMode = editMode;
+
+            const btn = document.getElementById('editModeBtn');
+            if (editMode) {
+                btn.textContent = '停止编辑';
+                btn.style.background = '#ef4444';
+                document.getElementById('statusMode').textContent = '编辑';
+                document.getElementById('drawToolBtn').classList.add('active');
+            } else {
+                btn.textContent = '开始编辑';
+                btn.style.background = '#3b82f6';
+                document.getElementById('statusMode').textContent = '浏览';
+                document.getElementById('drawToolBtn').classList.remove('active');
+            }
+        }
+
+        function toggleDrawMode() {
+            if (!editMode) {
+                showToast('请先进入编辑模式');
+                return;
+            }
+            drawMode = !drawMode;
+            document.getElementById('drawToolBtn').classList.toggle('active');
+            showToast(drawMode ? '绘制模式: 开启' : '绘制模式: 关闭');
+        }
+
+        function addWaypoint(lon, lat, alt) {
+            if (!currentRoute) return;
+
+            const waypoint = {
+                id: `wp_${Date.now()}`,
+                index: currentRoute.waypoints.length,
+                position: [lon, lat, alt],
+                label: `转向点${currentRoute.waypoints.length + 1}`,
+                type: 'waypoint',
+                properties: {}
+            };
+
+            currentRoute.waypoints.push(waypoint);
+            updateCenterline();
+            refreshWaypointList();
+            manager.updateRoute(currentRoute.id, currentRoute);
+            renderRoute();
+            updateStatusBar();
+        }
+
+        function updateCenterline() {
+            if (!currentRoute) return;
+            const coords = currentRoute.waypoints.map(wp => wp.position);
+            currentRoute.geometry.centerline.coordinates = coords;
+        }
+
+        function undoWaypoint() {
+            if (!currentRoute || currentRoute.waypoints.length === 0) return;
+            currentRoute.waypoints.pop();
+            updateCenterline();
+            refreshWaypointList();
+            manager.updateRoute(currentRoute.id, currentRoute);
+            renderRoute();
+            updateStatusBar();
+        }
+
+        function finishEditing() {
+            editMode = false;
+            drawMode = false;
+            updateEditUI();
+            renderRoute();
+            showToast('编辑完成');
+        }
+
+        // ==================== 属性保存 ====================
+        function saveRouteProperties() {
+            if (!currentRoute) return;
+
+            currentRoute.name = document.getElementById('routeName').value;
+            currentRoute.type = document.getElementById('routeType').value;
+            currentRoute.geometry.profile.width = parseInt(document.getElementById('routeWidth').value);
+            currentRoute.geometry.profile.height = parseInt(document.getElementById('routeHeight').value);
+            currentRoute.metadata.minAltitude = parseInt(document.getElementById('minAltitude').value);
+            currentRoute.metadata.maxAltitude = parseInt(document.getElementById('maxAltitude').value);
+
+            manager.updateRoute(currentRoute.id, currentRoute);
+            refreshRouteList();
+            showToast('航路属性已保存');
+        }
+
+        // ==================== 导入导出 ====================
+        function exportRoute() {
+            if (manager.routes.length === 0) {
+                showToast('没有航路数据可导出');
+                return;
+            }
+
+            const data = manager.exportToJSON();
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `routes_${new Date().getTime()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('已导出数据');
+        }
+
+        function importRoute() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    if (manager.importFromJSON(event.target.result)) {
+                        refreshRouteList();
+                        showToast('数据导入成功');
+                    } else {
+                        showToast('数据导入失败');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        // ==================== UI更新 ====================
+        function updateEditUI() {
+            const hasRoute = currentRoute !== null;
+            document.getElementById('editSection').style.display = hasRoute ? 'block' : 'none';
+            document.getElementById('propertiesSection').style.display = hasRoute ? 'block' : 'none';
+            document.getElementById('waypointsSection').style.display = hasRoute ? 'block' : 'none';
+
+            if (hasRoute) {
+                document.getElementById('routeName').value = currentRoute.name;
+                document.getElementById('routeType').value = currentRoute.type;
+                document.getElementById('routeWidth').value = currentRoute.geometry.profile.width;
+                document.getElementById('routeHeight').value = currentRoute.geometry.profile.height;
+                document.getElementById('minAltitude').value = currentRoute.metadata.minAltitude;
+                document.getElementById('maxAltitude').value = currentRoute.metadata.maxAltitude;
+            }
+        }
+
+        function refreshRouteList() {
+            const list = document.getElementById('routeList');
+            list.innerHTML = '';
+
+            manager.getAllRoutes().forEach(route => {
+                const div = document.createElement('div');
+                div.className = `route-item ${currentRoute && currentRoute.id === route.id ? 'active' : ''}`;
+                div.innerHTML = `
+                    <div class="route-item-name">${route.name}</div>
+                    <div class="route-item-meta">类型: ${route.type} | 途径点: ${route.waypoints.length}</div>
+                    <div style="margin-top: 8px; display: flex; gap: 6px;">
+                        <button class="btn btn-secondary" style="flex: 1; padding: 4px 8px; font-size: 11px;" onclick="selectRoute('${route.id}')">编辑</button>
+                        <button class="btn btn-danger" style="flex: 1; padding: 4px 8px; font-size: 11px;" onclick="deleteRoute('${route.id}')">删除</button>
+                    </div>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function refreshWaypointList() {
+            const list = document.getElementById('waypointList');
+            list.innerHTML = '';
+
+            if (currentRoute) {
+                document.getElementById('waypointCount').textContent = currentRoute.waypoints.length;
+                currentRoute.waypoints.forEach((wp, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'waypoint-item';
+                    div.innerHTML = `
+                        <div class="waypoint-item-label">${wp.label}</div>
+                        <div class="waypoint-item-coords">[${wp.position[0].toFixed(3)}, ${wp.position[1].toFixed(3)}, ${wp.position[2].toFixed(0)}m]</div>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        function updateStatusBar() {
+            if (currentRoute) {
+                document.getElementById('currentRouteName').textContent = currentRoute.name;
+                document.getElementById('statusWaypointCount').textContent = currentRoute.waypoints.length;
+            }
+        }
+
+        // ==================== Cesium渲染 ====================
+        function renderRoute() {
+            clearRouteFromMap();
+
+            if (!currentRoute || currentRoute.waypoints.length === 0) return;
+
+            const coords = currentRoute.waypoints.map(wp => wp.position);
+            const cartesianPositions = [];
+
+            // 转换坐标格式
+            coords.forEach(coord => {
+                cartesianPositions.push(Cesium.Cartesian3.fromDegrees(coord[0], coord[1], coord[2]));
+            });
+
+            // 绘制中心线（粗红线）
+            viewer.entities.add({
+                polyline: {
+                    positions: cartesianPositions,
+                    width: 4,
+                    material: Cesium.Color.RED.withAlpha(0.9),
+                    clampToGround: false,
+                    zIndex: 100
+                }
+            });
+
+            // 绘制通道边界（虚线）- 左右边界
+            const profile = currentRoute.geometry.profile;
+            const halfWidth = profile.width / 2;
+            
+            // 简化的通道边界绘制
+            const leftLine = [];
+            const rightLine = [];
+            
+            cartesianPositions.forEach((pos, idx) => {
+                const cartographic = Cesium.Cartographic.fromCartesian(pos);
+                const lon = Cesium.Math.toDegrees(cartographic.longitude);
+                const lat = Cesium.Math.toDegrees(cartographic.latitude);
+                const alt = cartographic.height;
+                
+                // 计算左右偏移点（简化处理）
+                const offset = halfWidth / 111000; // 转换为经纬度
+                leftLine.push(Cesium.Cartesian3.fromDegrees(lon - offset, lat, alt));
+                rightLine.push(Cesium.Cartesian3.fromDegrees(lon + offset, lat, alt));
+            });
+
+            // 绘制左边界
+            viewer.entities.add({
+                polyline: {
+                    positions: leftLine,
+                    width: 2,
+                    material: Cesium.Color.YELLOW.withAlpha(0.5),
+                    clampToGround: false,
+                    zIndex: 50
+                }
+            });
+
+            // 绘制右边界
+            viewer.entities.add({
+                polyline: {
+                    positions: rightLine,
+                    width: 2,
+                    material: Cesium.Color.YELLOW.withAlpha(0.5),
+                    clampToGround: false,
+                    zIndex: 50
+                }
+            });
+
+            // 绘制途径点（蓝色球体）
+            cartesianPositions.forEach((pos, idx) => {
+                viewer.entities.add({
+                    position: pos,
+                    point: {
+                        pixelSize: 10,
+                        color: Cesium.Color.BLUE.withAlpha(0.9),
+                        outlineColor: Cesium.Color.WHITE,
+                        outlineWidth: 2,
+                        heightReference: Cesium.HeightReference.NONE
+                    },
+                    label: {
+                        text: `WP${idx + 1}`,
+                        font: 'bold 14px sans-serif',
+                        fillColor: Cesium.Color.WHITE,
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 2,
+                        verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                        pixelOffset: new Cesium.Cartesian2(0, -15),
+                        heightReference: Cesium.HeightReference.NONE
+                    }
+                });
+            });
+
+            // 添加通道信息提示
+            console.log(`✈️ 航路已渲染: ${currentRoute.name}`);
+            console.log(`   通道宽度: ${profile.width}m`);
+            console.log(`   通道高度: ${profile.height}m`);
+            console.log(`   途径点数: ${cartesianPositions.length}`);
+        }
+
+        function clearRouteFromMap() {
+            viewer.entities.removeAll();
+        }
+
+        // ==================== 其他操作 ====================
+        function clearAll() {
+            if (confirm('确认清空所有航路? 此操作不可恢复')) {
+                manager.routes = [];
+                manager.save();
+                currentRoute = null;
+                editMode = false;
+                refreshRouteList();
+                clearRouteFromMap();
+                updateEditUI();
+                showToast('已清空所有数据');
+            }
+        }
+
+        function toggleCameraMode() {
+            if (cameraMode === '3d') {
+                viewer.scene.mode = Cesium.SceneMode.COLUMBUS_VIEW;
+                cameraMode = '2d';
+            } else {
+                viewer.scene.mode = Cesium.SceneMode.SCENE_3D;
+                cameraMode = '3d';
+            }
+        }
+
+        function goHome() {
+            viewer.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(120.1, 30.5, 50000),
+                orientation: {
+                    heading: Cesium.Math.toRadians(0),
+                    pitch: Cesium.Math.toRadians(-45),
+                    roll: 0
+                }
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('newRouteModal').classList.remove('active');
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.remove();
+            }, 2000);
+        }
+
+        // ==================== 页面加载 ====================
+        window.addEventListener('load', () => {
+            initCesium();
+            updateEditUI();
+        });
+
+        // 快捷键
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Escape') {
+                editMode = false;
+                updateEditUI();
+            }
+            if (e.code === 'KeyZ' && e.ctrlKey) {
+                undoWaypoint();
+            }
+        });
+    </script>
+</body>
+</html>

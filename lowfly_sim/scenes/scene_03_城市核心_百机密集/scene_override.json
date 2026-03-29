@@ -1,0 +1,8 @@
+{
+  "_comment": "百机密集场景：压缩安全间隔、精细步长，最大支持100架",
+  "sim_step_s": 0.2,
+  "horizontal_gap_m": 30,
+  "vertical_gap_m": 20,
+  "max_sim_time_s": 3600,
+  "scene_desc": "城市核心百机密集航线推演，100架无人机，测试冲突检测性能"
+}

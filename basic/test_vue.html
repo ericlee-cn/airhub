@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Vue 测试页面</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #030a1c;
+            color: white;
+        }
+        .test-box {
+            border: 1px solid #00aaff;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Vue 3 测试</h1>
+        <div class="test-box">
+            <p>如果你能看到这句中文，说明 Vue 正常工作了！</p>
+            <p>消息: {{ message }}</p>
+            <p>计数: {{ count }}</p>
+            <button @click="increment">点击增加计数</button>
+        </div>
+        <div class="test-box">
+            <p>当前日期: {{ currentDate }}</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('开始加载 Vue...');
+        console.log('Vue 对象:', Vue);
+
+        const { createApp, ref, computed } = Vue;
+
+        const app = createApp({
+            setup() {
+                const message = ref('Vue 3 CDN 版本运行正常！');
+                const count = ref(0);
+
+                const currentDate = computed(() => {
+                    return new Date().toLocaleDateString('zh-CN');
+                });
+
+                const increment = () => {
+                    count.value++;
+                    console.log('计数增加:', count.value);
+                };
+
+                return {
+                    message,
+                    count,
+                    currentDate,
+                    increment
+                };
+            }
+        });
+
+        app.mount('#app');
+        console.log('Vue 应用已挂载');
+    </script>
+</body>
+</html>

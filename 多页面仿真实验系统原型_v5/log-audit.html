@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>日志审计 - 低空经济仿真验证平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
+        .sidebar-item-active { background: linear-gradient(90deg, rgba(22, 119, 255, 0.2) 0%, rgba(22, 119, 255, 0) 100%); border-left: 4px solid #1677ff; color: #1677ff; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .log-table tr:hover { background: rgba(255, 255, 255, 0.03); }
+        .code-font { font-family: 'JetBrains Mono', monospace; }
+        .level-high { background: rgba(239, 68, 68, 0.2); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .level-med { background: rgba(249, 115, 22, 0.2); color: #F97316; border: 1px solid rgba(249, 115, 22, 0.4); }
+        .level-low { background: rgba(0, 200, 255, 0.2); color: #00C8FF; border: 1px solid rgba(0, 200, 255, 0.4); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+<!-- 侧边导航 -->
+<aside class="w-64 border-r border-slate-800 flex flex-col bg-slate-900">
+<div class="p-6 flex items-center gap-3">
+<span class="iconify text-3xl text-blue-500" data-icon="ri:drone-fill"></span>
+<span class="font-bold text-lg tracking-wider">低空仿真系统</span>
+</div>
+<nav class="flex-1 mt-4 px-3 space-y-1">
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="index.html">
+<span class="iconify" data-icon="ri:dashboard-3-line"></span> 实验列表
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="design.html">
+<span class="iconify" data-icon="ri:edit-box-line"></span> 实验设计
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="scheduling.html">
+<span class="iconify" data-icon="ri:list-settings-line"></span> 实验调度
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="monitor.html">
+<span class="iconify" data-icon="ri:radar-line"></span> 执行监控
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="result.html">
+<span class="iconify" data-icon="ri:pie-chart-2-line"></span> 单轮结果
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="comparison.html">
+<span class="iconify" data-icon="ri:bubble-chart-line"></span> 多轮对比
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="iteration.html">
+<span class="iconify" data-icon="ri:history-line"></span> 迭代记录
+            </a>
+<a class="sidebar-item-active flex items-center gap-3 p-3 rounded-lg transition-all" href="log-audit.html">
+<span class="iconify" data-icon="ri:file-list-3-line"></span> 日志审计
+            </a>
+</nav>
+<div class="p-6 border-t border-slate-800">
+<div class="flex items-center gap-3 text-sm text-slate-500">
+<span class="iconify" data-icon="ri:calendar-event-line"></span> 2026-03-10
+            </div>
+</div>
+</aside>
+<!-- 主体区域 -->
+<main class="flex-1 flex flex-col overflow-hidden bg-[#0a0f1c]">
+<header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/50">
+<h1 class="text-xl font-semibold">日志审计</h1>
+<div class="flex items-center gap-2">
+<span class="iconify text-green-500" data-icon="ri:shield-check-line"></span>
+<span class="text-xs text-slate-400">审计引擎: 在线 (2026-03-10)</span>
+</div>
+</header>
+<section class="p-6 h-full flex flex-col gap-6 overflow-hidden">
+<!-- 搜索与筛选 -->
+<div class="glass-card p-4 grid grid-cols-4 gap-4">
+<div class="space-y-1">
+<label class="text-[10px] text-slate-500 uppercase font-bold">时间范围</label>
+<div class="bg-black/40 border border-slate-700 rounded p-2 flex items-center justify-between text-xs">
+<span>2026-03-09 至 2026-03-10</span>
+<span class="iconify text-slate-400" data-icon="ri:calendar-line"></span>
+</div>
+</div>
+<div class="space-y-1">
+<label class="text-[10px] text-slate-500 uppercase font-bold">审计类型</label>
+<select class="w-full bg-black/40 border border-slate-700 rounded p-2 text-xs appearance-none">
+<option>全部操作日志</option>
+<option>系统资源变更</option>
+<option>仿真参数调整</option>
+</select>
+</div>
+<div class="space-y-1 col-span-2">
+<label class="text-[10px] text-slate-500 uppercase font-bold">关键字检索</label>
+<div class="flex gap-2">
+<input class="flex-1 bg-black/40 border border-slate-700 rounded p-2 text-xs outline-none focus:border-blue-500" placeholder="搜索用户、IP或操作..." type="text"/>
+<button class="bg-blue-600 text-white font-bold px-4 py-2 rounded text-xs hover:bg-blue-700">查询</button>
+</div>
+</div>
+</div>
+<!-- 日志主体表格 -->
+<div class="glass-card flex-1 flex flex-col overflow-hidden">
+<div class="p-3 border-b border-white/10 bg-white/5 flex justify-between items-center text-[10px] font-bold text-slate-400">
+<div class="w-[18%]">发生时间 (UTC+8)</div>
+<div class="w-[12%]">主体账号</div>
+<div class="w-[10%] text-center">风险等级</div>
+<div class="w-[15%]">来源 IP</div>
+<div class="w-[35%]">操作行为</div>
+<div class="w-[10%] text-right font-mono">ID</div>
+</div>
+<div class="flex-1 overflow-y-auto text-xs log-table">
+<!-- 模拟日志 -->
+<div class="p-3 border-b border-white/5 flex items-center">
+<div class="w-[18%] text-slate-400 code-font">2026-03-10 14:48:02</div>
+<div class="w-[12%] font-medium">Admin_Master</div>
+<div class="w-[10%] text-center"><span class="level-low px-2 py-0.5 rounded text-[9px]">NORMAL</span></div>
+<div class="w-[15%] text-slate-400">10.2.22.102</div>
+<div class="w-[35%]">访问 [实验设计] 模块，修改变量梯度</div>
+<div class="w-[10%] text-right text-slate-600 code-font">#992182</div>
+</div>
+<div class="p-3 border-b border-white/5 flex items-center">
+<div class="w-[18%] text-slate-400 code-font">2026-03-10 14:45:11</div>
+<div class="w-[12%] font-medium">System_Worker</div>
+<div class="w-[10%] text-center"><span class="level-med px-2 py-0.5 rounded text-[9px]">WARNING</span></div>
+<div class="w-[15%] text-slate-400">121.31.2.9</div>
+<div class="w-[35%] text-orange-400">修改全局仿真碰撞阈值 (0.5m → 0.1m)</div>
+<div class="w-[10%] text-right text-slate-600 code-font">#992175</div>
+</div>
+<div class="p-3 border-b border-white/5 flex items-center bg-red-500/5">
+<div class="w-[18%] text-slate-400 code-font">2026-03-10 14:38:55</div>
+<div class="w-[12%] font-medium text-red-400">Unknown</div>
+<div class="w-[10%] text-center"><span class="level-high px-2 py-0.5 rounded text-[9px]">CRITICAL</span></div>
+<div class="w-[15%] text-slate-400">45.2.19.223</div>
+<div class="w-[35%] text-red-500">非法尝试访问 API 密钥库 (403 Forbidden)</div>
+<div class="w-[10%] text-right text-slate-600 code-font">#992160</div>
+</div>
+<script>
+                        const logs = [
+                            { time: '14:30:12', user: 'Sec_Officer', level: 'level-low', text: '执行了全系统敏感参数快照导出', ip: '10.2.1.5', code: '992158' },
+                            { time: '14:25:44', user: 'Operator_02', level: 'level-low', text: '重置了仿真场景：物流配送-暴雨测试', ip: '10.2.4.11', code: '992150' },
+                            { time: '14:18:01', user: 'Admin_Master', level: 'level-med', text: '删除了 2 个不再使用的微服务节点', ip: '10.2.22.102', code: '992144' },
+                            { time: '13:58:20', user: 'Operator_09', level: 'level-low', text: '修改个人登录偏好设置', ip: '10.2.5.3', code: '992128' },
+                            { time: '13:30:00', user: 'Backup_Srv', level: 'level-low', text: '开始例行全量数据库备份计划', ip: '172.16.0.4', code: '992100' }
+                        ];
+                        logs.forEach(l => {
+                            document.write(`
+                                <div class="p-3 border-b border-white/5 flex items-center">
+                                    <div class="w-[18%] text-slate-400 code-font">2026-03-10 ${l.time}</div>
+                                    <div class="w-[12%] font-medium">${l.user}</div>
+                                    <div class="w-[10%] text-center"><span class="${l.level} px-2 py-0.5 rounded text-[9px] uppercase">${l.level.split('-')[1]}</span></div>
+                                    <div class="w-[15%] text-slate-400">${l.ip}</div>
+                                    <div class="w-[35%] text-slate-300">${l.text}</div>
+                                    <div class="w-[10%] text-right text-slate-600 code-font">#${l.code}</div>
+                                </div>
+                            `);
+                        });
+                    </script>
+</div>
+<div class="p-3 flex justify-between items-center text-[10px] text-slate-500 border-t border-white/10">
+<p>显示 1 到 15 / 共 4,281 条日志记录</p>
+<div class="flex gap-1">
+<button class="px-2 py-1 bg-slate-800 rounded">1</button>
+<button class="px-2 py-1 bg-blue-600 rounded">2</button>
+<button class="px-2 py-1 bg-slate-800 rounded">3</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Cesium 库（体积巨大，用时直接下载）
+Cesium-1.114/
+cesium/
+basic/cesium/
+Cesium-1.114.zip
+flyplan.zip
+
+# 备份文件
+bak/
+
+# 电磁仿真大数据文件（单文件约43MB，总量超1GB）
+basic/electromagnetic/data/
+basic/electromagnetic/data_templates/*/data/
+
+# Python 编译缓存
+*.pyc
+__pycache__/
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini

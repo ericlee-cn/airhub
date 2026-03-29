@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "name": "警示区",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "警示区",
+        "type": "warning_zone",
+        "description": "低空干扰 | 建议避让",
+        "status": "WARNING",
+        "color": "purple"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [119.99, 30.55],
+            [119.99, 30.58],
+            [120.03, 30.58],
+            [120.03, 30.55],
+            [119.99, 30.55]
+          ]
+        ]
+      }
+    }
+  ]
+}

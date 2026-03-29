@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>测试高德卫星影像</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; }
+        #cesiumContainer { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="cesiumContainer"></div>
+    <script>
+        console.log('开始初始化测试页面...');
+
+        // 测试1: 高德卫星影像
+        const gaodeSatellite = new Cesium.UrlTemplateImageryProvider({
+            url: 'https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}',
+            tilingScheme: new Cesium.WebMercatorTilingScheme(),
+            maximumLevel: 18,
+            credit: '高德卫星影像'
+        });
+
+        console.log('高德卫星影像Provider创建成功:', gaodeSatellite);
+
+        const viewer = new Cesium.Viewer('cesiumContainer', {
+            imageryProvider: gaodeSatellite,
+            terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+            baseLayerPicker: false,
+            geocoder: false,
+            homeButton: false,
+            sceneModePicker: false,
+            navigationHelpButton: false,
+            animation: false,
+            timeline: false,
+            fullscreenButton: false,
+            vrButton: false,
+            infoBox: false,
+            selectionIndicator: false,
+            shadows: false,
+            shouldAnimate: false
+        });
+
+        console.log('Viewer创建成功');
+
+        // 监听瓦片加载
+        viewer.scene.globe.tileLoadProgressEvent.addEventListener(function(numberOfPendingRequests, numberOfTilesProcessing) {
+            console.log('瓦片加载状态 - 待加载:', numberOfPendingRequests, '处理中:', numberOfTilesProcessing);
+        });
+
+        // 监听错误
+        viewer.imageryLayers.layerCollection.layerAdded.addEventListener(function(layer, index) {
+            console.log('图层已添加:', layer);
+        });
+
+        // 定位到德清县
+        viewer.camera.setView({
+            destination: Cesium.Cartesian3.fromDegrees(119.9788, 30.5335, 50000),
+            orientation: {
+                heading: Cesium.Math.toRadians(0),
+                pitch: Cesium.Math.toRadians(-45),
+                roll: 0
+            }
+        });
+
+        console.log('初始化完成');
+
+        // 5秒后检查
+        setTimeout(() => {
+            console.log('5秒后检查:');
+            console.log('- 图层数量:', viewer.imageryLayers.length);
+            console.log('- 当前影像提供器:', viewer.imageryLayers.get(0).imageryProvider);
+        }, 5000);
+    </script>
+</body>
+</html>

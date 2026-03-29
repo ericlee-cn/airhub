@@ -1,0 +1,18 @@
+低空设备管理平台/
+├── index.html                 # 主页面
+├── data/                     # 数据文件夹
+│   ├── av_drones.csv         # 飞行器数据
+│   ├── com_devices.csv       # 通讯设备数据
+│   ├── nav_devices.csv       # 导航设备数据
+│   ├── mon_devices.csv       # 监视设备数据
+│   ├── ctr_devices.csv       # 反制设备数据
+│   └── wth_devices.csv       # 气象设备数据
+├── images/                   # 设备图片文件夹
+│   ├── drones/              # 飞行器图片
+│   ├── com_devices/         # 通讯设备图片
+│   ├── nav_devices/         # 导航设备图片
+│   ├── mon_devices/         # 监视设备图片
+│   ├── ctr_devices/         # 反制设备图片
+│   └── wth_devices/         # 气象设备图片
+└── js/                      # JavaScript文件夹
+    └── app.js               # Vue应用主文件

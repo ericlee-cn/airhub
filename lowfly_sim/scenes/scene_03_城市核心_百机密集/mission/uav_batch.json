@@ -1,0 +1,3864 @@
+{
+  "uav_task_list": [
+    {
+      "uav_id": "UAV_001",
+      "uav_type": "delivery",
+      "speed_m_s": 10.1,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 33.0,
+      "route": [
+        [
+          120.092326,
+          30.23025,
+          189
+        ],
+        [
+          120.075804,
+          30.227907,
+          57
+        ],
+        [
+          120.07,
+          30.22,
+          56
+        ],
+        [
+          120.07245,
+          30.226481,
+          189
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_002",
+      "uav_type": "patrol",
+      "speed_m_s": 11.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 0.8,
+      "route": [
+        [
+          120.181702,
+          30.254025,
+          89
+        ],
+        [
+          120.170315,
+          30.26193,
+          76
+        ],
+        [
+          120.154025,
+          30.249831,
+          138
+        ],
+        [
+          120.158174,
+          30.259045,
+          167
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_003",
+      "uav_type": "emergency",
+      "speed_m_s": 16.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 35.2,
+      "route": [
+        [
+          120.162376,
+          30.290457,
+          61
+        ],
+        [
+          120.168827,
+          30.298649,
+          70
+        ],
+        [
+          120.18304,
+          30.309644,
+          147
+        ],
+        [
+          120.174159,
+          30.313714,
+          143
+        ],
+        [
+          120.160665,
+          30.309372,
+          118
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_004",
+      "uav_type": "delivery",
+      "speed_m_s": 12.4,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 20.5,
+      "route": [
+        [
+          120.096144,
+          30.257946,
+          192
+        ],
+        [
+          120.084929,
+          30.252674,
+          64
+        ],
+        [
+          120.074091,
+          30.238637,
+          130
+        ],
+        [
+          120.070138,
+          30.225623,
+          195
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_005",
+      "uav_type": "emergency",
+      "speed_m_s": 17.6,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 109.7,
+      "route": [
+        [
+          120.092859,
+          30.233963,
+          193
+        ],
+        [
+          120.094419,
+          30.241373,
+          159
+        ],
+        [
+          120.110331,
+          30.238355,
+          106
+        ],
+        [
+          120.130224,
+          30.227505,
+          176
+        ],
+        [
+          120.113861,
+          30.22,
+          78
+        ],
+        [
+          120.099975,
+          30.22,
+          158
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_006",
+      "uav_type": "survey",
+      "speed_m_s": 8.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 63.5,
+      "route": [
+        [
+          120.178845,
+          30.231455,
+          187
+        ],
+        [
+          120.18888,
+          30.239513,
+          137
+        ],
+        [
+          120.173343,
+          30.237556,
+          166
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_007",
+      "uav_type": "patrol",
+      "speed_m_s": 11.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 91.4,
+      "route": [
+        [
+          120.209283,
+          30.249844,
+          179
+        ],
+        [
+          120.213642,
+          30.23943,
+          91
+        ],
+        [
+          120.215217,
+          30.247788,
+          185
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_008",
+      "uav_type": "emergency",
+      "speed_m_s": 16.1,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 111.5,
+      "route": [
+        [
+          120.108312,
+          30.244087,
+          195
+        ],
+        [
+          120.12619,
+          30.231657,
+          174
+        ],
+        [
+          120.138831,
+          30.245996,
+          186
+        ],
+        [
+          120.149465,
+          30.234848,
+          171
+        ],
+        [
+          120.167339,
+          30.224802,
+          185
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_009",
+      "uav_type": "inspection",
+      "speed_m_s": 9.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 90.6,
+      "route": [
+        [
+          120.184072,
+          30.259899,
+          145
+        ],
+        [
+          120.181596,
+          30.260427,
+          80
+        ],
+        [
+          120.171512,
+          30.247347,
+          55
+        ],
+        [
+          120.175044,
+          30.239251,
+          106
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_010",
+      "uav_type": "delivery",
+      "speed_m_s": 10.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 108.7,
+      "route": [
+        [
+          120.081337,
+          30.2438,
+          174
+        ],
+        [
+          120.07,
+          30.23277,
+          196
+        ],
+        [
+          120.073048,
+          30.22506,
+          171
+        ],
+        [
+          120.085348,
+          30.22,
+          74
+        ],
+        [
+          120.091708,
+          30.22,
+          155
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_011",
+      "uav_type": "delivery",
+      "speed_m_s": 10.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 87.4,
+      "route": [
+        [
+          120.109785,
+          30.239021,
+          164
+        ],
+        [
+          120.095392,
+          30.229526,
+          168
+        ],
+        [
+          120.085385,
+          30.242223,
+          163
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_012",
+      "uav_type": "delivery",
+      "speed_m_s": 10.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 119.9,
+      "route": [
+        [
+          120.225039,
+          30.312637,
+          110
+        ],
+        [
+          120.211692,
+          30.312206,
+          104
+        ],
+        [
+          120.226278,
+          30.32,
+          92
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_013",
+      "uav_type": "patrol",
+      "speed_m_s": 11.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 94.2,
+      "route": [
+        [
+          120.137681,
+          30.315732,
+          192
+        ],
+        [
+          120.144156,
+          30.315332,
+          98
+        ],
+        [
+          120.136024,
+          30.32,
+          198
+        ],
+        [
+          120.145454,
+          30.306829,
+          130
+        ],
+        [
+          120.12774,
+          30.309354,
+          178
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_014",
+      "uav_type": "delivery",
+      "speed_m_s": 13.8,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 9.6,
+      "route": [
+        [
+          120.080963,
+          30.226796,
+          110
+        ],
+        [
+          120.077114,
+          30.240044,
+          195
+        ],
+        [
+          120.07,
+          30.24288,
+          70
+        ],
+        [
+          120.07,
+          30.24539,
+          183
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_015",
+      "uav_type": "patrol",
+      "speed_m_s": 9.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 47.5,
+      "route": [
+        [
+          120.143156,
+          30.312902,
+          68
+        ],
+        [
+          120.123529,
+          30.316537,
+          194
+        ],
+        [
+          120.143372,
+          30.303734,
+          104
+        ],
+        [
+          120.143608,
+          30.292708,
+          139
+        ],
+        [
+          120.158842,
+          30.304086,
+          144
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_016",
+      "uav_type": "survey",
+      "speed_m_s": 6.8,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 73.4,
+      "route": [
+        [
+          120.176858,
+          30.27546,
+          76
+        ],
+        [
+          120.194415,
+          30.264489,
+          79
+        ],
+        [
+          120.210004,
+          30.271761,
+          89
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_017",
+      "uav_type": "patrol",
+      "speed_m_s": 8.8,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 76.1,
+      "route": [
+        [
+          120.150865,
+          30.245112,
+          63
+        ],
+        [
+          120.134557,
+          30.242819,
+          120
+        ],
+        [
+          120.116321,
+          30.237826,
+          83
+        ],
+        [
+          120.121805,
+          30.230685,
+          163
+        ],
+        [
+          120.123873,
+          30.228515,
+          52
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_018",
+      "uav_type": "inspection",
+      "speed_m_s": 8.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 100.2,
+      "route": [
+        [
+          120.138766,
+          30.224183,
+          143
+        ],
+        [
+          120.154725,
+          30.233067,
+          60
+        ],
+        [
+          120.170682,
+          30.224369,
+          113
+        ],
+        [
+          120.177359,
+          30.22,
+          193
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_019",
+      "uav_type": "survey",
+      "speed_m_s": 7.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 111.1,
+      "route": [
+        [
+          120.208337,
+          30.317621,
+          95
+        ],
+        [
+          120.223594,
+          30.303364,
+          135
+        ],
+        [
+          120.23,
+          30.300716,
+          113
+        ],
+        [
+          120.220672,
+          30.309337,
+          77
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_020",
+      "uav_type": "emergency",
+      "speed_m_s": 16.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 98.0,
+      "route": [
+        [
+          120.125945,
+          30.302054,
+          108
+        ],
+        [
+          120.114862,
+          30.306855,
+          152
+        ],
+        [
+          120.107993,
+          30.317785,
+          121
+        ],
+        [
+          120.102039,
+          30.318067,
+          187
+        ],
+        [
+          120.095285,
+          30.303895,
+          116
+        ],
+        [
+          120.082427,
+          30.317771,
+          117
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_021",
+      "uav_type": "patrol",
+      "speed_m_s": 10.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 37.6,
+      "route": [
+        [
+          120.131631,
+          30.277659,
+          115
+        ],
+        [
+          120.113407,
+          30.275741,
+          183
+        ],
+        [
+          120.13043,
+          30.276894,
+          100
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_022",
+      "uav_type": "patrol",
+      "speed_m_s": 10.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 79.6,
+      "route": [
+        [
+          120.185161,
+          30.250032,
+          129
+        ],
+        [
+          120.191836,
+          30.244818,
+          125
+        ],
+        [
+          120.194013,
+          30.235573,
+          147
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_023",
+      "uav_type": "survey",
+      "speed_m_s": 6.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 48.7,
+      "route": [
+        [
+          120.11862,
+          30.241018,
+          198
+        ],
+        [
+          120.122886,
+          30.235686,
+          163
+        ],
+        [
+          120.120573,
+          30.227097,
+          171
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_024",
+      "uav_type": "inspection",
+      "speed_m_s": 8.6,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 34.1,
+      "route": [
+        [
+          120.084942,
+          30.3152,
+          110
+        ],
+        [
+          120.091854,
+          30.306939,
+          100
+        ],
+        [
+          120.077748,
+          30.293326,
+          171
+        ],
+        [
+          120.082199,
+          30.30138,
+          166
+        ],
+        [
+          120.078777,
+          30.305273,
+          99
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_025",
+      "uav_type": "emergency",
+      "speed_m_s": 17.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 78.7,
+      "route": [
+        [
+          120.212826,
+          30.306044,
+          77
+        ],
+        [
+          120.223962,
+          30.297609,
+          182
+        ],
+        [
+          120.222544,
+          30.299331,
+          81
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_026",
+      "uav_type": "survey",
+      "speed_m_s": 8.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 71.5,
+      "route": [
+        [
+          120.168024,
+          30.291927,
+          179
+        ],
+        [
+          120.165094,
+          30.304133,
+          164
+        ],
+        [
+          120.180982,
+          30.311443,
+          171
+        ],
+        [
+          120.178985,
+          30.318996,
+          120
+        ],
+        [
+          120.189618,
+          30.319635,
+          111
+        ],
+        [
+          120.180602,
+          30.306959,
+          123
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_027",
+      "uav_type": "survey",
+      "speed_m_s": 4.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 18.1,
+      "route": [
+        [
+          120.181032,
+          30.290642,
+          66
+        ],
+        [
+          120.177627,
+          30.285568,
+          169
+        ],
+        [
+          120.174258,
+          30.276773,
+          157
+        ],
+        [
+          120.169837,
+          30.284867,
+          55
+        ],
+        [
+          120.184106,
+          30.292835,
+          147
+        ],
+        [
+          120.183185,
+          30.306117,
+          126
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_028",
+      "uav_type": "emergency",
+      "speed_m_s": 18.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 88.2,
+      "route": [
+        [
+          120.148117,
+          30.247294,
+          174
+        ],
+        [
+          120.129278,
+          30.242377,
+          153
+        ],
+        [
+          120.138245,
+          30.252593,
+          82
+        ],
+        [
+          120.157474,
+          30.253616,
+          150
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_029",
+      "uav_type": "delivery",
+      "speed_m_s": 12.6,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 16.3,
+      "route": [
+        [
+          120.099077,
+          30.246016,
+          133
+        ],
+        [
+          120.087543,
+          30.240821,
+          147
+        ],
+        [
+          120.078673,
+          30.254357,
+          157
+        ],
+        [
+          120.07,
+          30.241814,
+          54
+        ],
+        [
+          120.079961,
+          30.228377,
+          139
+        ],
+        [
+          120.07,
+          30.22,
+          60
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_030",
+      "uav_type": "inspection",
+      "speed_m_s": 9.4,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 74.6,
+      "route": [
+        [
+          120.090195,
+          30.286946,
+          194
+        ],
+        [
+          120.108106,
+          30.285897,
+          115
+        ],
+        [
+          120.118782,
+          30.275931,
+          79
+        ],
+        [
+          120.129893,
+          30.265844,
+          129
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_031",
+      "uav_type": "patrol",
+      "speed_m_s": 10.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 109.0,
+      "route": [
+        [
+          120.133465,
+          30.291501,
+          69
+        ],
+        [
+          120.137149,
+          30.301419,
+          112
+        ],
+        [
+          120.121225,
+          30.309593,
+          80
+        ],
+        [
+          120.133074,
+          30.311571,
+          60
+        ],
+        [
+          120.126962,
+          30.309422,
+          144
+        ],
+        [
+          120.10972,
+          30.313849,
+          53
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_032",
+      "uav_type": "delivery",
+      "speed_m_s": 11.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 43.5,
+      "route": [
+        [
+          120.183169,
+          30.263549,
+          183
+        ],
+        [
+          120.201788,
+          30.256651,
+          187
+        ],
+        [
+          120.212774,
+          30.255597,
+          118
+        ],
+        [
+          120.205666,
+          30.247962,
+          72
+        ],
+        [
+          120.196823,
+          30.246486,
+          168
+        ],
+        [
+          120.199617,
+          30.251532,
+          136
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_033",
+      "uav_type": "inspection",
+      "speed_m_s": 8.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 42.6,
+      "route": [
+        [
+          120.124454,
+          30.308032,
+          120
+        ],
+        [
+          120.126686,
+          30.308531,
+          98
+        ],
+        [
+          120.11011,
+          30.315133,
+          175
+        ],
+        [
+          120.112317,
+          30.307343,
+          171
+        ],
+        [
+          120.118154,
+          30.307067,
+          54
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_034",
+      "uav_type": "inspection",
+      "speed_m_s": 7.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 69.8,
+      "route": [
+        [
+          120.158556,
+          30.254376,
+          190
+        ],
+        [
+          120.151787,
+          30.260461,
+          119
+        ],
+        [
+          120.144052,
+          30.252378,
+          99
+        ],
+        [
+          120.136674,
+          30.259664,
+          97
+        ],
+        [
+          120.124336,
+          30.266822,
+          120
+        ],
+        [
+          120.133319,
+          30.28112,
+          184
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_035",
+      "uav_type": "inspection",
+      "speed_m_s": 7.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 43.3,
+      "route": [
+        [
+          120.072264,
+          30.273414,
+          120
+        ],
+        [
+          120.07,
+          30.260049,
+          124
+        ],
+        [
+          120.077897,
+          30.248838,
+          175
+        ],
+        [
+          120.07,
+          30.234206,
+          122
+        ],
+        [
+          120.07,
+          30.23242,
+          97
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_036",
+      "uav_type": "emergency",
+      "speed_m_s": 16.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 7.8,
+      "route": [
+        [
+          120.081853,
+          30.282945,
+          63
+        ],
+        [
+          120.07,
+          30.292279,
+          127
+        ],
+        [
+          120.07,
+          30.284725,
+          192
+        ],
+        [
+          120.080578,
+          30.287914,
+          107
+        ],
+        [
+          120.091605,
+          30.284325,
+          163
+        ],
+        [
+          120.0835,
+          30.286981,
+          159
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_037",
+      "uav_type": "survey",
+      "speed_m_s": 7.8,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 11.9,
+      "route": [
+        [
+          120.170082,
+          30.246465,
+          70
+        ],
+        [
+          120.156365,
+          30.236679,
+          69
+        ],
+        [
+          120.142626,
+          30.233935,
+          170
+        ],
+        [
+          120.134276,
+          30.225879,
+          122
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_038",
+      "uav_type": "inspection",
+      "speed_m_s": 9.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 94.5,
+      "route": [
+        [
+          120.138022,
+          30.274456,
+          88
+        ],
+        [
+          120.154359,
+          30.284255,
+          68
+        ],
+        [
+          120.136744,
+          30.293034,
+          195
+        ],
+        [
+          120.153592,
+          30.291209,
+          169
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_039",
+      "uav_type": "patrol",
+      "speed_m_s": 10.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 59.3,
+      "route": [
+        [
+          120.165686,
+          30.308942,
+          132
+        ],
+        [
+          120.169834,
+          30.294718,
+          108
+        ],
+        [
+          120.188311,
+          30.304797,
+          197
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_040",
+      "uav_type": "patrol",
+      "speed_m_s": 10.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 91.6,
+      "route": [
+        [
+          120.14528,
+          30.285151,
+          121
+        ],
+        [
+          120.13254,
+          30.287711,
+          175
+        ],
+        [
+          120.151302,
+          30.286811,
+          154
+        ],
+        [
+          120.144634,
+          30.291915,
+          91
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_041",
+      "uav_type": "patrol",
+      "speed_m_s": 10.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 48.1,
+      "route": [
+        [
+          120.142772,
+          30.251452,
+          132
+        ],
+        [
+          120.127409,
+          30.259628,
+          181
+        ],
+        [
+          120.140406,
+          30.244663,
+          188
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_042",
+      "uav_type": "survey",
+      "speed_m_s": 5.4,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 90.8,
+      "route": [
+        [
+          120.191598,
+          30.240356,
+          190
+        ],
+        [
+          120.176839,
+          30.233997,
+          174
+        ],
+        [
+          120.161696,
+          30.248191,
+          111
+        ],
+        [
+          120.170087,
+          30.242514,
+          53
+        ],
+        [
+          120.172177,
+          30.23031,
+          79
+        ],
+        [
+          120.170635,
+          30.22,
+          89
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_043",
+      "uav_type": "survey",
+      "speed_m_s": 6.8,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 49.9,
+      "route": [
+        [
+          120.226839,
+          30.244373,
+          191
+        ],
+        [
+          120.212625,
+          30.235091,
+          180
+        ],
+        [
+          120.222477,
+          30.224187,
+          67
+        ],
+        [
+          120.213526,
+          30.232887,
+          156
+        ],
+        [
+          120.207121,
+          30.241518,
+          118
+        ],
+        [
+          120.219943,
+          30.235004,
+          126
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_044",
+      "uav_type": "emergency",
+      "speed_m_s": 19.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 53.6,
+      "route": [
+        [
+          120.12522,
+          30.275192,
+          189
+        ],
+        [
+          120.120308,
+          30.288177,
+          98
+        ],
+        [
+          120.139539,
+          30.280341,
+          148
+        ],
+        [
+          120.128882,
+          30.288608,
+          61
+        ],
+        [
+          120.121609,
+          30.287797,
+          147
+        ],
+        [
+          120.117052,
+          30.292708,
+          88
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_045",
+      "uav_type": "survey",
+      "speed_m_s": 7.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 39.8,
+      "route": [
+        [
+          120.20987,
+          30.264031,
+          184
+        ],
+        [
+          120.226288,
+          30.249491,
+          86
+        ],
+        [
+          120.222687,
+          30.254134,
+          89
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_046",
+      "uav_type": "patrol",
+      "speed_m_s": 9.4,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 83.1,
+      "route": [
+        [
+          120.206282,
+          30.305234,
+          186
+        ],
+        [
+          120.201483,
+          30.299734,
+          174
+        ],
+        [
+          120.216378,
+          30.285811,
+          67
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_047",
+      "uav_type": "patrol",
+      "speed_m_s": 12.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 89.6,
+      "route": [
+        [
+          120.226534,
+          30.296037,
+          75
+        ],
+        [
+          120.224281,
+          30.301857,
+          57
+        ],
+        [
+          120.206121,
+          30.310741,
+          125
+        ],
+        [
+          120.200459,
+          30.308662,
+          112
+        ],
+        [
+          120.201706,
+          30.31064,
+          96
+        ],
+        [
+          120.188505,
+          30.298009,
+          147
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_048",
+      "uav_type": "survey",
+      "speed_m_s": 4.6,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 55.3,
+      "route": [
+        [
+          120.143531,
+          30.286684,
+          169
+        ],
+        [
+          120.15958,
+          30.292012,
+          90
+        ],
+        [
+          120.142534,
+          30.305369,
+          200
+        ],
+        [
+          120.1345,
+          30.31923,
+          114
+        ],
+        [
+          120.132774,
+          30.313294,
+          148
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_049",
+      "uav_type": "emergency",
+      "speed_m_s": 18.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 69.0,
+      "route": [
+        [
+          120.07351,
+          30.303004,
+          151
+        ],
+        [
+          120.07,
+          30.304982,
+          62
+        ],
+        [
+          120.086425,
+          30.312337,
+          123
+        ],
+        [
+          120.097454,
+          30.30424,
+          140
+        ],
+        [
+          120.086214,
+          30.294944,
+          114
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_050",
+      "uav_type": "inspection",
+      "speed_m_s": 8.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 108.4,
+      "route": [
+        [
+          120.119429,
+          30.264082,
+          198
+        ],
+        [
+          120.114024,
+          30.253025,
+          125
+        ],
+        [
+          120.107092,
+          30.25049,
+          101
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_051",
+      "uav_type": "patrol",
+      "speed_m_s": 10.1,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 109.6,
+      "route": [
+        [
+          120.111115,
+          30.302469,
+          173
+        ],
+        [
+          120.129811,
+          30.296323,
+          136
+        ],
+        [
+          120.14198,
+          30.295373,
+          69
+        ],
+        [
+          120.12761,
+          30.309368,
+          151
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_052",
+      "uav_type": "patrol",
+      "speed_m_s": 8.4,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 47.3,
+      "route": [
+        [
+          120.155852,
+          30.265479,
+          117
+        ],
+        [
+          120.159234,
+          30.275151,
+          145
+        ],
+        [
+          120.143568,
+          30.267166,
+          56
+        ],
+        [
+          120.14835,
+          30.280461,
+          133
+        ],
+        [
+          120.16496,
+          30.272102,
+          66
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_053",
+      "uav_type": "patrol",
+      "speed_m_s": 10.6,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 14.0,
+      "route": [
+        [
+          120.221402,
+          30.250436,
+          176
+        ],
+        [
+          120.206047,
+          30.24248,
+          187
+        ],
+        [
+          120.191473,
+          30.24109,
+          188
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_054",
+      "uav_type": "inspection",
+      "speed_m_s": 9.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 78.6,
+      "route": [
+        [
+          120.168504,
+          30.313905,
+          121
+        ],
+        [
+          120.149813,
+          30.310021,
+          163
+        ],
+        [
+          120.147601,
+          30.302105,
+          142
+        ],
+        [
+          120.131575,
+          30.307675,
+          189
+        ],
+        [
+          120.147643,
+          30.31202,
+          65
+        ],
+        [
+          120.143568,
+          30.302714,
+          81
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_055",
+      "uav_type": "delivery",
+      "speed_m_s": 12.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 77.0,
+      "route": [
+        [
+          120.078093,
+          30.253351,
+          82
+        ],
+        [
+          120.089572,
+          30.244507,
+          191
+        ],
+        [
+          120.077858,
+          30.235986,
+          109
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_056",
+      "uav_type": "survey",
+      "speed_m_s": 4.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 103.0,
+      "route": [
+        [
+          120.228004,
+          30.274022,
+          94
+        ],
+        [
+          120.212401,
+          30.285015,
+          83
+        ],
+        [
+          120.192996,
+          30.293715,
+          110
+        ],
+        [
+          120.19655,
+          30.279188,
+          117
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_057",
+      "uav_type": "survey",
+      "speed_m_s": 4.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 7.6,
+      "route": [
+        [
+          120.194483,
+          30.271324,
+          77
+        ],
+        [
+          120.192563,
+          30.26297,
+          61
+        ],
+        [
+          120.201653,
+          30.275233,
+          183
+        ],
+        [
+          120.193718,
+          30.279533,
+          57
+        ],
+        [
+          120.176151,
+          30.278903,
+          152
+        ],
+        [
+          120.173202,
+          30.267141,
+          163
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_058",
+      "uav_type": "survey",
+      "speed_m_s": 4.6,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 15.1,
+      "route": [
+        [
+          120.130945,
+          30.279739,
+          125
+        ],
+        [
+          120.129093,
+          30.282902,
+          75
+        ],
+        [
+          120.140817,
+          30.271334,
+          191
+        ],
+        [
+          120.149651,
+          30.262785,
+          165
+        ],
+        [
+          120.165174,
+          30.2602,
+          166
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_059",
+      "uav_type": "patrol",
+      "speed_m_s": 9.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 79.8,
+      "route": [
+        [
+          120.222575,
+          30.288682,
+          171
+        ],
+        [
+          120.20526,
+          30.298635,
+          73
+        ],
+        [
+          120.202535,
+          30.305973,
+          145
+        ],
+        [
+          120.215006,
+          30.307664,
+          200
+        ],
+        [
+          120.23,
+          30.309515,
+          81
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_060",
+      "uav_type": "emergency",
+      "speed_m_s": 19.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 86.5,
+      "route": [
+        [
+          120.166066,
+          30.255165,
+          197
+        ],
+        [
+          120.166362,
+          30.244807,
+          173
+        ],
+        [
+          120.155332,
+          30.233053,
+          192
+        ],
+        [
+          120.150034,
+          30.240931,
+          196
+        ],
+        [
+          120.139081,
+          30.238805,
+          193
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_061",
+      "uav_type": "survey",
+      "speed_m_s": 6.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 66.8,
+      "route": [
+        [
+          120.074633,
+          30.247327,
+          129
+        ],
+        [
+          120.091494,
+          30.242858,
+          96
+        ],
+        [
+          120.106289,
+          30.244847,
+          152
+        ],
+        [
+          120.089072,
+          30.252076,
+          57
+        ],
+        [
+          120.072742,
+          30.252991,
+          146
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_062",
+      "uav_type": "patrol",
+      "speed_m_s": 9.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 38.9,
+      "route": [
+        [
+          120.211335,
+          30.235558,
+          62
+        ],
+        [
+          120.218293,
+          30.228721,
+          158
+        ],
+        [
+          120.21772,
+          30.226982,
+          119
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_063",
+      "uav_type": "patrol",
+      "speed_m_s": 9.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 34.0,
+      "route": [
+        [
+          120.154309,
+          30.250842,
+          106
+        ],
+        [
+          120.15012,
+          30.253822,
+          51
+        ],
+        [
+          120.138297,
+          30.267181,
+          85
+        ],
+        [
+          120.148863,
+          30.260865,
+          80
+        ],
+        [
+          120.129173,
+          30.268275,
+          94
+        ],
+        [
+          120.11434,
+          30.269253,
+          108
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_064",
+      "uav_type": "patrol",
+      "speed_m_s": 8.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 103.4,
+      "route": [
+        [
+          120.139795,
+          30.265975,
+          69
+        ],
+        [
+          120.15428,
+          30.268248,
+          196
+        ],
+        [
+          120.150456,
+          30.272452,
+          124
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_065",
+      "uav_type": "patrol",
+      "speed_m_s": 8.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 113.7,
+      "route": [
+        [
+          120.203124,
+          30.311977,
+          72
+        ],
+        [
+          120.200593,
+          30.300153,
+          161
+        ],
+        [
+          120.204147,
+          30.300872,
+          151
+        ],
+        [
+          120.218968,
+          30.308246,
+          106
+        ],
+        [
+          120.212291,
+          30.29829,
+          180
+        ],
+        [
+          120.21762,
+          30.299208,
+          99
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_066",
+      "uav_type": "inspection",
+      "speed_m_s": 6.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 17.6,
+      "route": [
+        [
+          120.09776,
+          30.235287,
+          69
+        ],
+        [
+          120.084846,
+          30.243472,
+          176
+        ],
+        [
+          120.083404,
+          30.245384,
+          198
+        ],
+        [
+          120.08136,
+          30.258109,
+          194
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_067",
+      "uav_type": "patrol",
+      "speed_m_s": 11.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 75.3,
+      "route": [
+        [
+          120.140362,
+          30.266892,
+          127
+        ],
+        [
+          120.152215,
+          30.269635,
+          140
+        ],
+        [
+          120.152509,
+          30.263947,
+          165
+        ],
+        [
+          120.134013,
+          30.260009,
+          123
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_068",
+      "uav_type": "delivery",
+      "speed_m_s": 12.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 60.8,
+      "route": [
+        [
+          120.162853,
+          30.315423,
+          60
+        ],
+        [
+          120.160842,
+          30.32,
+          98
+        ],
+        [
+          120.153703,
+          30.319269,
+          88
+        ],
+        [
+          120.172012,
+          30.317785,
+          137
+        ],
+        [
+          120.191307,
+          30.305314,
+          94
+        ],
+        [
+          120.172873,
+          30.311543,
+          162
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_069",
+      "uav_type": "patrol",
+      "speed_m_s": 9.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 33.9,
+      "route": [
+        [
+          120.193914,
+          30.28789,
+          63
+        ],
+        [
+          120.205483,
+          30.292309,
+          66
+        ],
+        [
+          120.198671,
+          30.294048,
+          148
+        ],
+        [
+          120.190037,
+          30.30076,
+          88
+        ],
+        [
+          120.183371,
+          30.303242,
+          86
+        ],
+        [
+          120.200041,
+          30.297549,
+          150
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_070",
+      "uav_type": "delivery",
+      "speed_m_s": 11.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 45.2,
+      "route": [
+        [
+          120.20011,
+          30.287012,
+          184
+        ],
+        [
+          120.183848,
+          30.292125,
+          180
+        ],
+        [
+          120.178321,
+          30.288003,
+          96
+        ],
+        [
+          120.196368,
+          30.283255,
+          174
+        ],
+        [
+          120.184048,
+          30.298255,
+          89
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_071",
+      "uav_type": "delivery",
+      "speed_m_s": 12.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 64.8,
+      "route": [
+        [
+          120.175909,
+          30.307639,
+          83
+        ],
+        [
+          120.179799,
+          30.297267,
+          96
+        ],
+        [
+          120.193052,
+          30.3054,
+          92
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_072",
+      "uav_type": "patrol",
+      "speed_m_s": 10.7,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 28.5,
+      "route": [
+        [
+          120.167695,
+          30.295239,
+          164
+        ],
+        [
+          120.157055,
+          30.287414,
+          170
+        ],
+        [
+          120.173214,
+          30.278235,
+          196
+        ],
+        [
+          120.192592,
+          30.277085,
+          122
+        ],
+        [
+          120.203717,
+          30.277172,
+          157
+        ],
+        [
+          120.222368,
+          30.286679,
+          85
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_073",
+      "uav_type": "emergency",
+      "speed_m_s": 19.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 66.5,
+      "route": [
+        [
+          120.183824,
+          30.271591,
+          81
+        ],
+        [
+          120.175227,
+          30.279484,
+          119
+        ],
+        [
+          120.173199,
+          30.279885,
+          161
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_074",
+      "uav_type": "emergency",
+      "speed_m_s": 19.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 111.7,
+      "route": [
+        [
+          120.078521,
+          30.270201,
+          110
+        ],
+        [
+          120.073968,
+          30.257649,
+          107
+        ],
+        [
+          120.07,
+          30.270574,
+          135
+        ],
+        [
+          120.081655,
+          30.259702,
+          123
+        ],
+        [
+          120.098351,
+          30.258875,
+          85
+        ],
+        [
+          120.108705,
+          30.257949,
+          51
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_075",
+      "uav_type": "inspection",
+      "speed_m_s": 9.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 65.9,
+      "route": [
+        [
+          120.08779,
+          30.24881,
+          127
+        ],
+        [
+          120.072664,
+          30.240963,
+          167
+        ],
+        [
+          120.07,
+          30.251064,
+          177
+        ],
+        [
+          120.07387,
+          30.236557,
+          181
+        ],
+        [
+          120.076871,
+          30.243113,
+          124
+        ],
+        [
+          120.074041,
+          30.246558,
+          111
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_076",
+      "uav_type": "delivery",
+      "speed_m_s": 12.1,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 43.3,
+      "route": [
+        [
+          120.132473,
+          30.267014,
+          149
+        ],
+        [
+          120.151714,
+          30.259623,
+          54
+        ],
+        [
+          120.145998,
+          30.24665,
+          111
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_077",
+      "uav_type": "survey",
+      "speed_m_s": 6.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 39.9,
+      "route": [
+        [
+          120.126368,
+          30.253855,
+          94
+        ],
+        [
+          120.139583,
+          30.259395,
+          172
+        ],
+        [
+          120.144853,
+          30.26874,
+          66
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_078",
+      "uav_type": "delivery",
+      "speed_m_s": 11.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 5.3,
+      "route": [
+        [
+          120.211726,
+          30.25156,
+          129
+        ],
+        [
+          120.212342,
+          30.266233,
+          189
+        ],
+        [
+          120.211278,
+          30.252332,
+          98
+        ],
+        [
+          120.202722,
+          30.263196,
+          62
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_079",
+      "uav_type": "delivery",
+      "speed_m_s": 13.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 52.4,
+      "route": [
+        [
+          120.188929,
+          30.309464,
+          148
+        ],
+        [
+          120.182491,
+          30.300068,
+          177
+        ],
+        [
+          120.177185,
+          30.308987,
+          118
+        ],
+        [
+          120.18923,
+          30.315799,
+          70
+        ],
+        [
+          120.186455,
+          30.32,
+          96
+        ],
+        [
+          120.188274,
+          30.314636,
+          70
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_080",
+      "uav_type": "emergency",
+      "speed_m_s": 18.4,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 51.1,
+      "route": [
+        [
+          120.126248,
+          30.224236,
+          140
+        ],
+        [
+          120.130842,
+          30.222284,
+          64
+        ],
+        [
+          120.113843,
+          30.226409,
+          143
+        ],
+        [
+          120.114367,
+          30.233906,
+          90
+        ],
+        [
+          120.132478,
+          30.223189,
+          162
+        ],
+        [
+          120.11387,
+          30.22,
+          143
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_081",
+      "uav_type": "delivery",
+      "speed_m_s": 12.4,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 81.5,
+      "route": [
+        [
+          120.129522,
+          30.296308,
+          196
+        ],
+        [
+          120.11503,
+          30.292317,
+          130
+        ],
+        [
+          120.121012,
+          30.284805,
+          79
+        ],
+        [
+          120.102049,
+          30.275387,
+          182
+        ],
+        [
+          120.097528,
+          30.277237,
+          117
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_082",
+      "uav_type": "inspection",
+      "speed_m_s": 10.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 34.3,
+      "route": [
+        [
+          120.102029,
+          30.233573,
+          68
+        ],
+        [
+          120.10011,
+          30.245533,
+          163
+        ],
+        [
+          120.120001,
+          30.254849,
+          131
+        ],
+        [
+          120.126714,
+          30.261135,
+          190
+        ],
+        [
+          120.128401,
+          30.272875,
+          90
+        ],
+        [
+          120.136874,
+          30.285695,
+          94
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_083",
+      "uav_type": "delivery",
+      "speed_m_s": 13.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 95.0,
+      "route": [
+        [
+          120.19646,
+          30.222628,
+          191
+        ],
+        [
+          120.199351,
+          30.221651,
+          191
+        ],
+        [
+          120.184542,
+          30.233178,
+          66
+        ],
+        [
+          120.176913,
+          30.248166,
+          172
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_084",
+      "uav_type": "survey",
+      "speed_m_s": 4.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 116.7,
+      "route": [
+        [
+          120.141996,
+          30.288011,
+          138
+        ],
+        [
+          120.127129,
+          30.297883,
+          191
+        ],
+        [
+          120.132721,
+          30.288341,
+          83
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_085",
+      "uav_type": "delivery",
+      "speed_m_s": 13.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 62.2,
+      "route": [
+        [
+          120.096345,
+          30.252266,
+          107
+        ],
+        [
+          120.090186,
+          30.265493,
+          122
+        ],
+        [
+          120.104023,
+          30.258011,
+          191
+        ],
+        [
+          120.095001,
+          30.261762,
+          186
+        ],
+        [
+          120.078739,
+          30.265992,
+          198
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_086",
+      "uav_type": "survey",
+      "speed_m_s": 5.4,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 110.9,
+      "route": [
+        [
+          120.202038,
+          30.222837,
+          61
+        ],
+        [
+          120.21998,
+          30.230968,
+          117
+        ],
+        [
+          120.226025,
+          30.238977,
+          156
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_087",
+      "uav_type": "survey",
+      "speed_m_s": 5.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 114.8,
+      "route": [
+        [
+          120.10918,
+          30.300735,
+          153
+        ],
+        [
+          120.101078,
+          30.287924,
+          65
+        ],
+        [
+          120.087401,
+          30.285393,
+          168
+        ],
+        [
+          120.075562,
+          30.288593,
+          130
+        ],
+        [
+          120.090021,
+          30.283172,
+          138
+        ],
+        [
+          120.109036,
+          30.272095,
+          144
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_088",
+      "uav_type": "inspection",
+      "speed_m_s": 7.9,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 32.1,
+      "route": [
+        [
+          120.09254,
+          30.225061,
+          148
+        ],
+        [
+          120.107107,
+          30.222605,
+          90
+        ],
+        [
+          120.119646,
+          30.235617,
+          130
+        ],
+        [
+          120.107239,
+          30.225397,
+          181
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_089",
+      "uav_type": "emergency",
+      "speed_m_s": 16.1,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 113.4,
+      "route": [
+        [
+          120.22467,
+          30.241514,
+          140
+        ],
+        [
+          120.206616,
+          30.234955,
+          170
+        ],
+        [
+          120.198046,
+          30.2202,
+          77
+        ],
+        [
+          120.195283,
+          30.231674,
+          143
+        ],
+        [
+          120.205838,
+          30.227652,
+          152
+        ],
+        [
+          120.187884,
+          30.229507,
+          142
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_090",
+      "uav_type": "survey",
+      "speed_m_s": 5.8,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 66.0,
+      "route": [
+        [
+          120.090586,
+          30.229668,
+          145
+        ],
+        [
+          120.102382,
+          30.224841,
+          143
+        ],
+        [
+          120.112581,
+          30.22,
+          180
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_091",
+      "uav_type": "delivery",
+      "speed_m_s": 10.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 40.0,
+      "route": [
+        [
+          120.153093,
+          30.234894,
+          181
+        ],
+        [
+          120.138684,
+          30.247835,
+          131
+        ],
+        [
+          120.125185,
+          30.262554,
+          126
+        ],
+        [
+          120.128934,
+          30.262773,
+          180
+        ],
+        [
+          120.130227,
+          30.269035,
+          126
+        ],
+        [
+          120.129223,
+          30.254534,
+          134
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_092",
+      "uav_type": "survey",
+      "speed_m_s": 5.2,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 107.9,
+      "route": [
+        [
+          120.165506,
+          30.246553,
+          198
+        ],
+        [
+          120.168611,
+          30.253195,
+          199
+        ],
+        [
+          120.167829,
+          30.253922,
+          147
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_093",
+      "uav_type": "delivery",
+      "speed_m_s": 12.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 84.1,
+      "route": [
+        [
+          120.07303,
+          30.251369,
+          88
+        ],
+        [
+          120.07,
+          30.242486,
+          178
+        ],
+        [
+          120.080999,
+          30.255102,
+          65
+        ],
+        [
+          120.08923,
+          30.255662,
+          193
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_094",
+      "uav_type": "survey",
+      "speed_m_s": 5.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 114.8,
+      "route": [
+        [
+          120.21594,
+          30.254233,
+          140
+        ],
+        [
+          120.222975,
+          30.265262,
+          117
+        ],
+        [
+          120.227378,
+          30.25603,
+          113
+        ],
+        [
+          120.218538,
+          30.249985,
+          126
+        ],
+        [
+          120.229385,
+          30.256132,
+          175
+        ],
+        [
+          120.222067,
+          30.251596,
+          120
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_095",
+      "uav_type": "survey",
+      "speed_m_s": 5.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 117.6,
+      "route": [
+        [
+          120.222737,
+          30.300462,
+          124
+        ],
+        [
+          120.20442,
+          30.314121,
+          70
+        ],
+        [
+          120.198275,
+          30.312392,
+          115
+        ],
+        [
+          120.208168,
+          30.303812,
+          187
+        ],
+        [
+          120.199013,
+          30.305672,
+          119
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_096",
+      "uav_type": "survey",
+      "speed_m_s": 5.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 6.1,
+      "route": [
+        [
+          120.172071,
+          30.225249,
+          155
+        ],
+        [
+          120.165283,
+          30.224421,
+          85
+        ],
+        [
+          120.14549,
+          30.225932,
+          90
+        ],
+        [
+          120.141766,
+          30.238983,
+          171
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_097",
+      "uav_type": "patrol",
+      "speed_m_s": 9.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 77.5,
+      "route": [
+        [
+          120.174368,
+          30.243222,
+          59
+        ],
+        [
+          120.190897,
+          30.233474,
+          95
+        ],
+        [
+          120.208254,
+          30.22,
+          151
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_098",
+      "uav_type": "patrol",
+      "speed_m_s": 11.5,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 1.1,
+      "route": [
+        [
+          120.218553,
+          30.253504,
+          166
+        ],
+        [
+          120.23,
+          30.254803,
+          176
+        ],
+        [
+          120.23,
+          30.243829,
+          179
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_099",
+      "uav_type": "delivery",
+      "speed_m_s": 11.3,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 87.7,
+      "route": [
+        [
+          120.184976,
+          30.221408,
+          136
+        ],
+        [
+          120.196606,
+          30.223442,
+          99
+        ],
+        [
+          120.183626,
+          30.234126,
+          153
+        ],
+        [
+          120.196706,
+          30.234585,
+          72
+        ],
+        [
+          120.192739,
+          30.222446,
+          85
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_100",
+      "uav_type": "delivery",
+      "speed_m_s": 11.0,
+      "h_safe_gap_m": 30,
+      "v_safe_gap_m": 20,
+      "start_delay_s": 28.3,
+      "route": [
+        [
+          120.222646,
+          30.250195,
+          196
+        ],
+        [
+          120.203103,
+          30.254805,
+          110
+        ],
+        [
+          120.185588,
+          30.243352,
+          128
+        ],
+        [
+          120.171977,
+          30.248934,
+          129
+        ],
+        [
+          120.179588,
+          30.253095,
+          125
+        ]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    }
+  ]
+}

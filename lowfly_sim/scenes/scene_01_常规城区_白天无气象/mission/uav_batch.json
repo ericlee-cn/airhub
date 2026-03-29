@@ -1,0 +1,104 @@
+{
+  "uav_task_list": [
+    {
+      "uav_id": "UAV_001",
+      "uav_type": "delivery",
+      "speed_m_s": 12,
+      "h_safe_gap_m": 50,
+      "v_safe_gap_m": 30,
+      "start_delay_s": 0,
+      "route": [
+        [120.085, 30.260, 80],
+        [120.115, 30.275, 100],
+        [120.145, 30.292, 90],
+        [120.170, 30.305, 80]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_002",
+      "uav_type": "inspection",
+      "speed_m_s": 8,
+      "h_safe_gap_m": 50,
+      "v_safe_gap_m": 30,
+      "start_delay_s": 15,
+      "route": [
+        [120.090, 30.265, 60],
+        [120.120, 30.268, 70],
+        [120.148, 30.280, 80],
+        [120.162, 30.295, 70]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 3,
+        "max_desc_rate": 3,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_003",
+      "uav_type": "delivery",
+      "speed_m_s": 14,
+      "h_safe_gap_m": 50,
+      "v_safe_gap_m": 30,
+      "start_delay_s": 30,
+      "route": [
+        [120.095, 30.258, 90],
+        [120.130, 30.270, 110],
+        [120.155, 30.285, 100],
+        [120.172, 30.298, 90]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 5,
+        "max_desc_rate": 5,
+        "loop_route": false
+      }
+    },
+    {
+      "uav_id": "UAV_004",
+      "uav_type": "patrol",
+      "speed_m_s": 10,
+      "h_safe_gap_m": 50,
+      "v_safe_gap_m": 30,
+      "start_delay_s": 10,
+      "route": [
+        [120.100, 30.262, 75],
+        [120.135, 30.272, 75],
+        [120.160, 30.288, 75],
+        [120.135, 30.272, 75],
+        [120.100, 30.262, 75]
+      ],
+      "route_rule": {
+        "allow_alt_change": false,
+        "max_climb_rate": 3,
+        "max_desc_rate": 3,
+        "loop_route": true
+      }
+    },
+    {
+      "uav_id": "UAV_005",
+      "uav_type": "emergency",
+      "speed_m_s": 18,
+      "h_safe_gap_m": 50,
+      "v_safe_gap_m": 30,
+      "start_delay_s": 5,
+      "route": [
+        [120.080, 30.255, 100],
+        [120.140, 30.278, 120],
+        [120.175, 30.308, 100]
+      ],
+      "route_rule": {
+        "allow_alt_change": true,
+        "max_climb_rate": 8,
+        "max_desc_rate": 8,
+        "loop_route": false
+      }
+    }
+  ]
+}

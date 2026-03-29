@@ -1,0 +1,34 @@
+{
+  "airspace_list": [
+    {
+      "area_id": "AREA_EVT_001",
+      "area_name": "赛事主场馆全域禁飞",
+      "area_type": "no_fly",
+      "priority": 1,
+      "min_alt": 0,
+      "max_alt": 400,
+      "time_mode": "period",
+      "start_time_s": 0,
+      "end_time_s": 14400,
+      "geo_shape": "circle",
+      "center_lon": 120.200,
+      "center_lat": 30.300,
+      "radius_m": 2000
+    },
+    {
+      "area_id": "AREA_EVT_002",
+      "area_name": "赛事周边5km管制区",
+      "area_type": "control",
+      "priority": 2,
+      "min_alt": 0,
+      "max_alt": 200,
+      "time_mode": "period",
+      "start_time_s": 0,
+      "end_time_s": 14400,
+      "geo_shape": "circle",
+      "center_lon": 120.200,
+      "center_lat": 30.300,
+      "radius_m": 5000
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "_comment": "基础安全阈值配置，可被想定 scene_override.json 局部覆盖",
+  "weather_threshold": {
+    "wind_speed_max_ms": 15.0,
+    "rain_level_limit": 3,
+    "fog_visibility_m": 800,
+    "thunder_forbid": true
+  },
+  "conflict_check": {
+    "horizontal_gap_m": 50,
+    "vertical_gap_m": 30,
+    "check_interval_s": 1.0
+  },
+  "altitude_limits": {
+    "global_min_alt_m": 0,
+    "global_max_alt_m": 400
+  }
+}

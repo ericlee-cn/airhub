@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "name": "轻型无人机适飞区",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "轻型无人机适飞区",
+        "type": "flight_zone",
+        "description": "自由飞行 | 报备生效",
+        "status": "FREE_FLIGHT",
+        "color": "green"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [120.02, 30.50],
+            [120.02, 30.57],
+            [120.08, 30.57],
+            [120.08, 30.50],
+            [120.02, 30.50]
+          ]
+        ]
+      }
+    }
+  ]
+}

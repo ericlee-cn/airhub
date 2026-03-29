@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>基础模型管理子系统 | 空域航路 (独立版)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/iconify/3.1.0/iconify.min.js"></script>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Cesium.js"></script>
+    <script src="data/airspacedata/airspace_data.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.114/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #030a1c; color: #e2e8f0; font-family: 'PingFang SC', sans-serif; height: 100vh; overflow: hidden; margin: 0; }
+        .glass-panel { background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(0, 170, 255, 0.2); backdrop-filter: blur(12px); }
+        .nav-active { border-bottom: 2px solid #00aaff; color: #00aaff; background: rgba(0, 170, 255, 0.1); }
+        .map-bg { background: linear-gradient(to right, #0f172a, #1e293b, #0f172a); }
+        
+        .side-panel { width: 340px; min-width: 340px; transition: all 0.3s ease; overflow: hidden; flex-shrink: 0; }
+        .side-panel.collapsed { width: 0 !important; min-width: 0 !important; opacity: 0; }
+        
+        .panel-toggle-btn { width: 14px; cursor: pointer; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(0, 170, 255, 0.25); color: #60a5fa; font-size: 9px; display: flex; align-items: center; justify-content: center; }
+        .panel-toggle-btn:hover { background: rgba(0, 170, 255, 0.18); }
+        
+        .tree-node { cursor: pointer; transition: all 0.2s; border-left: 2px solid transparent; }
+        .tree-node:hover { background: rgba(59, 130, 246, 0.1); border-left: 2px solid #3b82f6; }
+        .tree-node.active { background: rgba(59, 130, 246, 0.2); border-left: 2px solid #3b82f6; color: #60a5fa; }
+        
+        .node-tag { font-size: 10px; padding: 1px 4px; border-radius: 2px; margin-left: auto; }
+        
+        /* 彩色区块样式 */
+        .bg-tag-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .bg-tag-orange { background: rgba(249, 115, 22, 0.2); color: #f97316; border: 1px solid rgba(249, 115, 22, 0.3); }
+        .bg-tag-yellow { background: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .bg-tag-green { background: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .bg-tag-blue { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .bg-tag-purple { background: rgba(168, 85, 247, 0.2); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+        .bg-tag-cyan { background: rgba(6, 182, 212, 0.2); color: #06b6d4; border: 1px solid rgba(6, 182, 212, 0.3); }
+        
+        #cesiumContainer { flex: 1; }
+        .cesium-viewer-bottom { display: none; }
+        .cesium-widget-credits { display: none; }
+        
+        .hidden { display: none !important; }
+        .rotate-90 { transform: rotate(90deg); }
+    </style>
+</head>
+<body class="flex flex-col">
+    <!-- 顶部导航 -->
+    <header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+        <div class="flex items-center gap-3">
+            <span class="iconify text-3xl text-blue-400" data-icon="material-symbols:airplanemode-active"></span>
+            <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">低空仿真系统</h1>
+        </div>
+        <nav class="flex gap-1 h-full">
+            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="https://modao.cc/agent-py/workspace/69abea4b89350d730b654a54/无人机管控系统_v45.html/index.html?render_html=true">系统总览</a>
+            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="terrain.html">地理环境</a>
+            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="electromagnetic.html">电磁环境</a>
+            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="weather.html">气象环境</a>
+            <a class="flex items-center px-4 transition-all hover:bg-slate-800 nav-active" href="#">空域航路</a>
+            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="rules.html">飞行规则</a>
+            <a class="flex items-center px-4 transition-all hover:bg-slate-800" href="assets.html">装备库</a>
+        </nav>
+    </header>
+
+    <!-- 主体布局 -->
+    <div class="flex-1 flex overflow-hidden">
+        <!-- 左边栏 -->
+        <aside class="side-panel glass-panel border-r border-slate-700 flex flex-col z-20" id="leftPanel">
+            <div class="p-4 border-b border-slate-800 bg-slate-900/40">
+                <h2 class="font-bold flex items-center gap-2 text-blue-400">
+                    <span class="iconify" data-icon="lucide:layers"></span> 资源树状模型
+                </h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2 space-y-1" id="resourceTree">
+                <!-- 空域管理模型 -->
+                <div class="mb-4">
+                    <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 group cursor-pointer hover:bg-slate-800/50 rounded transition-colors">
+                        <div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+                            <span class="iconify text-blue-400 transition-transform duration-200" data-icon="lucide:chevron-down"></span>
+                            <span class="iconify" data-icon="lucide:hard-drive"></span>
+                            空域管理模型
+                        </div>
+                        <button class="toggle-btn p-1 rounded hover:bg-slate-700/50 transition-colors" onclick="event.stopPropagation(); toggleLayerVisibility('zones', this)">
+                            <span class="iconify text-green-400" data-icon="lucide:eye"></span>
+                        </button>
+                    </div>
+                    <div class="ml-6 space-y-1 transition-all duration-300" id="airspaceTreeContainer">
+                        <div class="p-2 text-xs text-slate-500 italic">加载中...</div>
+                    </div>
+                </div>
+                
+                <!-- 三级航路网络层 -->
+                <div class="mb-4 text-slate-400">
+                    <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-colors">
+                        <div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+                            <span class="iconify text-blue-400 transition-transform duration-200" data-icon="lucide:chevron-down"></span>
+                            <span class="iconify" data-icon="lucide:network"></span>
+                            三级航路网络层
+                        </div>
+                    </div>
+                    <div class="ml-6 space-y-1">
+                        <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="showRouteByLevel('I', '主干航路（Ⅰ级）', '跨区域长距离骨干通道', 'blue')">
+                            <span class="iconify text-slate-400" data-icon="lucide:move-right"></span>
+                            主干航路（Ⅰ级）
+                            <span class="node-tag bg-tag-blue">核心</span>
+                        </div>
+                        <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="showRouteByLevel('II', '支线航路（Ⅱ级）', '区域连接通道', 'blue')">
+                            <span class="iconify text-slate-400" data-icon="lucide:move-right"></span>
+                            支线航路（Ⅱ级）
+                            <span class="node-tag bg-tag-cyan">连接</span>
+                        </div>
+                        <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="showRouteByLevel('III', '末端作业航路（Ⅲ级）', '面向社区最后1公里', 'blue')">
+                            <span class="iconify text-slate-400" data-icon="lucide:move-right"></span>
+                            末端作业航路（Ⅲ级）
+                            <span class="node-tag bg-tag-green">覆盖</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 两级调度管理层 -->
+                <div class="mb-4 text-slate-400">
+                    <div class="flex items-center justify-between p-2 text-sm font-bold text-slate-300 cursor-pointer hover:bg-slate-800/50 rounded transition-colors">
+                        <div class="flex items-center gap-2" onclick="toggleSection(this.parentElement)">
+                            <span class="iconify text-blue-400 transition-transform duration-200" data-icon="lucide:chevron-down"></span>
+                            <span class="iconify" data-icon="lucide:shantytown"></span>
+                            两级调度管理层
+                        </div>
+                    </div>
+                    <div class="ml-6 space-y-1">
+                        <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="showDetail('区域总调度中心', '负责跨区域Ⅰ/Ⅱ级航路流量与时间统筹。', 'purple')">
+                            <span class="iconify text-slate-400" data-icon="lucide:layout-grid"></span>
+                            区域总调度中心
+                        </div>
+                        <div class="tree-node p-2 text-xs flex items-center gap-2 rounded" onclick="showDetail('本地调度节点', '负责Ⅲ级航路与末端流量精确调配。', 'purple')">
+                            <span class="iconify text-slate-400" data-icon="lucide:map-pin"></span>
+                            本地调度节点
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- 左边栏收起按钮 -->
+        <div class="panel-toggle-btn" id="leftToggleBtn" onclick="togglePanel('left')">&#10094;</div>
+        
+        <!-- 3D地图 -->
+        <div id="cesiumContainer"></div>
+        
+        <!-- 右边栏收起按钮 -->
+        <div class="panel-toggle-btn" id="rightToggleBtn" onclick="togglePanel('right')">&#10095;</div>
+        
+        <!-- 右边栏 -->
+        <aside class="side-panel glass-panel border-l border-slate-700 flex flex-col z-20" id="rightPanel">
+            <div class="p-4 border-b border-slate-800 bg-slate-900/40">
+                <h2 class="font-bold flex items-center gap-2 text-blue-400">
+                    <span class="iconify" data-icon="lucide:info"></span> 详情信息
+                </h2>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="detailTitle" class="text-lg font-bold text-blue-400 mb-2">请选择对象</div>
+                <div id="detailDesc" class="text-sm text-slate-400 mb-4">点击左侧资源树中的项目查看详情</div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // ========== 页面加载完成后执行 ==========
+        document.addEventListener('DOMContentLoaded', function() {
+        
+        // ========== 面板控制函数 ==========
+        window.togglePanel = function(side) {
+            const panel = document.getElementById(side === 'left' ? 'leftPanel' : 'rightPanel');
+            const btn = document.getElementById(side === 'left' ? 'leftToggleBtn' : 'rightToggleBtn');
+            const isCollapsed = panel.classList.toggle('collapsed');
+            btn.innerHTML = side === 'left' 
+                ? (isCollapsed ? '&#10095;' : '&#10094;')
+                : (isCollapsed ? '&#10094;' : '&#10095;');
+        };
+
+        window.toggleSection = function(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.iconify[data-icon="lucide:chevron-down"]');
+            if (!content) return;
+            content.classList.toggle('hidden');
+            if (icon) icon.classList.toggle('rotate-90');
+        };
+
+        window.toggleLayerVisibility = function(layerType, button) {
+            const icon = button.querySelector('.iconify');
+            if (!icon) return;
+            const isVisible = icon.classList.contains('text-green-400');
+            icon.setAttribute('data-icon', isVisible ? 'lucide:eye-off' : 'lucide:eye');
+        };
+            icon.className = `iconify ${isVisible ? 'text-slate-500' : 'text-green-400'}`;
+        }
+
+        // ========== 详情显示函数 ==========
+        window.showDetail = function(name, desc, colorClass) {
+            // 更新节点选中状态
+            document.querySelectorAll('.tree-node').forEach(node => {
+                node.classList.remove('active');
+                if (node.textContent.includes(name)) {
+                    node.classList.add('active');
+                }
+            });
+
+            // 更新右侧详情面板
+            const detailTitle = document.getElementById('detailTitle');
+            const detailDesc = document.getElementById('detailDesc');
+            
+            if (detailTitle) {
+                detailTitle.textContent = name;
+                detailTitle.className = `font-bold text-${colorClass}-400 flex items-center gap-2`;
+            }
+            if (detailDesc) detailDesc.textContent = desc;
+        };
+
+        window.showRouteByLevel = function(level, name, desc, colorClass) {
+            showDetail(name, desc, colorClass);
+        };
+
+        // ========== Cesium初始化 ==========
+        console.log('开始初始化Cesium...');
+        console.log('airspaceData:', typeof airspaceData);
+
+        // 提取空域数据
+        const airportZones = (airspaceData?.airport_zones || []).filter(z => z.spaceType === 'C');
+        const restrictedZones = (airspaceData?.airport_zones || []).filter(z => z.spaceType === 'WG' || z.spaceType === 'REG');
+        console.log('机场区域:', airportZones.length, '限制区域:', restrictedZones.length);
+
+        // 颜色映射
+        const colorMap = {
+            'red': Cesium.Color.RED.withAlpha(0.3),
+            'orange': Cesium.Color.ORANGE.withAlpha(0.3),
+            'yellow': Cesium.Color.YELLOW.withAlpha(0.3),
+            'green': Cesium.Color.GREEN.withAlpha(0.3),
+            'cyan': Cesium.Color.CYAN.withAlpha(0.3),
+            'purple': Cesium.Color.PURPLE.withAlpha(0.3),
+            'blue': Cesium.Color.BLUE.withAlpha(0.3)
+        };
+
+        const zoneColorMap = {
+            'airport': { fill: Cesium.Color.RED.withAlpha(0.35), outline: Cesium.Color.RED, class: 'red' },
+            'restricted': { fill: Cesium.Color.ORANGE.withAlpha(0.35), outline: Cesium.Color.ORANGE, class: 'orange' }
+        };
+
+        let viewer;
+        let zoneEntities = {};
+
+        try {
+            // 创建Viewer
+            viewer = new Cesium.Viewer('cesiumContainer', {
+                baseLayerPicker: false,
+                geocoder: false,
+                homeButton: false,
+                sceneModePicker: false,
+                navigationHelpButton: false,
+                animation: false,
+                timeline: false,
+                fullscreenButton: false,
+                infoBox: false,
+                selectionIndicator: false
+            });
+
+            console.log('Cesium版本:', Cesium.VERSION);
+            console.log('Viewer创建成功');
+
+            // 定位到德清县
+            viewer.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(119.995842, 30.382550, 50000),
+                orientation: {
+                    heading: Cesium.Math.toRadians(0),
+                    pitch: Cesium.Math.toRadians(-45),
+                    roll: 0
+                }
+            });
+
+            console.log('定位到德清县');
+
+            // 构建空域数据
+            const allAirspaces = [];
+            airportZones.forEach(zone => {
+                allAirspaces.push({ ...zone, category: 'airport', colorInfo: zoneColorMap['airport'] });
+            });
+            restrictedZones.forEach(zone => {
+                allAirspaces.push({ ...zone, category: 'restricted', colorInfo: zoneColorMap['restricted'] });
+            });
+
+            // 构建左侧树
+            function buildAirspaceTree() {
+                const container = document.getElementById('airspaceTreeContainer');
+                if (!container) return;
+                container.innerHTML = '';
+
+                // 机场区域
+                if (airportZones.length > 0) {
+                    const airportFolder = document.createElement('div');
+                    airportFolder.className = 'mb-2';
+                    airportFolder.innerHTML = `
+                        <div class="tree-folder-header p-2 text-xs flex items-center gap-2 rounded bg-slate-800/50 cursor-pointer hover:bg-slate-700/50" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            <span class="text-xs">▼</span>
+                            <span class="iconify text-red-400" data-icon="lucide:ban"></span>
+                            <span class="font-medium">机场禁飞区</span>
+                            <span class="text-slate-400 ml-auto">(${airportZones.length})</span>
+                        </div>
+                        <div class="folder-content ml-4"></div>
+                    `;
+                    const content = airportFolder.querySelector('.folder-content');
+                    airportZones.forEach(zone => {
+                        const node = document.createElement('div');
+                        node.className = 'tree-node p-2 text-xs flex items-center gap-2 rounded hover:bg-slate-700/30 cursor-pointer';
+                        node.innerHTML = `<span class="iconify text-red-400" data-icon="lucide:plane"></span>${zone.name}`;
+                        content.appendChild(node);
+                    });
+                    container.appendChild(airportFolder);
+                }
+
+                // 限制区域
+                if (restrictedZones.length > 0) {
+                    const restrictedFolder = document.createElement('div');
+                    restrictedFolder.className = 'mb-2';
+                    restrictedFolder.innerHTML = `
+                        <div class="tree-folder-header p-2 text-xs flex items-center gap-2 rounded bg-slate-800/50 cursor-pointer hover:bg-slate-700/50" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            <span class="text-xs">▼</span>
+                            <span class="iconify text-orange-400" data-icon="lucide:arrow-down-to-line"></span>
+                            <span class="font-medium">限高区域</span>
+                            <span class="text-slate-400 ml-auto">(${restrictedZones.length})</span>
+                        </div>
+                        <div class="folder-content ml-4"></div>
+                    `;
+                    const content = restrictedFolder.querySelector('.folder-content');
+                    restrictedZones.forEach(zone => {
+                        const node = document.createElement('div');
+                        node.className = 'tree-node p-2 text-xs flex items-center gap-2 rounded hover:bg-slate-700/30 cursor-pointer';
+                        node.innerHTML = `<span class="iconify text-orange-400" data-icon="lucide:triangle"></span>${zone.name}<span class="node-tag bg-tag-orange">${zone.altMax}m以下</span>`;
+                        content.appendChild(node);
+                    });
+                    container.appendChild(restrictedFolder);
+                }
+            }
+
+            // 创建空域实体
+            function createAirspaceEntities() {
+                allAirspaces.forEach(zone => {
+                    const czml = zone.czml;
+                    if (!czml) return;
+                    
+                    const colorInfo = zone.colorInfo;
+                    
+                    if (czml.polygon) {
+                        const positions = czml.polygon.positions.cartographicDegrees;
+                        const extrudedHeight = czml.polygon.extrudedHeight || zone.altMax || 120;
+                        
+                        const entity = viewer.entities.add({
+                            name: zone.name,
+                            polygon: {
+                                hierarchy: Cesium.Cartesian3.fromDegreesArray(positions),
+                                height: 0,
+                                extrudedHeight: extrudedHeight,
+                                material: colorInfo.fill,
+                                outline: true,
+                                outlineColor: colorInfo.outline
+                            },
+                            properties: {
+                                zoneId: zone.id,
+                                category: zone.category,
+                                zoneData: JSON.stringify(zone)
+                            }
+                        });
+                        
+                        if (!zoneEntities[zone.category]) zoneEntities[zone.category] = [];
+                        zoneEntities[zone.category].push(entity);
+                    }
+                    else if (czml.ellipse) {
+                        const pos = czml.ellipse.position;
+                        const semiMinorAxis = parseFloat(czml.ellipse.semiMinorAxis) || 300;
+                        const semiMajorAxis = parseFloat(czml.ellipse.semiMajorAxis) || 300;
+                        const extrudedHeight = czml.ellipse.extrudedHeight || zone.altMax || 120;
+                        
+                        const entity = viewer.entities.add({
+                            name: zone.name,
+                            position: Cesium.Cartesian3.fromDegrees(pos.cartographicDegrees[0], pos.cartographicDegrees[1], pos.cartographicDegrees[2] || 0),
+                            ellipse: {
+                                semiMinorAxis: semiMinorAxis,
+                                semiMajorAxis: semiMajorAxis,
+                                height: 0,
+                                extrudedHeight: extrudedHeight,
+                                material: colorInfo.fill,
+                                outline: true,
+                                outlineColor: colorInfo.outline
+                            },
+                            properties: {
+                                zoneId: zone.id,
+                                category: zone.category,
+                                zoneData: JSON.stringify(zone)
+                            }
+                        });
+                        
+                        if (!zoneEntities[zone.category]) zoneEntities[zone.category] = [];
+                        zoneEntities[zone.category].push(entity);
+                    }
+                });
+                
+                console.log('空域实体创建完成, 共', Object.values(zoneEntities).flat().length, '个');
+            }
+
+            // 初始化
+            buildAirspaceTree();
+            createAirspaceEntities();
+            
+            // 点击实体事件
+            viewer.selectedEntityChanged.addEventListener(function(entity) {
+                if (entity && entity.properties) {
+                    const zoneId = entity.properties.zoneId?.getValue();
+                    const category = entity.properties.category?.getValue();
+                    const name = entity.name?.getValue();
+                    
+                    if (zoneId && category) {
+                        const detailTitle = document.getElementById('detailTitle');
+                        const detailDesc = document.getElementById('detailDesc');
+                        if (detailTitle) {
+                            detailTitle.innerHTML = `<span class="iconify mr-2" data-icon="${category === 'airport' ? 'lucide:ban' : 'lucide:arrow-down-to-line'}"></span>${name}`;
+                            detailTitle.style.color = category === 'airport' ? '#ef4444' : '#f97316';
+                        }
+                        if (detailDesc) detailDesc.textContent = '点击查看详情';
+                    }
+                }
+            });
+
+            console.log('初始化完成!');
+
+        } catch (error) {
+            console.error('Cesium初始化失败:', error);
+            alert('Cesium初始化失败: ' + error.message);
+        }
+    </script>
+</body>
+</html>

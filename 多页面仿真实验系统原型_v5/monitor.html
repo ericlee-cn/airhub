@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>执行监控 - 低空经济仿真验证平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
+        .sidebar-item-active { background: linear-gradient(90deg, rgba(22, 119, 255, 0.2) 0%, rgba(22, 119, 255, 0) 100%); border-left: 4px solid #1677ff; color: #1677ff; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .map-grid { background-image: radial-gradient(rgba(22, 119, 255, 0.1) 1px, transparent 1px); background-size: 20px 20px; }
+        .log-entry { font-family: 'Courier New', Courier, monospace; font-size: 0.75rem; color: #10b981; }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+<!-- 侧边导航 -->
+<aside class="w-64 border-r border-slate-800 flex flex-col bg-slate-900">
+<div class="p-6 flex items-center gap-3">
+<span class="iconify text-3xl text-blue-500" data-icon="ri:drone-fill"></span>
+<span class="font-bold text-lg tracking-wider">低空仿真系统</span>
+</div>
+<nav class="flex-1 mt-4 px-3 space-y-1 text-sm">
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="index.html">
+<span class="iconify" data-icon="ri:dashboard-3-line"></span> 实验列表
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="design.html">
+<span class="iconify" data-icon="ri:edit-box-line"></span> 实验设计
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="scheduling.html">
+<span class="iconify" data-icon="ri:list-settings-line"></span> 实验调度
+            </a>
+<a class="sidebar-item-active flex items-center gap-3 p-3 rounded-lg transition-all" href="monitor.html">
+<span class="iconify" data-icon="ri:radar-line"></span> 执行监控
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="result.html">
+<span class="iconify" data-icon="ri:pie-chart-2-line"></span> 单轮结果
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="comparison.html">
+<span class="iconify" data-icon="ri:bubble-chart-line"></span> 多轮对比
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="iteration.html">
+<span class="iconify" data-icon="ri:history-line"></span> 迭代记录
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="log-audit.html">
+<span class="iconify" data-icon="ri:file-list-3-line"></span> 日志审计
+            </a>
+</nav>
+<div class="p-6 border-t border-slate-800 text-xs text-slate-500">实时节点: SIM-03-10</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-hidden relative">
+<!-- 背景模拟地图 -->
+<div class="absolute inset-0 bg-[#070b14] map-grid"></div>
+<!-- 顶部覆盖层 -->
+<header class="relative z-10 h-16 bg-slate-900/40 backdrop-blur-md flex items-center justify-between px-8 border-b border-white/5">
+<div class="flex items-center gap-4">
+<div class="flex flex-col">
+<span class="text-xs text-blue-400 font-mono">LIVE SIMULATION</span>
+<h1 class="text-xl font-bold tracking-tight uppercase">EXP-20260310-002: 城市智慧巡检</h1>
+</div>
+<div class="ml-8 px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-500 text-xs rounded-full animate-pulse flex items-center gap-2">
+<span class="iconify" data-icon="ri:record-circle-line"></span> 正在推演
+                </div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 glass-card rounded hover:bg-blue-500 transition-all"><span class="iconify" data-icon="ri:zoom-in-line"></span></button>
+<button class="p-2 glass-card rounded hover:bg-blue-500 transition-all"><span class="iconify" data-icon="ri:zoom-out-line"></span></button>
+<button class="p-2 glass-card rounded hover:bg-red-500 transition-all"><span class="iconify" data-icon="ri:stop-circle-line"></span> 紧急终止</button>
+</div>
+</header>
+<!-- 主监控层 -->
+<div class="flex-1 relative p-6 pointer-events-none">
+<!-- 视觉占位：模拟3D视窗 -->
+<div class="w-full h-full glass-card rounded-2xl flex items-center justify-center opacity-40 border-dashed border-2 border-blue-500 mt-2">
+<div class="text-center">
+<span class="iconify text-6xl text-blue-500 mb-4 mx-auto" data-icon="ri:building-2-line"></span>
+<p class="text-slate-400">数字孪生 3D 渲染视图载入中...</p>
+<p class="text-xs text-slate-600 mt-1">WebGL 2.0 Engine Enabled</p>
+</div>
+</div>
+<!-- 左侧浮窗：实时数据 -->
+<div class="absolute left-10 top-14 w-64 pointer-events-auto space-y-4">
+<div class="glass-card p-4 rounded-xl">
+<h3 class="text-xs font-bold text-slate-400 mb-4 uppercase flex items-center gap-2">
+<span class="iconify text-blue-400" data-icon="ri:pulse-line"></span> 飞行参数 (D-001)
+                    </h3>
+<div class="space-y-3">
+<div class="flex justify-between">
+<span class="text-xs text-slate-500">当前高度</span>
+<span class="text-sm font-mono text-green-400">124.5 m</span>
+</div>
+<div class="flex justify-between">
+<span class="text-xs text-slate-500">相对速度</span>
+<span class="text-sm font-mono text-blue-400">8.2 m/s</span>
+</div>
+<div class="flex justify-between">
+<span class="text-xs text-slate-500">剩余电量</span>
+<span class="text-sm font-mono text-yellow-400">68%</span>
+</div>
+</div>
+</div>
+<div class="glass-card p-4 rounded-xl h-64 flex flex-col">
+<h3 class="text-xs font-bold text-slate-400 mb-4 uppercase">通讯链路状态</h3>
+<div class="flex-1 overflow-hidden" id="log-container">
+<p class="log-entry">[09:42:01] 链接已建立 (Node_A01)</p>
+<p class="log-entry">[09:42:05] 开始巡航轨迹推算...</p>
+<p class="log-entry">[09:42:12] 合规检测：正常</p>
+<p class="log-entry text-yellow-400">[09:42:15] 侧风预警 (3.5m/s)</p>
+<p class="log-entry">[09:42:20] 姿态角修正 -0.5度</p>
+<p class="log-entry">[09:42:25] 到达 Checkpoint_09</p>
+</div>
+</div>
+</div>
+<!-- 右侧浮窗：航路分析 -->
+<div class="absolute right-10 top-14 w-80 pointer-events-auto space-y-4">
+<div class="glass-card p-4 rounded-xl">
+<h3 class="text-xs font-bold text-slate-400 mb-4 uppercase">实时冲突检测</h3>
+<div class="relative h-40 bg-slate-900 rounded-lg flex items-center justify-center overflow-hidden">
+<!-- 演示雷达图 -->
+<div class="absolute w-32 h-32 border border-blue-500/30 rounded-full animate-ping"></div>
+<div class="absolute w-20 h-20 border border-blue-500/50 rounded-full"></div>
+<span class="iconify text-blue-500 animate-spin" data-icon="ri:focus-3-line" style="animation-duration: 4s;"></span>
+<div class="absolute top-4 right-4 text-[10px] text-red-500 font-mono">0 CONFLICTS</div>
+</div>
+</div>
+<!-- 视频流 -->
+<div class="glass-card p-1 rounded-xl overflow-hidden aspect-video relative group">
+<div class="w-full h-full bg-slate-800 flex items-center justify-center text-slate-600">
+<span class="iconify text-3xl" data-icon="ri:video-line"></span>
+<span class="ml-2 text-xs">实时图传载入中...</span>
+</div>
+<div class="absolute top-2 left-2 bg-red-600 text-white text-[10px] px-1 font-bold">● FPV 视口</div>
+</div>
+</div>
+</div>
+</main>
+</body>
+</html>

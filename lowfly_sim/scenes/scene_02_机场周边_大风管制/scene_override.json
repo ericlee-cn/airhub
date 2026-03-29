@@ -1,0 +1,13 @@
+{
+  "_comment": "机场周边大风场景，加强安全间隔，推演时长2小时",
+  "sim_step_s": 0.5,
+  "horizontal_gap_m": 60,
+  "vertical_gap_m": 40,
+  "max_sim_time_s": 7200,
+  "scene_desc": "萧山机场周边大风管制推演，含临时禁飞和气象强制悬停测试",
+  "weather_threshold": {
+    "wind_speed_max_ms": 12,
+    "rain_level_limit": 2,
+    "fog_visibility_m": 1000
+  }
+}

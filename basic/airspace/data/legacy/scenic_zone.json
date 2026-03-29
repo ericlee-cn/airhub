@@ -1,0 +1,29 @@
+{
+  "type": "FeatureCollection",
+  "name": "风景示范区",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "风景示范区",
+        "type": "scenic_zone",
+        "description": "景观核心 | 限高飞行",
+        "maxHeight": 80,
+        "status": "HEIGHT_LIMIT",
+        "color": "blue"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [119.95, 30.44],
+            [119.95, 30.47],
+            [119.99, 30.47],
+            [119.99, 30.44],
+            [119.95, 30.44]
+          ]
+        ]
+      }
+    }
+  ]
+}

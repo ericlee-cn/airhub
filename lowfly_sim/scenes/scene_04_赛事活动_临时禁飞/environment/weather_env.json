@@ -1,0 +1,32 @@
+{
+  "env_list": [
+    {
+      "env_id": "ENV_RAIN_001",
+      "env_type": "rain",
+      "level": 3,
+      "forbid_fly": true,
+      "min_alt": 0,
+      "max_alt": 400,
+      "time_mode": "period",
+      "start_time_s": 3600,
+      "end_time_s": 7200,
+      "geo_shape": "global"
+    },
+    {
+      "env_id": "ENV_FOG_001",
+      "env_type": "fog",
+      "level": 2,
+      "visibility_m": 600,
+      "forbid_fly": true,
+      "min_alt": 0,
+      "max_alt": 200,
+      "time_mode": "period",
+      "start_time_s": 0,
+      "end_time_s": 1800,
+      "geo_shape": "circle",
+      "center_lon": 120.180,
+      "center_lat": 30.290,
+      "radius_m": 3000
+    }
+  ]
+}

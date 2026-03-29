@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=1920, user-scalable=no" name="viewport"/>
+<title>仿真系统综合管理平台 - 日志审计</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+        body { background-color: #121212; font-family: "Microsoft YaHei", sans-serif; color: #E5E7EB; }
+        .sidebar-item:hover { background-color: #ffffff0a; }
+        .card-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .log-type-tag { border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 500; }
+    </style>
+</head>
+<body class="w-[1920px] h-[1080px] overflow-hidden flex text-[14px]">
+<!-- 左侧导航 -->
+<aside class="w-[240px] bg-[#1A1A1A] h-full border-r border-[#2D2D2D] flex flex-col flex-shrink-0">
+<div class="p-6 flex items-center gap-3 border-b border-[#2D2D2D]">
+<div class="w-8 h-8 bg-[#1677FF] rounded flex items-center justify-center">
+<span class="iconify text-white text-xl" data-icon="mdi:hubspot"></span>
+</div>
+<span class="text-lg font-bold text-white">仿真系统管理</span>
+</div>
+<nav class="flex-1 py-4">
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="index.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:view-dashboard"></span>
+<span>首页概览</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="permission.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:shield-account"></span>
+<span>权限管控</span>
+</a>
+<a class="flex items-center px-6 py-4 bg-[#1677FF22] border-right-3 border-[#1677FF] text-[#1677FF]" href="log-audit.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:clipboard-text-clock"></span>
+<span>日志审计</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="microservice-monitor.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:monitor-dashboard"></span>
+<span>微服务监控</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="exception-handle.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:alert-box"></span>
+<span>应急处置</span>
+</a>
+</nav>
+</aside>
+<!-- 主体区域 -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<header class="h-16 bg-[#1A1A1A] border-b border-[#2D2D2D] flex items-center justify-between px-8">
+<div class="flex items-center gap-4 flex-1">
+<div class="flex items-center bg-[#121212] border border-[#2D2D2D] rounded-lg p-1 px-3 w-[600px]">
+<span class="iconify text-gray-500 mr-2" data-icon="mdi:magnify"></span>
+<input class="bg-transparent border-none outline-none w-full py-1 text-sm text-gray-300" placeholder="多模式模糊检索：支持用户ID、IP地址、操作指令关键词..." type="text"/>
+</div>
+<div class="h-6 w-px bg-[#2D2D2D]"></div>
+<div class="flex gap-4">
+<select class="border-none bg-transparent font-medium text-gray-400 outline-none">
+<option class="bg-[#1A1A1A]">所有日志类型</option>
+<option class="bg-[#1A1A1A]">系统日志</option>
+<option class="bg-[#1A1A1A]">操作日志</option>
+<option class="bg-[#1A1A1A]">业务日志</option>
+<option class="bg-[#1A1A1A]">安全日志</option>
+</select>
+<div class="flex items-center text-gray-500 cursor-pointer">
+<span class="iconify mr-1" data-icon="mdi:calendar"></span>
+<span>2026-03-03 ~ 2026-03-10</span>
+<span class="iconify ml-1" data-icon="mdi:chevron-down"></span>
+</div>
+</div>
+</div>
+<button class="bg-[#1677FF] text-white px-6 py-2 rounded-md font-medium text-sm">检索数据</button>
+</header>
+<div class="flex-1 p-8 overflow-hidden flex gap-8">
+<!-- 左侧日志列表 -->
+<div class="flex-1 flex flex-col bg-[#1E1E1E] rounded-lg card-shadow overflow-hidden">
+<div class="p-6 border-b border-[#2D2D2D] flex justify-between items-center bg-[#ffffff05]">
+<h3 class="font-bold text-gray-200">全量审计结果</h3>
+<div class="flex gap-3">
+<button class="bg-[#1A1A1A] border border-[#2D2D2D] p-1 rounded text-gray-400 hover:bg-[#2D2D2D]"><span class="iconify" data-icon="mdi:refresh"></span></button>
+<button class="bg-[#1A1A1A] border border-[#2D2D2D] p-1 px-3 text-sm rounded flex items-center gap-2 text-gray-300 hover:bg-[#2D2D2D]">
+<span class="iconify" data-icon="mdi:download"></span> 导出CSV
+                        </button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<table class="w-full text-left">
+<thead class="sticky top-0 bg-[#1E1E1E] border-b border-[#2D2D2D] text-gray-500">
+<tr>
+<th class="p-4 font-medium">日志ID</th>
+<th class="p-4 font-medium">级别/类型</th>
+<th class="p-4 font-medium">操作用户</th>
+<th class="p-4 font-medium">操作内容</th>
+<th class="p-4 font-medium">来源IP</th>
+<th class="p-4 font-medium">时间</th>
+<th class="p-4 font-medium text-center">状态</th>
+<th class="p-4 font-medium text-right">查看</th>
+</tr>
+</thead>
+<tbody class="text-gray-600">
+<tr class="border-b hover:bg-blue-50/30 transition-colors">
+<td class="p-4 font-mono text-xs">LOG-82192</td>
+<td class="p-4"><span class="log-type-tag bg-blue-100 text-blue-600">操作日志</span></td>
+<td class="p-4">super_admin</td>
+<td class="p-4"><code class="bg-gray-100 px-1 rounded text-red-500">DELETE</code> container compute-node-02</td>
+<td class="p-4">192.168.1.101</td>
+<td class="p-4">2026-03-10 16:21:44</td>
+<td class="p-4 text-center"><span class="iconify text-[#52C41A] mx-auto" data-icon="mdi:check-circle"></span></td>
+<td class="p-4 text-right"><span class="iconify text-[#1677FF] cursor-pointer" data-icon="mdi:eye-outline"></span></td>
+</tr>
+<tr class="border-b hover:bg-red-50 text-red-600 bg-red-50/20">
+<td class="p-4 font-mono text-xs">LOG-82191</td>
+<td class="p-4"><span class="log-type-tag bg-red-100 text-red-600">安全日志</span></td>
+<td class="p-4 font-bold italic underline">Unknown</td>
+<td class="p-4">Brute Force Attack Attempt (Port 22)</td>
+<td class="p-4">45.2.100.82</td>
+<td class="p-4">2026-03-10 16:15:02</td>
+<td class="p-4 text-center"><span class="iconify text-[#FF4D4F] mx-auto" data-icon="mdi:alert-circle"></span></td>
+<td class="p-4 text-right"><span class="iconify text-[#1677FF] cursor-pointer" data-icon="mdi:eye-outline"></span></td>
+</tr>
+<tr class="border-b hover:bg-blue-50/30">
+<td class="p-4 font-mono text-xs">LOG-82188</td>
+<td class="p-4"><span class="log-type-tag bg-purple-100 text-purple-600">业务日志</span></td>
+<td class="p-4">dev_group_1</td>
+<td class="p-4">Deploy model: simulation-core-v3</td>
+<td class="p-4">172.16.82.10</td>
+<td class="p-4">2026-03-10 15:58:12</td>
+<td class="p-4 text-center"><span class="iconify text-[#52C41A] mx-auto" data-icon="mdi:check-circle"></span></td>
+<td class="p-4 text-right"><span class="iconify text-[#1677FF] cursor-pointer" data-icon="mdi:eye-outline"></span></td>
+</tr>
+<!-- 填充更多数据 -->
+<tr class="border-b hover:bg-blue-50/30">
+<td class="p-4 font-mono text-xs">LOG-82185</td>
+<td class="p-4"><span class="log-type-tag bg-gray-100 text-gray-600">系统日志</span></td>
+<td class="p-4">system</td>
+<td class="p-4">Auto-scaling group: Add 2 instances</td>
+<td class="p-4">Localhost</td>
+<td class="p-4">2026-03-10 15:30:00</td>
+<td class="p-4 text-center"><span class="iconify text-[#52C41A] mx-auto" data-icon="mdi:check-circle"></span></td>
+<td class="p-4 text-right"><span class="iconify text-[#1677FF] cursor-pointer" data-icon="mdi:eye-outline"></span></td>
+</tr>
+<tr class="border-b hover:bg-blue-50/30">
+<td class="p-4 font-mono text-xs">LOG-82182</td>
+<td class="p-4"><span class="log-type-tag bg-blue-100 text-blue-600">操作日志</span></td>
+<td class="p-4">security_audit</td>
+<td class="p-4">Update Firewall Rules: Rule-SET-A</td>
+<td class="p-4">192.168.1.150</td>
+<td class="p-4">2026-03-10 14:15:22</td>
+<td class="p-4 text-center"><span class="iconify text-[#52C41A] mx-auto" data-icon="mdi:check-circle"></span></td>
+<td class="p-4 text-right"><span class="iconify text-[#1677FF] cursor-pointer" data-icon="mdi:eye-outline"></span></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- 右侧统计分析面板 -->
+<div class="w-[450px] flex flex-col gap-6">
+<!-- 概况指标 -->
+<div class="bg-white p-6 rounded-lg card-shadow">
+<h3 class="font-bold text-gray-800 mb-6 flex items-center justify-between">
+                        今日审计概览
+                        <span class="text-xs font-normal text-gray-400">2026-03-10</span>
+</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-blue-50 p-4 rounded-lg">
+<p class="text-gray-500 text-sm">日志总量</p>
+<p class="text-2xl font-bold text-[#1677FF]">1,280 <span class="text-xs font-normal">条</span></p>
+</div>
+<div class="bg-red-50 p-4 rounded-lg">
+<p class="text-gray-500 text-sm">异常/记录</p>
+<p class="text-2xl font-bold text-[#FF4D4F]">15 <span class="text-xs font-normal">条</span></p>
+</div>
+</div>
+</div>
+<!-- 趋势图表针 -->
+<div class="bg-white p-6 rounded-lg card-shadow flex-1">
+<h3 class="font-bold text-gray-800 mb-6 underline decoration-[#1677FF]/30 decoration-4">近7天日志趋势</h3>
+<div class="w-full h-72" id="trendChart"></div>
+<div class="mt-8 border-t pt-6">
+<h4 class="text-sm font-bold text-gray-700 mb-4 tracking-wider uppercase">安全告警排行</h4>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<span class="w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-xs">1</span>
+<div class="flex-1">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-gray-600">IP黑名单碰撞</span>
+<span class="font-bold">42次</span>
+</div>
+<div class="w-full h-1.5 bg-gray-100 rounded">
+<div class="h-full bg-red-500 rounded" style="width: 85%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-xs">2</span>
+<div class="flex-1">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-gray-600">身份验证失败</span>
+<span class="font-bold">28次</span>
+</div>
+<div class="w-full h-1.5 bg-gray-100 rounded">
+<div class="h-full bg-orange-400 rounded" style="width: 60%"></div>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-xs">3</span>
+<div class="flex-1">
+<div class="flex justify-between text-xs mb-1">
+<span class="text-gray-600">高危指令触发</span>
+<span class="font-bold">12次</span>
+</div>
+<div class="w-full h-1.5 bg-gray-100 rounded">
+<div class="h-full bg-yellow-400 rounded" style="width: 35%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        const trend = echarts.init(document.getElementById('trendChart'));
+        trend.setOption({
+            grid: { top: 10, bottom: 30, left: 40, right: 10 },
+            xAxis: { 
+                type: 'category', 
+                data: ['03-04', '03-05', '03-06', '03-07', '03-08', '03-09', '今天'],
+                axisTick: { show: false },
+                axisLine: { lineStyle: { color: '#eee' } },
+                axisLabel: { color: '#999' }
+            },
+            yAxis: { 
+                type: 'value',
+                splitLine: { lineStyle: { type: 'dashed', color: '#f0f0f0' } }
+            },
+            tooltip: { trigger: 'axis' },
+            series: [{
+                data: [820, 932, 901, 1434, 1290, 1330, 1280],
+                type: 'line',
+                smooth: true,
+                areaStyle: {
+                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                        { offset: 0, color: 'rgba(22, 119, 255, 0.3)' },
+                        { offset: 1, color: 'rgba(22, 119, 255, 0.01)' }
+                    ])
+                },
+                lineStyle: { color: '#1677FF', width: 3 },
+                itemStyle: { color: '#1677FF' }
+            }]
+        });
+    </script>
+</body>
+</html>

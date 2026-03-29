@@ -1,0 +1,61 @@
+{
+   "crs" : {
+      "properties" : {
+         "name" : "urn:ogc:def:crs:EPSG::4490"
+      },
+      "type" : "name"
+   },
+   "features" : [
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9030685424805, 30.57999697131928 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "CORS-1"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9806594848633, 30.56078280238087 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "CORS-2"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9349975585938, 30.54156482797521 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "CORS-3"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 119.9967956542969, 30.49128445210019 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "CORS-4"
+         },
+         "type" : "Feature"
+      },
+      {
+         "geometry" : {
+            "coordinates" : [ 120.0771331787109, 30.52116004661714 ],
+            "type" : "Point"
+         },
+         "properties" : {
+            "name" : "CORS-5"
+         },
+         "type" : "Feature"
+      }
+   ],
+   "type" : "FeatureCollection"
+}

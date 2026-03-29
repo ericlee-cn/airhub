@@ -1,0 +1,1 @@
+{"airspace_list": [{"area_id": "AREA_C01","area_name": "城市核心广场禁飞","area_type": "no_fly","priority": 1,"min_alt": 0,"max_alt": 400,"time_mode": "always","geo_shape": "circle","center_lon": 120.150,"center_lat": 30.270,"radius_m": 300}]}

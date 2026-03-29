@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>想定编辑系统 - 评估模型</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1677ff',
+                        success: '#00b42a',
+                        warning: '#ff7d00',
+                        danger: '#f53f3f',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+<header class="h-[60px] glass-panel flex items-center justify-between px-4 z-50 relative border-b border-white/10 shrink-0 bg-[#1f1f1f]">
+<div class="flex items-center space-x-3 flex-shrink-0">
+<div class="flex items-center space-x-2 cursor-pointer" onclick="location.href='index.html'">
+<span class="iconify text-2xl text-primary" data-icon="mdi:shield-airplane"></span>
+<span class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600 whitespace-nowrap">想定编辑系统</span>
+</div>
+<div class="h-6 w-[1px] bg-white/10"></div>
+<div class="flex items-center space-x-1 text-white/60 whitespace-nowrap">
+<span class="text-xs">当前想定:</span>
+<span class="text-sm font-medium text-white/90">东海联合演训-2026A</span>
+</div>
+</div>
+<nav class="flex items-center mx-2 overflow-hidden">
+<div class="flex items-center space-x-0.5">
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="basic_info.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">1</span>
+                    基本信息
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="scene_config.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">2</span>
+                    空域环境配置
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="flight_plan.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">3</span>
+                    飞行计划配置
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="rule_config.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">4</span>
+                    推演规则配置
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 bg-primary text-white shadow-[0_0_15px_rgba(22,119,255,0.3)] whitespace-nowrap" href="evaluation_model.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">5</span>
+                    评估模型
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="verify_preview.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">6</span>
+                    校验预览
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="publish.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">7</span>
+                    发布配置
+                </a>
+</div>
+</nav>
+<div class="flex items-center space-x-2 flex-shrink-0">
+<div class="hidden xl:flex flex-col items-end mr-2">
+<span class="text-[10px] text-white/40 text-right">最后保存</span>
+<span class="text-[11px] text-white/70">2026-03-06 14:30:22</span>
+</div>
+<button class="p-1.5 hover:bg-white/5 rounded-full transition-colors text-white/60 hover:text-white">
+<span class="iconify text-xl" data-icon="mdi:content-save-outline"></span>
+</button>
+<button class="px-3 py-1.5 bg-primary/10 border border-primary/50 text-primary rounded text-[11px] font-bold hover:bg-primary/20 transition-all whitespace-nowrap">
+                完成编辑
+            </button>
+</div>
+</header>
+<div class="flex">
+<aside class="w-[240px] h-[calc(100vh-60px)] bg-white border-r p-4">
+<div class="font-bold mb-4">编辑流程</div>
+<div class="space-y-1">
+<a class="flex items-center px-4 h-10 text-gray-500" href="basic_info.html">1. 基础信息</a>
+<a class="flex items-center px-4 h-10 text-gray-500" href="scene_config.html">2. 场景配置</a>
+<a class="flex items-center px-4 h-10 text-gray-500" href="flight_plan.html">3. 飞行计划</a>
+<a class="flex items-center px-4 h-10 text-gray-500" href="rule_config.html">4. 推演规则</a>
+<a class="flex items-center px-4 h-10 bg-blue-50 text-primary border-r-4 border-primary font-bold" href="evaluation_model.html">5. 评估模型</a>
+<a class="flex items-center px-4 h-10 text-gray-500" href="verify_preview.html">6. 校验预览</a>
+<a class="flex items-center px-4 h-10 text-gray-500" href="publish.html">7. 发布任务</a>
+</div>
+</aside>
+<main class="flex-1 p-6 h-[calc(100vh-60px)] overflow-y-auto">
+<div class="max-w-6xl mx-auto">
+<div class="flex justify-between items-end mb-6">
+<div>
+<h2 class="text-2xl font-bold mb-2">评估模型选择</h2>
+<p class="text-gray-500">请选择并配置适用于当前推演想定的评估模型，用于分析任务效率和安全性。</p>
+</div>
+<div class="flex space-x-2">
+<div class="relative">
+<input class="pl-10 pr-4 py-2 border rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="搜索模型..." type="text"/>
+<span class="iconify absolute left-3 top-2.5 text-gray-400" data-icon="mdi:magnify"></span>
+</div>
+<button class="px-4 py-2 bg-white border rounded-lg text-sm hover:bg-gray-50">筛选</button>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- 模型卡片 1 -->
+<div class="bg-white border-2 border-primary rounded-xl p-5 shadow-sm relative overflow-hidden">
+<div class="absolute top-0 right-0 bg-primary text-white text-[10px] px-2 py-1 rounded-bl-lg">已选择</div>
+<div class="flex items-start mb-4">
+<div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center text-primary text-2xl mr-4">
+<span class="iconify" data-icon="mdi:shield-check"></span>
+</div>
+<div>
+<h3 class="font-bold text-lg">飞行安全性评估标准</h3>
+<p class="text-[10px] text-gray-400">版本: v2.4 | 作者: 系统内置</p>
+</div>
+</div>
+<p class="text-sm text-gray-600 mb-6 line-clamp-2">基于实时飞行轨迹、环境风力、电量消耗等多维度数据，评估单次任务的整体风险系数。</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded">安全性</span>
+<span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded">实时评估</span>
+</div>
+<div class="flex items-center justify-between border-t pt-4">
+<span class="text-xs text-primary font-medium cursor-pointer flex items-center">
+<span class="iconify mr-1" data-icon="mdi:cog"></span> 参数配置
+                            </span>
+<button class="px-4 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-sm cursor-not-allowed">取消选择</button>
+</div>
+</div>
+<!-- 模型卡片 2 -->
+<div class="bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-start mb-4">
+<div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-success text-2xl mr-4">
+<span class="iconify" data-icon="mdi:leaf"></span>
+</div>
+<div>
+<h3 class="font-bold text-lg group-hover:text-primary transition-colors">能耗效率评估模型</h3>
+<p class="text-[10px] text-gray-400">版本: v1.1 | 作者: 科研团队</p>
+</div>
+</div>
+<p class="text-sm text-gray-600 mb-6 line-clamp-2">重点关注巡航阶段的能量转换效率，分析不同载荷对续航能力的影响。</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded">效能</span>
+<span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded">离线分析</span>
+</div>
+<div class="flex items-center justify-between border-t pt-4">
+<span class="text-xs text-gray-400 font-medium cursor-not-allowed flex items-center">
+<span class="iconify mr-1" data-icon="mdi:cog"></span> 参数配置
+                            </span>
+<button class="px-4 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-sm transition-colors">选择模型</button>
+</div>
+</div>
+<!-- 模型卡片 3 -->
+<div class="bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow group">
+<div class="flex items-start mb-4">
+<div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-warning text-2xl mr-4">
+<span class="iconify" data-icon="mdi:clock-fast"></span>
+</div>
+<div>
+<h3 class="font-bold text-lg group-hover:text-primary transition-colors">任务完成度评价</h3>
+<p class="text-[10px] text-gray-400">版本: v3.0 | 作者: 运营中心</p>
+</div>
+</div>
+<p class="text-sm text-gray-600 mb-6 line-clamp-2">根据预定航点与实际飞行偏离度、停留时间精准度计算任务达成率得分。</p>
+<div class="flex flex-wrap gap-2 mb-6">
+<span class="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] rounded">综合评价</span>
+</div>
+<div class="flex items-center justify-between border-t pt-4">
+<span class="text-xs text-gray-400 font-medium cursor-not-allowed flex items-center">
+<span class="iconify mr-1" data-icon="mdi:cog"></span> 参数配置
+                            </span>
+<button class="px-4 py-1.5 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg text-sm transition-colors">选择模型</button>
+</div>
+</div>
+<!-- 自定义模型 -->
+<div class="border-2 border-dashed border-gray-300 rounded-xl p-5 flex flex-col items-center justify-center text-gray-400 hover:border-primary hover:text-primary cursor-pointer transition-all">
+<span class="iconify text-4xl mb-2" data-icon="mdi:plus-circle-outline"></span>
+<p class="text-sm font-medium">导入自定义评估模型</p>
+<p class="text-[10px]">支持 .py / .json 格式</p>
+</div>
+</div>
+<!-- 选定区域预览（如果已选） -->
+<div class="mt-12 bg-white border rounded-xl p-6 shadow-sm">
+<h3 class="font-bold text-lg mb-4 border-b pb-2 flex items-center">
+<span class="iconify mr-2 text-primary" data-icon="mdi:chart-box-outline"></span> 已选择模型预览 (1)
+                    </h3>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<div>
+<div class="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wider">评估指标 (Metrics)</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+<div class="flex items-center">
+<div class="w-2 h-2 rounded-full bg-red-400 mr-3"></div>
+<span class="text-sm">碰撞风险概率</span>
+</div>
+<span class="text-xs font-mono bg-white px-2 py-0.5 border rounded">collision_prob &gt; 0.05</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+<div class="flex items-center">
+<div class="w-2 h-2 rounded-full bg-yellow-400 mr-3"></div>
+<span class="text-sm">禁飞区入侵时长</span>
+</div>
+<span class="text-xs font-mono bg-white px-2 py-0.5 border rounded">nfz_time_sec</span>
+</div>
+<div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+<div class="flex items-center">
+<div class="w-2 h-2 rounded-full bg-blue-400 mr-3"></div>
+<span class="text-sm">姿态稳定性得分</span>
+</div>
+<span class="text-xs font-mono bg-white px-2 py-0.5 border rounded">stability_index [0-100]</span>
+</div>
+</div>
+</div>
+<div class="bg-gray-900 rounded-xl p-4 text-green-400 font-mono text-xs overflow-x-auto min-h-[200px]">
+<div class="mb-2 text-gray-500">// 模型算法预览</div>
+<div>def evaluate_safety(telemetry_data):</div>
+<div class="pl-4">risk_score = 0</div>
+<div class="pl-4"># 计算风力影响</div>
+<div class="pl-4">if telemetry_data.wind_speed &gt; 12:</div>
+<div class="pl-8 text-yellow-200">risk_score += (wind_speed - 12) * 1.5</div>
+<div class="pl-4"># 电量临界值校验</div>
+<div class="pl-4">if telemetry_data.battery &lt; 15:</div>
+<div class="pl-8 text-yellow-200">risk_score += 20</div>
+<div class="pl-4">return min(100, risk_score)</div>
+</div>
+</div>
+</div>
+<div class="mt-8 flex justify-between">
+<a class="px-6 py-2 border rounded-lg hover:bg-gray-50" href="rule_config.html">上一步：推演规则</a>
+<a class="px-8 py-2 bg-primary text-white rounded-lg hover:bg-blue-600 transition-colors" href="verify_preview.html">下一步：校验预览</a>
+</div>
+</div>
+</main>
+</div>
+</body>
+</html>

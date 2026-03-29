@@ -1,0 +1,28 @@
+{
+  "type": "FeatureCollection",
+  "name": "法规限制区-A",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "法规限制区-A",
+        "type": "restricted_zone",
+        "description": "特殊管控 | 审批通行",
+        "status": "APPROVAL_REQUIRED",
+        "color": "yellow"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [119.92, 30.48],
+            [119.92, 30.51],
+            [119.95, 30.51],
+            [119.95, 30.48],
+            [119.92, 30.48]
+          ]
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,4969 @@
+{
+    "header": {
+        "message_id": "d1863fdbe6314c6f8f6fe49d6ee6b3b7",
+        "message_type": null,
+        "source_address": "DKAQGKPT",
+        "dispatch_time": 1773969892313,
+        "target_address": null
+    },
+    "body": {
+        "records": [
+            {
+                "id": "1998672824574320642",
+                "airSpaceNumber": "KY25000055",
+                "airSpaceName": "德清县轻轨",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "9b60af7bf27c4ef59024ea194c4d2d77",
+                        "ids": 0,
+                        "name": "P0",
+                        "latitude": "30.4970512",
+                        "longitude": "119.9724998"
+                    },
+                    {
+                        "id": "c03f49b3e8cd4f03af609b22af3bf9b6",
+                        "ids": 1,
+                        "name": "P1",
+                        "latitude": 30.49657354492542,
+                        "longitude": 119.98699839798752
+                    },
+                    {
+                        "id": "cbcbe24f237747c4b61c282c054e81d8",
+                        "ids": 2,
+                        "name": "P2",
+                        "latitude": 30.496556770581133,
+                        "longitude": 119.98710621291114
+                    },
+                    {
+                        "id": "31f57ad077b54d81a01983be2f1ceaa2",
+                        "ids": 3,
+                        "name": "P3",
+                        "latitude": 30.492564928454676,
+                        "longitude": 120.00119432820438
+                    },
+                    {
+                        "id": "e867c1dd15914f94889cc86d7274bf7c",
+                        "ids": 4,
+                        "name": "P4",
+                        "latitude": 30.489661127888507,
+                        "longitude": 120.0124892282003
+                    },
+                    {
+                        "id": "845d4a9298d54dd89a371cb2f3a99c82",
+                        "ids": 5,
+                        "name": "P5",
+                        "latitude": 30.48711759501168,
+                        "longitude": 120.02309294030654
+                    },
+                    {
+                        "id": "1ca43bd91a45473ca5ccdb2551c01f85",
+                        "ids": 6,
+                        "name": "P6",
+                        "latitude": 30.48709641221866,
+                        "longitude": 120.02315855864356
+                    },
+                    {
+                        "id": "69c22532d43e4c8796dff5b57e342690",
+                        "ids": 7,
+                        "name": "P7",
+                        "latitude": 30.48706543531274,
+                        "longitude": 120.0232201614696
+                    },
+                    {
+                        "id": "9953cd2ac055451ba9ceffda7ef87c41",
+                        "ids": 8,
+                        "name": "P8",
+                        "latitude": 30.485129587257656,
+                        "longitude": 120.02642954354512
+                    },
+                    {
+                        "id": "8ea762cd9ef1468eae9b280bd09e8699",
+                        "ids": 9,
+                        "name": "P9",
+                        "latitude": 30.48506831210633,
+                        "longitude": 120.02650932051236
+                    },
+                    {
+                        "id": "55cd8e968c9f4968b293c6231d157dea",
+                        "ids": 10,
+                        "name": "P10",
+                        "latitude": 30.48499081921062,
+                        "longitude": 120.02657345989014
+                    },
+                    {
+                        "id": "db05bb076a1945efa8c8dc887707d626",
+                        "ids": 11,
+                        "name": "P11",
+                        "latitude": 30.484900995460713,
+                        "longitude": 120.02661874457436
+                    },
+                    {
+                        "id": "1e527598a3a94d41b0732ffda623755d",
+                        "ids": 12,
+                        "name": "P12",
+                        "latitude": 30.48151613857861,
+                        "longitude": 120.02787255506732
+                    },
+                    {
+                        "id": "91cdb2a458f4472889a8c55eb8ed756e",
+                        "ids": 13,
+                        "name": "P13",
+                        "latitude": 30.481494348148896,
+                        "longitude": 120.02787999720935
+                    },
+                    {
+                        "id": "6c6d5aa1cd9f468290bcbf7824ac7651",
+                        "ids": 14,
+                        "name": "P14",
+                        "latitude": 30.46918658326179,
+                        "longitude": 120.0317341630605
+                    },
+                    {
+                        "id": "6fd368c6dd074c64bb5770cceee6787d",
+                        "ids": 15,
+                        "name": "P15",
+                        "latitude": 30.45984005860441,
+                        "longitude": 120.04484920686198
+                    },
+                    {
+                        "id": "9fd18a7a172d44f592d56b13850b84de",
+                        "ids": 16,
+                        "name": "P16",
+                        "latitude": 30.45978931388548,
+                        "longitude": 120.04490868667148
+                    },
+                    {
+                        "id": "5de93adb1c91409b815a1f3f27c5a45e",
+                        "ids": 17,
+                        "name": "P17",
+                        "latitude": 30.45088431614613,
+                        "longitude": 120.05367123877213
+                    },
+                    {
+                        "id": "c3bf9b690938483680af11a12117c99d",
+                        "ids": 18,
+                        "name": "P18",
+                        "latitude": 30.45205207881862,
+                        "longitude": 120.06139876015726
+                    },
+                    {
+                        "id": "78a1ac97ea514b4d89d3d7fbeb5eaca0",
+                        "ids": 19,
+                        "name": "P19",
+                        "latitude": 30.452056638468196,
+                        "longitude": 120.06148669231344
+                    },
+                    {
+                        "id": "38d5a730f4d54b5baa5eabb054c25bfb",
+                        "ids": 20,
+                        "name": "P20",
+                        "latitude": 30.45204395579271,
+                        "longitude": 120.06157382442142
+                    },
+                    {
+                        "id": "99360cf12c9249e5b4b0312b6b197f3c",
+                        "ids": 21,
+                        "name": "P21",
+                        "latitude": 30.452014518180288,
+                        "longitude": 120.06165680804313
+                    },
+                    {
+                        "id": "cf73e032fadb41c1874b462818b15431",
+                        "ids": 22,
+                        "name": "P22",
+                        "latitude": 30.45196945690185,
+                        "longitude": 120.0617324541645
+                    },
+                    {
+                        "id": "e537a2aff7384dc3b65879168f024953",
+                        "ids": 23,
+                        "name": "P23",
+                        "latitude": 30.45191050363706,
+                        "longitude": 120.06179785574756
+                    },
+                    {
+                        "id": "254e7d5a1a354770aaf994ad538c19f0",
+                        "ids": 24,
+                        "name": "P24",
+                        "latitude": 30.45183992392682,
+                        "longitude": 120.06185049944612
+                    },
+                    {
+                        "id": "0efb4cbd7f214fdfa2aa027cd047c87d",
+                        "ids": 25,
+                        "name": "P25",
+                        "latitude": 30.451760430109815,
+                        "longitude": 120.0618883621924
+                    },
+                    {
+                        "id": "39b3311ed8a2455188f212f5effc2511",
+                        "ids": 26,
+                        "name": "P26",
+                        "latitude": 30.451675077088854,
+                        "longitude": 120.06190998894223
+                    },
+                    {
+                        "id": "cbb1266f753a4109ad76bd4d59ff93f1",
+                        "ids": 27,
+                        "name": "P27",
+                        "latitude": 30.45158714493267,
+                        "longitude": 120.06191454859182
+                    },
+                    {
+                        "id": "f785d885682042c594dfaec1b39dd12e",
+                        "ids": 28,
+                        "name": "P28",
+                        "latitude": 30.451500012824702,
+                        "longitude": 120.06190186591634
+                    },
+                    {
+                        "id": "95757725ba1648f6b470d80c38eae7ed",
+                        "ids": 29,
+                        "name": "P29",
+                        "latitude": 30.451417029203004,
+                        "longitude": 120.0618724283039
+                    },
+                    {
+                        "id": "b2f73001c3ce47119e4050e708400ee8",
+                        "ids": 30,
+                        "name": "P30",
+                        "latitude": 30.451341383081612,
+                        "longitude": 120.06182736702549
+                    },
+                    {
+                        "id": "e24a32cca7a0407c939544d90b221be7",
+                        "ids": 31,
+                        "name": "P31",
+                        "latitude": 30.45127598149855,
+                        "longitude": 120.06176841376067
+                    },
+                    {
+                        "id": "624c5e86a8304268ab5487ca9e984209",
+                        "ids": 32,
+                        "name": "P32",
+                        "latitude": 30.451223337799988,
+                        "longitude": 120.06169783405043
+                    },
+                    {
+                        "id": "784d0d4ab1344553b2d6c9c16d95bc8d",
+                        "ids": 33,
+                        "name": "P33",
+                        "latitude": 30.451185475053727,
+                        "longitude": 120.06161834023344
+                    },
+                    {
+                        "id": "10d9f524627047778a2deae4b97a10ca",
+                        "ids": 34,
+                        "name": "P34",
+                        "latitude": 30.45116384830387,
+                        "longitude": 120.06153298721247
+                    },
+                    {
+                        "id": "c53e01678e3f4ec6a510a833df59050c",
+                        "ids": 35,
+                        "name": "P35",
+                        "latitude": 30.44996184876926,
+                        "longitude": 120.05357890773428
+                    },
+                    {
+                        "id": "f7ed602cdbe44afa970f1281953ad1b1",
+                        "ids": 36,
+                        "name": "P36",
+                        "latitude": 30.449957142797587,
+                        "longitude": 120.05349441341905
+                    },
+                    {
+                        "id": "198c187782c7400dab775cae9c0d12c8",
+                        "ids": 37,
+                        "name": "P37",
+                        "latitude": 30.449968369030984,
+                        "longitude": 120.053410536085
+                    },
+                    {
+                        "id": "608849de197744c1965145886c6face6",
+                        "ids": 38,
+                        "name": "P38",
+                        "latitude": 30.449995128961884,
+                        "longitude": 120.0533302532003
+                    },
+                    {
+                        "id": "9a38a11f0b344c38946d528ce90a7a74",
+                        "ids": 39,
+                        "name": "P39",
+                        "latitude": 30.450036472669304,
+                        "longitude": 120.05325641463764
+                    },
+                    {
+                        "id": "d13ccc9be3664ea197fcbf7d1c305aff",
+                        "ids": 40,
+                        "name": "P40",
+                        "latitude": 30.450090932539,
+                        "longitude": 120.05319164150994
+                    },
+                    {
+                        "id": "e2addbccc1e4489f82e8b0ae0196ec4c",
+                        "ids": 41,
+                        "name": "P41",
+                        "latitude": 30.459131280278317,
+                        "longitude": 120.04429590448764
+                    },
+                    {
+                        "id": "458bafbc61ba48329ce2dddb955dd74c",
+                        "ids": 42,
+                        "name": "P42",
+                        "latitude": 30.46854259560281,
+                        "longitude": 120.03108994641929
+                    },
+                    {
+                        "id": "633f68221a2a41efaab0ba88427e58d4",
+                        "ids": 43,
+                        "name": "P43",
+                        "latitude": 30.468606980508923,
+                        "longitude": 120.03101759397497
+                    },
+                    {
+                        "id": "d1d0c9cbb72c40fb833485dca1ce739d",
+                        "ids": 44,
+                        "name": "P44",
+                        "latitude": 30.46868537900801,
+                        "longitude": 120.03096072599035
+                    },
+                    {
+                        "id": "a38b4f728fcd46efa6c0210cd0558eef",
+                        "ids": 45,
+                        "name": "P45",
+                        "latitude": 30.46877414585664,
+                        "longitude": 120.03092198661872
+                    },
+                    {
+                        "id": "c76eac5ab8514377b5bf25034f597545",
+                        "ids": 46,
+                        "name": "P46",
+                        "latitude": 30.481214905616227,
+                        "longitude": 120.02702617353911
+                    },
+                    {
+                        "id": "95b052b9101e4b8d9b45d24f052cf227",
+                        "ids": 47,
+                        "name": "P47",
+                        "latitude": 30.484441559691255,
+                        "longitude": 120.025830964147
+                    },
+                    {
+                        "id": "68025b78d40f42faaba177a7afd326e0",
+                        "ids": 48,
+                        "name": "P48",
+                        "latitude": 30.486260286598966,
+                        "longitude": 120.02281575356652
+                    },
+                    {
+                        "id": "6adfe735173d47c9a9e4b564bea2909d",
+                        "ids": 49,
+                        "name": "P49",
+                        "latitude": 30.488790197898183,
+                        "longitude": 120.01226908151094
+                    },
+                    {
+                        "id": "951b6d467aa34023a465806c171b250e",
+                        "ids": 50,
+                        "name": "P50",
+                        "latitude": 30.491699140411207,
+                        "longitude": 120.0009547209874
+                    },
+                    {
+                        "id": "c805c374f4d445948a01f9c41923f586",
+                        "ids": 51,
+                        "name": "P51",
+                        "latitude": 30.495677497034375,
+                        "longitude": 119.98691419909066
+                    },
+                    {
+                        "id": "eb1bb64b62364ccba82fc967f01fcadf",
+                        "ids": 52,
+                        "name": "P52",
+                        "latitude": 30.496167248131037,
+                        "longitude": 119.9718888859438
+                    },
+                    {
+                        "id": "5e467dc09add4e089c61e2bc2cae850c",
+                        "ids": 53,
+                        "name": "P53",
+                        "latitude": 30.496178072662065,
+                        "longitude": 119.97180444467844
+                    },
+                    {
+                        "id": "919bfc707ce5425b8335250724c0f7bb",
+                        "ids": 54,
+                        "name": "P54",
+                        "latitude": 30.496204635517852,
+                        "longitude": 119.9717235625886
+                    },
+                    {
+                        "id": "c7c4c322857841c29988e4d0230b0ba6",
+                        "ids": 55,
+                        "name": "P55",
+                        "latitude": 30.496245982441582,
+                        "longitude": 119.97164914532136
+                    },
+                    {
+                        "id": "c8c295a3c5324a4d892d25a93fa8f6ac",
+                        "ids": 56,
+                        "name": "P56",
+                        "latitude": 30.49630062806649,
+                        "longitude": 119.97158386627844
+                    },
+                    {
+                        "id": "1941d0d80dbf4723876b807a35457d35",
+                        "ids": 57,
+                        "name": "P57",
+                        "latitude": 30.496366609276837,
+                        "longitude": 119.97153007057555
+                    },
+                    {
+                        "id": "4da410a3b86c4a7b8bc2d1859791ac2a",
+                        "ids": 58,
+                        "name": "P58",
+                        "latitude": 30.49644155573189,
+                        "longitude": 119.97148969079548
+                    },
+                    {
+                        "id": "167761fff64247beac84e9e28ac8bfee",
+                        "ids": 59,
+                        "name": "P59",
+                        "latitude": 30.496522775019148,
+                        "longitude": 119.9714641775608
+                    },
+                    {
+                        "id": "613bd3c8d97f48b49c59c3c0c24217a1",
+                        "ids": 60,
+                        "name": "P60",
+                        "latitude": 30.496607349377857,
+                        "longitude": 119.97145444742124
+                    },
+                    {
+                        "id": "606dbbd2ec734550af8dce3d87de3f50",
+                        "ids": 61,
+                        "name": "P61",
+                        "latitude": 30.510288936807147,
+                        "longitude": 119.97118579502728
+                    },
+                    {
+                        "id": "168eaf968f1742ea95eebf085375b1ae",
+                        "ids": 62,
+                        "name": "P62",
+                        "latitude": 30.510376715662908,
+                        "longitude": 119.97119270349872
+                    },
+                    {
+                        "id": "0136007517cb4ff9b279df40addf5306",
+                        "ids": 63,
+                        "name": "P63",
+                        "latitude": 30.510461460096646,
+                        "longitude": 119.97121660403106
+                    },
+                    {
+                        "id": "1f2645cc44b34d7f8ac4e694b915b8f0",
+                        "ids": 64,
+                        "name": "P64",
+                        "latitude": 30.510539913427305,
+                        "longitude": 119.97125657814024
+                    },
+                    {
+                        "id": "bed2d1d33e3d428380821a496462b353",
+                        "ids": 65,
+                        "name": "P65",
+                        "latitude": 30.51060906073738,
+                        "longitude": 119.97131108964363
+                    },
+                    {
+                        "id": "360e0837e4d94ce696ef8b98c8b63c38",
+                        "ids": 66,
+                        "name": "P66",
+                        "latitude": 30.510666244734523,
+                        "longitude": 119.9713780436948
+                    },
+                    {
+                        "id": "4a418a256fa84a1fa9b1907fbbe40612",
+                        "ids": 67,
+                        "name": "P67",
+                        "latitude": 30.5107092678698,
+                        "longitude": 119.97145486728706
+                    },
+                    {
+                        "id": "090bf3a4322240baa3159f7652d0e556",
+                        "ids": 68,
+                        "name": "P68",
+                        "latitude": 30.51073647678824,
+                        "longitude": 119.97153860813286
+                    },
+                    {
+                        "id": "9271faff4ec04c629b870a9ba56b9d8a",
+                        "ids": 69,
+                        "name": "P69",
+                        "latitude": 30.51074682586637,
+                        "longitude": 119.97162604811844
+                    },
+                    {
+                        "id": "50c1fdbf00954c0a9dd72bea4c623393",
+                        "ids": 70,
+                        "name": "P70",
+                        "latitude": 30.510739917394925,
+                        "longitude": 119.9717138269742
+                    },
+                    {
+                        "id": "bc90474eae5d423eabb65278487dc62f",
+                        "ids": 71,
+                        "name": "P71",
+                        "latitude": 30.510716016862585,
+                        "longitude": 119.97179857140792
+                    },
+                    {
+                        "id": "5414d914935d4e93bc30bbf0d36dfee4",
+                        "ids": 72,
+                        "name": "P72",
+                        "latitude": 30.510676042753406,
+                        "longitude": 119.9718770247386
+                    },
+                    {
+                        "id": "08940d1302bb435485e92638e79dc795",
+                        "ids": 73,
+                        "name": "P73",
+                        "latitude": 30.510621531249985,
+                        "longitude": 119.97194617204866
+                    },
+                    {
+                        "id": "0b6bf2e87326416498ed496429fee3c6",
+                        "ids": 74,
+                        "name": "P74",
+                        "latitude": 30.510554577198825,
+                        "longitude": 119.97200335604582
+                    },
+                    {
+                        "id": "ee491b7f5f4442bcab089882ffc09561",
+                        "ids": 75,
+                        "name": "P75",
+                        "latitude": 30.51047775360657,
+                        "longitude": 119.97204637918108
+                    },
+                    {
+                        "id": "7ea8460d95fd43109eeb0b19dc8ed97e",
+                        "ids": 76,
+                        "name": "P76",
+                        "latitude": 30.51039401276078,
+                        "longitude": 119.97207358809952
+                    },
+                    {
+                        "id": "b209aa0fb6ee4d3ea22373deaa5b3b42",
+                        "ids": 77,
+                        "name": "P77",
+                        "latitude": 30.510306572775203,
+                        "longitude": 119.97208393717766
+                    },
+                    {
+                        "id": "dae84477b42e46f8ae88a848b0737162",
+                        "ids": 78,
+                        "name": "P78",
+                        "latitude": "30.4971026",
+                        "longitude": "119.9723442"
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 5569125,
+                    "mediumC": 111360,
+                    "bigC": 3300
+                }
+            },
+            {
+                "id": "1996494099447455745",
+                "airSpaceNumber": "KY25000033",
+                "airSpaceName": "监视居住点1",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.593881146506433,
+                        "longitude": 119.87335299208355
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.593879786449055,
+                        "longitude": 119.87335180914968
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.593878259151115,
+                        "longitude": 119.87335094448632
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.59387661912366,
+                        "longitude": 119.87335042895442
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.59387492490119,
+                        "longitude": 119.87335028095384
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.593873236952504,
+                        "longitude": 119.87335050576684
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.593871615522435,
+                        "longitude": 119.87335109536964
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.59387011848173,
+                        "longitude": 119.87335202871856
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.59386879926152,
+                        "longitude": 119.87335327250128
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.59386770494629,
+                        "longitude": 119.87335478232576
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.59386687459345,
+                        "longitude": 119.87335650430455
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.59367258316574,
+                        "longitude": 119.87386736787136
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.59367203768296,
+                        "longitude": 119.8738692848756
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.59367181979345,
+                        "longitude": 119.87387128797351
+                    },
+                    {
+                        "id": 14,
+                        "name": "p15",
+                        "latitude": 30.593671937634763,
+                        "longitude": 119.87387330235492
+                    },
+                    {
+                        "id": 15,
+                        "name": "p16",
+                        "latitude": 30.59367238680588,
+                        "longitude": 119.8738752527883
+                    },
+                    {
+                        "id": 16,
+                        "name": "p17",
+                        "latitude": 30.593673150531473,
+                        "longitude": 119.8738770664303
+                    },
+                    {
+                        "id": 17,
+                        "name": "p18",
+                        "latitude": 30.593674200288525,
+                        "longitude": 119.87387867554646
+                    },
+                    {
+                        "id": 18,
+                        "name": "p19",
+                        "latitude": 30.59379301235388,
+                        "longitude": 119.87402823836833
+                    },
+                    {
+                        "id": 19,
+                        "name": "p20",
+                        "latitude": 30.593794666604683,
+                        "longitude": 119.87402987186177
+                    },
+                    {
+                        "id": 20,
+                        "name": "p21",
+                        "latitude": 30.593796609623535,
+                        "longitude": 119.8740309972016
+                    },
+                    {
+                        "id": 21,
+                        "name": "p22",
+                        "latitude": 30.593936256900783,
+                        "longitude": 119.87408865489606
+                    },
+                    {
+                        "id": 22,
+                        "name": "p23",
+                        "latitude": 30.593938020320405,
+                        "longitude": 119.87408915701828
+                    },
+                    {
+                        "id": 23,
+                        "name": "p24",
+                        "latitude": 30.593939834617867,
+                        "longitude": 119.87408923743456
+                    },
+                    {
+                        "id": 24,
+                        "name": "p25",
+                        "latitude": 30.59394162584486,
+                        "longitude": 119.87408889286716
+                    },
+                    {
+                        "id": 25,
+                        "name": "p26",
+                        "latitude": 30.59394332099336,
+                        "longitude": 119.87408813736016
+                    },
+                    {
+                        "id": 26,
+                        "name": "p27",
+                        "latitude": 30.593944850971376,
+                        "longitude": 119.87408700170704
+                    },
+                    {
+                        "id": 27,
+                        "name": "p28",
+                        "latitude": 30.593946153419065,
+                        "longitude": 119.87408553219548
+                    },
+                    {
+                        "id": 28,
+                        "name": "p29",
+                        "latitude": 30.593947175250385,
+                        "longitude": 119.87408378872075
+                    },
+                    {
+                        "id": 29,
+                        "name": "p30",
+                        "latitude": 30.59394787481686,
+                        "longitude": 119.8740818423446
+                    },
+                    {
+                        "id": 30,
+                        "name": "p31",
+                        "latitude": 30.59394822360509,
+                        "longitude": 119.87407977239872
+                    },
+                    {
+                        "id": 31,
+                        "name": "p32",
+                        "latitude": 30.59398527053216,
+                        "longitude": 119.87361424492715
+                    },
+                    {
+                        "id": 32,
+                        "name": "p33",
+                        "latitude": 30.59398524788139,
+                        "longitude": 119.873612070009
+                    },
+                    {
+                        "id": 33,
+                        "name": "p34",
+                        "latitude": 30.59398483807366,
+                        "longitude": 119.87360994767327
+                    },
+                    {
+                        "id": 34,
+                        "name": "p35",
+                        "latitude": 30.593923927915217,
+                        "longitude": 119.873399909994
+                    },
+                    {
+                        "id": 35,
+                        "name": "p36",
+                        "latitude": 30.593923321327697,
+                        "longitude": 119.87339828739628
+                    },
+                    {
+                        "id": 36,
+                        "name": "p37",
+                        "latitude": 30.593922487786767,
+                        "longitude": 119.8733968069494
+                    },
+                    {
+                        "id": 37,
+                        "name": "p38",
+                        "latitude": 30.59392145119034,
+                        "longitude": 119.87339551109828
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 6900,
+                    "mediumC": 120,
+                    "bigC": 1
+                }
+            },
+            {
+                "id": "1996492794146496514",
+                "airSpaceNumber": "KY25000032",
+                "airSpaceName": "监视居住点2",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.602774174243297,
+                        "longitude": 119.8890697989668
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.602773035790328,
+                        "longitude": 119.88906818820408
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.602771644809252,
+                        "longitude": 119.88906687201693
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.602770056648705,
+                        "longitude": 119.8890659027778
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.60276833450334,
+                        "longitude": 119.8890653190538
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.602766546899197,
+                        "longitude": 119.88906514407188
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.602764764966988,
+                        "longitude": 119.88906538479482
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.602763059611725,
+                        "longitude": 119.88906603164386
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.60276149869133,
+                        "longitude": 119.88906705888026
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.60267033914851,
+                        "longitude": 119.88914191728318
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.602669029561905,
+                        "longitude": 119.88914322920628
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.60266796029675,
+                        "longitude": 119.88914480807398
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.602667170884477,
+                        "longitude": 119.88914659551452
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.60266669051015,
+                        "longitude": 119.88914852544512
+                    },
+                    {
+                        "id": 14,
+                        "name": "p15",
+                        "latitude": 30.60266653693352,
+                        "longitude": 119.88915052651495
+                    },
+                    {
+                        "id": 15,
+                        "name": "p16",
+                        "latitude": 30.60266671583239,
+                        "longitude": 119.88915252474324
+                    },
+                    {
+                        "id": 16,
+                        "name": "p17",
+                        "latitude": 30.602667220592775,
+                        "longitude": 119.88915444625424
+                    },
+                    {
+                        "id": 17,
+                        "name": "p18",
+                        "latitude": 30.602743989285425,
+                        "longitude": 119.88936989171512
+                    },
+                    {
+                        "id": 18,
+                        "name": "p19",
+                        "latitude": 30.602744753556685,
+                        "longitude": 119.88937158095422
+                    },
+                    {
+                        "id": 19,
+                        "name": "p20",
+                        "latitude": 30.602745769532554,
+                        "longitude": 119.88937308051266
+                    },
+                    {
+                        "id": 20,
+                        "name": "p21",
+                        "latitude": 30.602747003319777,
+                        "longitude": 119.88937434036472
+                    },
+                    {
+                        "id": 21,
+                        "name": "p22",
+                        "latitude": 30.60274841375887,
+                        "longitude": 119.88937531848136
+                    },
+                    {
+                        "id": 22,
+                        "name": "p23",
+                        "latitude": 30.602749953797176,
+                        "longitude": 119.88937598223232
+                    },
+                    {
+                        "id": 23,
+                        "name": "p24",
+                        "latitude": 30.602751572058565,
+                        "longitude": 119.88937630947468
+                    },
+                    {
+                        "id": 24,
+                        "name": "p25",
+                        "latitude": 30.602938004236105,
+                        "longitude": 119.88939386545032
+                    },
+                    {
+                        "id": 25,
+                        "name": "p26",
+                        "latitude": 30.6029398104323,
+                        "longitude": 119.8893938240338
+                    },
+                    {
+                        "id": 26,
+                        "name": "p27",
+                        "latitude": 30.602941573061553,
+                        "longitude": 119.88939336404324
+                    },
+                    {
+                        "id": 27,
+                        "name": "p28",
+                        "latitude": 30.602943220997417,
+                        "longitude": 119.88939250404034
+                    },
+                    {
+                        "id": 28,
+                        "name": "p29",
+                        "latitude": 30.6029446877416,
+                        "longitude": 119.8893912787284
+                    },
+                    {
+                        "id": 29,
+                        "name": "p30",
+                        "latitude": 30.602945914107327,
+                        "longitude": 119.88938973755172
+                    },
+                    {
+                        "id": 30,
+                        "name": "p31",
+                        "latitude": 30.602946850607708,
+                        "longitude": 119.88938794270062
+                    },
+                    {
+                        "id": 31,
+                        "name": "p32",
+                        "latitude": 30.60294745945264,
+                        "longitude": 119.88938596660176
+                    },
+                    {
+                        "id": 32,
+                        "name": "p33",
+                        "latitude": 30.60294771607371,
+                        "longitude": 119.88938388899568
+                    },
+                    {
+                        "id": 33,
+                        "name": "p34",
+                        "latitude": 30.60294761011563,
+                        "longitude": 119.88938179371888
+                    },
+                    {
+                        "id": 34,
+                        "name": "p35",
+                        "latitude": 30.60294714585406,
+                        "longitude": 119.88937976532098
+                    },
+                    {
+                        "id": 35,
+                        "name": "p36",
+                        "latitude": 30.60294634202311,
+                        "longitude": 119.8893778856529
+                    },
+                    {
+                        "id": 36,
+                        "name": "p37",
+                        "latitude": 30.602869931732013,
+                        "longitude": 119.88923683066962
+                    },
+                    {
+                        "id": 37,
+                        "name": "p38",
+                        "latitude": 30.602869805296063,
+                        "longitude": 119.88923660382817
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 2400,
+                    "mediumC": 48,
+                    "bigC": 1
+                }
+            },
+            {
+                "id": "1996488550626533378",
+                "airSpaceNumber": "KY25000030",
+                "airSpaceName": "环中制水有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.54615459427023,
+                        "longitude": 119.94456783566366
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.545476990936944,
+                        "longitude": 119.94422939023497
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.54486192059686,
+                        "longitude": 119.94722258207528
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.54609422733125,
+                        "longitude": 119.94749765405072
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.546704290314967,
+                        "longitude": 119.94749274768844
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.546627945834285,
+                        "longitude": 119.94615446606568
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.546625157334212,
+                        "longitude": 119.9453660680624
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 212925,
+                    "mediumC": 4248,
+                    "bigC": 120
+                }
+            },
+            {
+                "id": "1998672824574320793",
+                "airSpaceNumber": "KY2600692",
+                "airSpaceName": "测试111",
+                "timeRestrictions": {
+                    "isValid": false,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [],
+                    "dayTimeRange": [
+                        "",
+                        ""
+                    ]
+                },
+                "conditionStr": "",
+                "shape": "1",
+                "altType": 1,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": 1,
+                "boundaryData": [
+                    {
+                        "id": "17727892479679486",
+                        "name": "p1",
+                        "longitude": 119.9745953,
+                        "latitude": 30.5260598
+                    },
+                    {
+                        "id": "17727892479672691",
+                        "name": "p2",
+                        "longitude": 119.977652,
+                        "latitude": 30.5268026
+                    },
+                    {
+                        "id": "17727892479671496",
+                        "name": "p3",
+                        "longitude": 119.9777236,
+                        "latitude": 30.5254561
+                    }
+                ],
+                "notes": "",
+                "capacity": {
+                    "smallC": 104025,
+                    "mediumC": 2064,
+                    "bigC": 60
+                }
+            },
+            {
+                "id": "1996420131524882433",
+                "airSpaceNumber": "KY25000020",
+                "airSpaceName": "体育馆",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "2",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 1,
+                        "name": "p1",
+                        "radius": "83",
+                        "latitude": 30.544812973103735,
+                        "longitude": 119.99354438355267
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 101400,
+                    "mediumC": 2016,
+                    "bigC": 60
+                }
+            },
+            {
+                "id": "1998672824574320789",
+                "airSpaceNumber": "KY2600685",
+                "airSpaceName": "德清莫干山机场",
+                "timeRestrictions": {
+                    "isValid": false,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [],
+                    "dayTimeRange": []
+                },
+                "conditionStr": null,
+                "shape": "7",
+                "altType": 1,
+                "altMax": 0,
+                "altMin": 0,
+                "spaceType": "C",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "1770082875272",
+                        "latitude": 30.504306,
+                        "longitude": 120.107203,
+                        "maxAltitude": 0,
+                        "minAltitude": 0,
+                        "radius": 0
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 0,
+                    "mediumC": 0,
+                    "bigC": 0
+                }
+            },
+            {
+                "id": "1998308457194364930",
+                "airSpaceNumber": "KY25000054",
+                "airSpaceName": "德清西站",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.53838672239305,
+                        "longitude": 119.9534446347842
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.538335142845,
+                        "longitude": 119.95395680207704
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.53828709970813,
+                        "longitude": 119.95448500335937
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.53732453330742,
+                        "longitude": 119.9544244186098
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.53718859138112,
+                        "longitude": 119.9544090348764
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.53725842615674,
+                        "longitude": 119.95330889503106
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 60000,
+                    "mediumC": 1200,
+                    "bigC": 30
+                }
+            },
+            {
+                "id": "1998308120773435394",
+                "airSpaceNumber": "KY25000053",
+                "airSpaceName": "德清高铁站",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.55015726349812,
+                        "longitude": 120.05616380356554
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.55003078735053,
+                        "longitude": 120.05545960956358
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.550260766481664,
+                        "longitude": 120.05519388687738
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.549875563787538,
+                        "longitude": 120.05466241256816
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.549461613251605,
+                        "longitude": 120.0543900320688
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.548794694818433,
+                        "longitude": 120.05416414849974
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.54855322574827,
+                        "longitude": 120.05405785128528
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.54833475458763,
+                        "longitude": 120.05394491543224
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.548012795078137,
+                        "longitude": 120.0538984080904
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.54780582111742,
+                        "longitude": 120.05382533040552
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.54743424614548,
+                        "longitude": 120.05377882300566
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.546819070910455,
+                        "longitude": 120.05381202880253
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.545818692042317,
+                        "longitude": 120.05413087579548
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.54487579749519,
+                        "longitude": 120.05472208079811
+                    },
+                    {
+                        "id": 14,
+                        "name": "p15",
+                        "latitude": 30.54445609343349,
+                        "longitude": 120.05496121433892
+                    },
+                    {
+                        "id": 15,
+                        "name": "p16",
+                        "latitude": 30.544249103797664,
+                        "longitude": 120.05557235586429
+                    },
+                    {
+                        "id": 16,
+                        "name": "p17",
+                        "latitude": 30.544174353653368,
+                        "longitude": 120.0558845723846
+                    },
+                    {
+                        "id": 17,
+                        "name": "p18",
+                        "latitude": 30.544042108393647,
+                        "longitude": 120.05625657174588
+                    },
+                    {
+                        "id": 18,
+                        "name": "p19",
+                        "latitude": 30.54401334963545,
+                        "longitude": 120.05658207464232
+                    },
+                    {
+                        "id": 19,
+                        "name": "p20",
+                        "latitude": 30.543984600187347,
+                        "longitude": 120.05668171620287
+                    },
+                    {
+                        "id": 20,
+                        "name": "p21",
+                        "latitude": 30.542828978737507,
+                        "longitude": 120.05662189144736
+                    },
+                    {
+                        "id": 21,
+                        "name": "p22",
+                        "latitude": 30.541932080130895,
+                        "longitude": 120.05638272229162
+                    },
+                    {
+                        "id": 22,
+                        "name": "p23",
+                        "latitude": 30.54175959856545,
+                        "longitude": 120.05636942955316
+                    },
+                    {
+                        "id": 23,
+                        "name": "p24",
+                        "latitude": 30.54170205010487,
+                        "longitude": 120.05753192831094
+                    },
+                    {
+                        "id": 24,
+                        "name": "p25",
+                        "latitude": 30.541972225585976,
+                        "longitude": 120.05839552069229
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 999825,
+                    "mediumC": 19992,
+                    "bigC": 590
+                }
+            },
+            {
+                "id": "1996750084917338114",
+                "airSpaceNumber": "KY25000043",
+                "airSpaceName": "拘留所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "2",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 1,
+                        "name": "p1",
+                        "radius": "300",
+                        "latitude": 30.58961353850464,
+                        "longitude": 120.0103682164834
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 1325550,
+                    "mediumC": 26496,
+                    "bigC": 780
+                }
+            },
+            {
+                "id": "1996477284679852033",
+                "airSpaceNumber": "KY25000024",
+                "airSpaceName": "新市派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.621020976179302,
+                        "longitude": 120.28553620676816
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.62025516230537,
+                        "longitude": 120.28559978191892
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.620255143977243,
+                        "longitude": 120.286436792973
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.62028475652783,
+                        "longitude": 120.2866081157256
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.620915179286364,
+                        "longitude": 120.28663755148324
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.62107173050877,
+                        "longitude": 120.2866033038324
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.62110135674911,
+                        "longitude": 120.28615786599946
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.62106751050423,
+                        "longitude": 120.28601101510188
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 42600,
+                    "mediumC": 840,
+                    "bigC": 20
+                }
+            },
+            {
+                "id": "1996486376240619521",
+                "airSpaceNumber": "KY25000028",
+                "airSpaceName": "新安派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.53395522792871,
+                        "longitude": 120.214994873419
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.533142109671093,
+                        "longitude": 120.21509977615926
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.53338199343231,
+                        "longitude": 120.21611110470882
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.53412650360533,
+                        "longitude": 120.21610663216028
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 41775,
+                    "mediumC": 816,
+                    "bigC": 20
+                }
+            },
+            {
+                "id": "1996476242156232706",
+                "airSpaceNumber": "KY25000023",
+                "airSpaceName": "武康派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.537477526372136,
+                        "longitude": 119.96306379506062
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.53747128071892,
+                        "longitude": 119.9624498498991
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.537362003524944,
+                        "longitude": 119.96184911409166
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.537153893526444,
+                        "longitude": 119.96128466951008
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.536854946854454,
+                        "longitude": 119.96077820329384
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.53647664973403,
+                        "longitude": 119.96034917443338
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.536033537068555,
+                        "longitude": 119.9600140660547
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.535542633886138,
+                        "longitude": 119.9597857521494
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.535022801126917,
+                        "longitude": 119.95967300307814
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.534248373847714,
+                        "longitude": 119.95959501419172
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.533715380737704,
+                        "longitude": 119.9596027021282
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.53319409175821,
+                        "longitude": 119.95973189761652
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.532704854358673,
+                        "longitude": 119.95997755588436
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.532266764626566,
+                        "longitude": 119.96033008664595
+                    },
+                    {
+                        "id": 14,
+                        "name": "p15",
+                        "latitude": 30.531896921993827,
+                        "longitude": 119.96077572865514
+                    },
+                    {
+                        "id": 15,
+                        "name": "p16",
+                        "latitude": 30.531609761907372,
+                        "longitude": 119.96129708696355
+                    },
+                    {
+                        "id": 16,
+                        "name": "p17",
+                        "latitude": 30.53141649249281,
+                        "longitude": 119.96187381189728
+                    },
+                    {
+                        "id": 17,
+                        "name": "p18",
+                        "latitude": 30.531324657180154,
+                        "longitude": 119.96248339325012
+                    },
+                    {
+                        "id": 18,
+                        "name": "p19",
+                        "latitude": 30.53120436041531,
+                        "longitude": 119.96436172698505
+                    },
+                    {
+                        "id": 19,
+                        "name": "p20",
+                        "latitude": 30.531215960990593,
+                        "longitude": 119.96496537761344
+                    },
+                    {
+                        "id": 20,
+                        "name": "p21",
+                        "latitude": 30.53132710848787,
+                        "longitude": 119.96555522930088
+                    },
+                    {
+                        "id": 21,
+                        "name": "p22",
+                        "latitude": 30.53153367297499,
+                        "longitude": 119.96610936471384
+                    },
+                    {
+                        "id": 22,
+                        "name": "p23",
+                        "latitude": 30.53182797905237,
+                        "longitude": 119.96660719333046
+                    },
+                    {
+                        "id": 23,
+                        "name": "p24",
+                        "latitude": 30.53219909098748,
+                        "longitude": 119.9670302164035
+                    },
+                    {
+                        "id": 24,
+                        "name": "p25",
+                        "latitude": 30.53263321897993,
+                        "longitude": 119.96736271427966
+                    },
+                    {
+                        "id": 25,
+                        "name": "p26",
+                        "latitude": 30.53311423147677,
+                        "longitude": 119.9675923305501
+                    },
+                    {
+                        "id": 26,
+                        "name": "p27",
+                        "latitude": 30.53362425451684,
+                        "longitude": 119.96771053132346
+                    },
+                    {
+                        "id": 27,
+                        "name": "p28",
+                        "latitude": 30.534378145599646,
+                        "longitude": 119.96779878878546
+                    },
+                    {
+                        "id": 28,
+                        "name": "p29",
+                        "latitude": 30.534911769747236,
+                        "longitude": 119.96779968075846
+                    },
+                    {
+                        "id": 29,
+                        "name": "p30",
+                        "latitude": 30.535435107322577,
+                        "longitude": 119.96767861717488
+                    },
+                    {
+                        "id": 30,
+                        "name": "p31",
+                        "latitude": 30.535927684955144,
+                        "longitude": 119.96744033222788
+                    },
+                    {
+                        "id": 31,
+                        "name": "p32",
+                        "latitude": 30.536370232328743,
+                        "longitude": 119.96709414626292
+                    },
+                    {
+                        "id": 32,
+                        "name": "p33",
+                        "latitude": 30.536745436133128,
+                        "longitude": 119.96665360138108
+                    },
+                    {
+                        "id": 33,
+                        "name": "p34",
+                        "latitude": 30.53703861748589,
+                        "longitude": 119.96613593178525
+                    },
+                    {
+                        "id": 34,
+                        "name": "p35",
+                        "latitude": 30.5372383063049,
+                        "longitude": 119.96556138957249
+                    },
+                    {
+                        "id": 35,
+                        "name": "p36",
+                        "latitude": 30.537336690141174,
+                        "longitude": 119.96495245234694
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 2138250,
+                    "mediumC": 42744,
+                    "bigC": 1260
+                }
+            },
+            {
+                "id": "1996478674563145730",
+                "airSpaceNumber": "KY25000025",
+                "airSpaceName": "洛舍派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.63933872613051,
+                        "longitude": 120.08057275641065
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.63849299957381,
+                        "longitude": 120.08005864280098
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.6383056548395,
+                        "longitude": 120.08052005759458
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.63898276053449,
+                        "longitude": 120.0809443627532
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.639175459926275,
+                        "longitude": 120.08103108873163
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 24675,
+                    "mediumC": 480,
+                    "bigC": 10
+                }
+            },
+            {
+                "id": "1998306640318341121",
+                "airSpaceNumber": "KY25000052",
+                "airSpaceName": "阜溪派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.553941114671577,
+                        "longitude": 119.99601395722844
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.55212572941073,
+                        "longitude": 119.99573694322636
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.552125729305615,
+                        "longitude": 119.99574207194946
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.552125721696846,
+                        "longitude": 119.9959933889894
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.55216121910867,
+                        "longitude": 119.99634215758496
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.5522366619905,
+                        "longitude": 119.99672683250056
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.552320988915177,
+                        "longitude": 119.99693199208936
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.552476326606403,
+                        "longitude": 119.9972910268076
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.55261835722788,
+                        "longitude": 119.99742951562212
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.552773702224577,
+                        "longitude": 119.99759877988384
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.553084400164263,
+                        "longitude": 119.99775266410578
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.55340397533258,
+                        "longitude": 119.99788603473782
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.553892224862334,
+                        "longitude": 119.99790144500784
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 150525,
+                    "mediumC": 3000,
+                    "bigC": 80
+                }
+            },
+            {
+                "id": "1996749815231979521",
+                "airSpaceNumber": "KY25000042",
+                "airSpaceName": "看守所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "2",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 1,
+                        "name": "p1",
+                        "radius": "300",
+                        "latitude": 30.58760058994963,
+                        "longitude": 120.010828033468
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 1325550,
+                    "mediumC": 26496,
+                    "bigC": 780
+                }
+            },
+            {
+                "id": "1996491084514631681",
+                "airSpaceNumber": "KY25000031",
+                "airSpaceName": "英宏水务有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.56026913737983,
+                        "longitude": 119.85184339079515
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.560142677018565,
+                        "longitude": 119.8531398962862
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.561098802917517,
+                        "longitude": 119.85360539931192
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.56112000380188,
+                        "longitude": 119.85305672757596
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.561325649991048,
+                        "longitude": 119.85280353312736
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.56103017783032,
+                        "longitude": 119.85253687311476
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.560462299532073,
+                        "longitude": 119.8519730900958
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 57075,
+                    "mediumC": 1128,
+                    "bigC": 30
+                }
+            },
+            {
+                "id": "1996471341900537857",
+                "airSpaceNumber": "KY25000021",
+                "airSpaceName": "舞阳派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.521342721250925,
+                        "longitude": 119.95910870787144
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.520725914868695,
+                        "longitude": 119.95906611873598
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.52065533630713,
+                        "longitude": 119.95904838321415
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.520587809378107,
+                        "longitude": 119.96009812304035
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.52132736490162,
+                        "longitude": 119.9601194646652
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 36525,
+                    "mediumC": 720,
+                    "bigC": 20
+                }
+            },
+            {
+                "id": "1996487602634137602",
+                "airSpaceNumber": "KY25000029",
+                "airSpaceName": "莫干山派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.604599950619697,
+                        "longitude": 119.89686932477608
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.60409554519795,
+                        "longitude": 119.89640457084998
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.603584660680628,
+                        "longitude": 119.89735647149168
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.60357485685118,
+                        "longitude": 119.89742387268028
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.604171219108643,
+                        "longitude": 119.89761796523727
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 32625,
+                    "mediumC": 648,
+                    "bigC": 10
+                }
+            },
+            {
+                "id": "1996419885751250945",
+                "airSpaceNumber": "KY25000019",
+                "airSpaceName": "德清体育中心",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "2",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 1,
+                        "name": "p1",
+                        "radius": "110",
+                        "latitude": 30.5437877625632,
+                        "longitude": 119.9918325780129
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 178125,
+                    "mediumC": 3552,
+                    "bigC": 100
+                }
+            },
+            {
+                "id": "1996418797627158529",
+                "airSpaceNumber": "KY25000018",
+                "airSpaceName": "三人篮球馆",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.51542861401729,
+                        "longitude": 119.96911895092478
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.51533951207681,
+                        "longitude": 119.9689703368694
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.51522173977865,
+                        "longitude": 119.96894993242958
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.51515304968573,
+                        "longitude": 119.96893231060923
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.515064079239256,
+                        "longitude": 119.9689055213324
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.51498008660238,
+                        "longitude": 119.968896705965
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.514919203037223,
+                        "longitude": 119.96894840731692
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.51487782860641,
+                        "longitude": 119.96899757112804
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.514858589836468,
+                        "longitude": 119.96905620333062
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.514730430622222,
+                        "longitude": 119.96995551332628
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.514724078527856,
+                        "longitude": 119.97081289565068
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.51496637878904,
+                        "longitude": 119.97088132211556
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.515163157551378,
+                        "longitude": 119.97089766696016
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.51525723824567,
+                        "longitude": 119.97086396608778
+                    },
+                    {
+                        "id": 14,
+                        "name": "p15",
+                        "latitude": 30.515296000662374,
+                        "longitude": 119.97023669571077
+                    },
+                    {
+                        "id": 15,
+                        "name": "p16",
+                        "latitude": 30.51534203315292,
+                        "longitude": 119.9701081747593
+                    },
+                    {
+                        "id": 16,
+                        "name": "p17",
+                        "latitude": 30.515381758850083,
+                        "longitude": 119.96999523284036
+                    },
+                    {
+                        "id": 17,
+                        "name": "p18",
+                        "latitude": 30.515385554709912,
+                        "longitude": 119.96984538861426
+                    },
+                    {
+                        "id": 18,
+                        "name": "p19",
+                        "latitude": 30.515377156612303,
+                        "longitude": 119.96971626979808
+                    },
+                    {
+                        "id": 19,
+                        "name": "p20",
+                        "latitude": 30.51536268401833,
+                        "longitude": 119.9695976732825
+                    },
+                    {
+                        "id": 20,
+                        "name": "p21",
+                        "latitude": 30.515352904565955,
+                        "longitude": 119.9694917526012
+                    },
+                    {
+                        "id": 21,
+                        "name": "p22",
+                        "latitude": 30.51532712719012,
+                        "longitude": 119.96946940729516
+                    },
+                    {
+                        "id": 22,
+                        "name": "p23",
+                        "latitude": 30.515330648672546,
+                        "longitude": 119.96941241897989
+                    },
+                    {
+                        "id": 23,
+                        "name": "p24",
+                        "latitude": 30.515377501575845,
+                        "longitude": 119.9693578844516
+                    },
+                    {
+                        "id": 24,
+                        "name": "p25",
+                        "latitude": 30.51536665426335,
+                        "longitude": 119.9692692427272
+                    },
+                    {
+                        "id": 25,
+                        "name": "p26",
+                        "latitude": 30.51538737998085,
+                        "longitude": 119.96919802343444
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 54975,
+                    "mediumC": 1080,
+                    "bigC": 30
+                }
+            },
+            {
+                "id": "1996417886687244290",
+                "airSpaceNumber": "KY25000017",
+                "airSpaceName": "德清大剧院",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.517830622161263,
+                        "longitude": 119.96661391751393
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.517550825498965,
+                        "longitude": 119.96628648080775
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.5171765575685,
+                        "longitude": 119.96610549703358
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.516845036879097,
+                        "longitude": 119.96615577692904
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.51656524124681,
+                        "longitude": 119.96631831419836
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.51634069610548,
+                        "longitude": 119.96663892129774
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.516281474618896,
+                        "longitude": 119.96718940613935
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.51638157725994,
+                        "longitude": 119.96765150221404
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.516311366058417,
+                        "longitude": 119.96805983322258
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.51673886501328,
+                        "longitude": 119.96930342556124
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.516804064873284,
+                        "longitude": 119.96959603842453
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.51691261192463,
+                        "longitude": 119.96969354525066
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.517091493579628,
+                        "longitude": 119.96973309277811
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.51740595395968,
+                        "longitude": 119.96985831299826
+                    },
+                    {
+                        "id": 14,
+                        "name": "p15",
+                        "latitude": 30.517883410888047,
+                        "longitude": 119.96976394800085
+                    },
+                    {
+                        "id": 15,
+                        "name": "p16",
+                        "latitude": 30.51826565955826,
+                        "longitude": 119.9693322859916
+                    },
+                    {
+                        "id": 16,
+                        "name": "p17",
+                        "latitude": 30.51836892035017,
+                        "longitude": 119.96874528576278
+                    },
+                    {
+                        "id": 17,
+                        "name": "p18",
+                        "latitude": 30.518291220837774,
+                        "longitude": 119.96765326361448
+                    },
+                    {
+                        "id": 18,
+                        "name": "p19",
+                        "latitude": 30.517995317592344,
+                        "longitude": 119.9668503230496
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 299250,
+                    "mediumC": 5976,
+                    "bigC": 170
+                }
+            },
+            {
+                "id": "1996417090302160898",
+                "airSpaceNumber": "KY25000016",
+                "airSpaceName": "德清县政府",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.54698419368221,
+                        "longitude": 119.96755741489436
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.543756390333396,
+                        "longitude": 119.96718491511004
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.543216341583147,
+                        "longitude": 119.96718566187236
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.54268724013851,
+                        "longitude": 119.9673112799678
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.542190285567447,
+                        "longitude": 119.96755673426831
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.541745389094057,
+                        "longitude": 119.9679121885416
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.54137037590147,
+                        "longitude": 119.96836339979268
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.541080271047715,
+                        "longitude": 119.96889228906582
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.54088669758541,
+                        "longitude": 119.96947766581616
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.5407974109793,
+                        "longitude": 119.97009607682968
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.540556196590696,
+                        "longitude": 119.97434227098286
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.540572953534625,
+                        "longitude": 119.97495320680513
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.540691571338552,
+                        "longitude": 119.9755487348182
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.54090753400666,
+                        "longitude": 119.97610618208944
+                    },
+                    {
+                        "id": 14,
+                        "name": "p15",
+                        "latitude": 30.541212619404934,
+                        "longitude": 119.97660432515715
+                    },
+                    {
+                        "id": 15,
+                        "name": "p16",
+                        "latitude": 30.541595212225143,
+                        "longitude": 119.97702419792012
+                    },
+                    {
+                        "id": 16,
+                        "name": "p17",
+                        "latitude": 30.542040746119103,
+                        "longitude": 119.97734981367488
+                    },
+                    {
+                        "id": 17,
+                        "name": "p18",
+                        "latitude": 30.54253225818675,
+                        "longitude": 119.97756877382324
+                    },
+                    {
+                        "id": 18,
+                        "name": "p19",
+                        "latitude": 30.543051034724467,
+                        "longitude": 119.97767274007154
+                    },
+                    {
+                        "id": 19,
+                        "name": "p20",
+                        "latitude": 30.546124410414755,
+                        "longitude": 119.97793442166322
+                    },
+                    {
+                        "id": 20,
+                        "name": "p21",
+                        "latitude": 30.546640589628737,
+                        "longitude": 119.97792085432584
+                    },
+                    {
+                        "id": 21,
+                        "name": "p22",
+                        "latitude": 30.54714509099515,
+                        "longitude": 119.9777933606612
+                    },
+                    {
+                        "id": 22,
+                        "name": "p23",
+                        "latitude": 30.547619437914097,
+                        "longitude": 119.9775566082137
+                    },
+                    {
+                        "id": 23,
+                        "name": "p24",
+                        "latitude": 30.5480462578872,
+                        "longitude": 119.97721926629416
+                    },
+                    {
+                        "id": 24,
+                        "name": "p25",
+                        "latitude": 30.548409918829623,
+                        "longitude": 119.97679368866488
+                    },
+                    {
+                        "id": 25,
+                        "name": "p26",
+                        "latitude": 30.54869710166622,
+                        "longitude": 119.97629546120544
+                    },
+                    {
+                        "id": 26,
+                        "name": "p27",
+                        "latitude": 30.5488972882265,
+                        "longitude": 119.97574283111148
+                    },
+                    {
+                        "id": 27,
+                        "name": "p28",
+                        "latitude": 30.54900314655408,
+                        "longitude": 119.97515603853076
+                    },
+                    {
+                        "id": 28,
+                        "name": "p29",
+                        "latitude": 30.54939879110002,
+                        "longitude": 119.97102063352295
+                    },
+                    {
+                        "id": 29,
+                        "name": "p30",
+                        "latitude": 30.54940503658074,
+                        "longitude": 119.97040204354704
+                    },
+                    {
+                        "id": 30,
+                        "name": "p31",
+                        "latitude": 30.549306475475827,
+                        "longitude": 119.96979408993796
+                    },
+                    {
+                        "id": 31,
+                        "name": "p32",
+                        "latitude": 30.549106951346356,
+                        "longitude": 119.96922048083252
+                    },
+                    {
+                        "id": 32,
+                        "name": "p33",
+                        "latitude": 30.54881424494616,
+                        "longitude": 119.96870358473296
+                    },
+                    {
+                        "id": 33,
+                        "name": "p34",
+                        "latitude": 30.548439770730923,
+                        "longitude": 119.96826355805892
+                    },
+                    {
+                        "id": 34,
+                        "name": "p35",
+                        "latitude": 30.54799813164695,
+                        "longitude": 119.96791755905564
+                    },
+                    {
+                        "id": 35,
+                        "name": "p36",
+                        "latitude": 30.54750654957837,
+                        "longitude": 119.96767907872844
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 4103400,
+                    "mediumC": 82056,
+                    "bigC": 2430
+                }
+            },
+            {
+                "id": "1998305873737981953",
+                "airSpaceNumber": "KY25000051",
+                "airSpaceName": "县公安局",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.543993107516357,
+                        "longitude": 119.9876436238621
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.542866925241732,
+                        "longitude": 119.98758080026762
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.54286073201824,
+                        "longitude": 119.9878469803128
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.542812938684644,
+                        "longitude": 119.98796881747164
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.54231059746997,
+                        "longitude": 119.98809460047347
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.54222201587569,
+                        "longitude": 119.98925263876332
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.54385675063327,
+                        "longitude": 119.989372376672
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 128850,
+                    "mediumC": 2568,
+                    "bigC": 70
+                }
+            },
+            {
+                "id": "1996411720175366145",
+                "airSpaceNumber": "KY25000014",
+                "airSpaceName": "漂莱特(中国)有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.545063093420247,
+                        "longitude": 120.104169680542
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.5444908746112,
+                        "longitude": 120.1035599746555
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.545071178684054,
+                        "longitude": 120.10252714647272
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.54570493981968,
+                        "longitude": 120.10181119712726
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.54626101024588,
+                        "longitude": 120.10105646094544
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.54700887563697,
+                        "longitude": 120.1001400722437
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.547275682442557,
+                        "longitude": 120.09989895441312
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.547914304622303,
+                        "longitude": 120.10056347308344
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 220650,
+                    "mediumC": 4392,
+                    "bigC": 130
+                }
+            },
+            {
+                "id": "1996410368850309121",
+                "airSpaceNumber": "KY25000013",
+                "airSpaceName": "浙江润禾有机硅新材料有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.55432589609769,
+                        "longitude": 120.01481532118645
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.554606896972043,
+                        "longitude": 120.01290021136606
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.55499809600639,
+                        "longitude": 120.01289413224372
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.555856673436228,
+                        "longitude": 120.01323550342056
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.556018409174396,
+                        "longitude": 120.01343042396095
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.556503072998307,
+                        "longitude": 120.01396863391562
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.556611611602083,
+                        "longitude": 120.0141734354391
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.5566576289199,
+                        "longitude": 120.0144450038522
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.556662013015895,
+                        "longitude": 120.01485263449314
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.55660945137003,
+                        "longitude": 120.01530421832162
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 198600,
+                    "mediumC": 3960,
+                    "bigC": 110
+                }
+            },
+            {
+                "id": "1996399030388305922",
+                "airSpaceNumber": "KY25000009",
+                "airSpaceName": "浙江金投能源有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.580152875195772,
+                        "longitude": 120.18589193801532
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.58065597785583,
+                        "longitude": 120.18611573678687
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.581012632514117,
+                        "longitude": 120.18610725083046
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.58106005598875,
+                        "longitude": 120.18575156526882
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.580972974361018,
+                        "longitude": 120.18509174679124
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.580899086769342,
+                        "longitude": 120.18420966879752
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.580890729091756,
+                        "longitude": 120.18413209230316
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.57999139717048,
+                        "longitude": 120.18413439998363
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.57993250259136,
+                        "longitude": 120.1841096713422
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.57990829324036,
+                        "longitude": 120.1843287699024
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.579892832103837,
+                        "longitude": 120.18442435247717
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.579968317909437,
+                        "longitude": 120.18455080686186
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.58005728723051,
+                        "longitude": 120.18540119739856
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.58009379781403,
+                        "longitude": 120.1858647031434
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 91575,
+                    "mediumC": 1824,
+                    "bigC": 50
+                }
+            },
+            {
+                "id": "1996396207319724033",
+                "airSpaceNumber": "KY25000008",
+                "airSpaceName": "德清合能石化有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.622802467993974,
+                        "longitude": 120.25832509273548
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.62269005538231,
+                        "longitude": 120.25836876360852
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.622712707429177,
+                        "longitude": 120.25842567795316
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.62282356490717,
+                        "longitude": 120.25837632466244
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.622817311034087,
+                        "longitude": 120.25834380125686
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 300,
+                    "mediumC": 1,
+                    "bigC": 1
+                }
+            },
+            {
+                "id": "1996385791612989441",
+                "airSpaceNumber": "KY25000005",
+                "airSpaceName": "浙江五龙新材股份有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.63068032445921,
+                        "longitude": 120.31796636458958
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.630581352001386,
+                        "longitude": 120.31872878780143
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.63068109565231,
+                        "longitude": 120.31911721662676
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.63064095006727,
+                        "longitude": 120.31984966130236
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.630514043315337,
+                        "longitude": 120.3206709533365
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.63046644346243,
+                        "longitude": 120.3211136728181
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.630359971179907,
+                        "longitude": 120.32156716515225
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.630440112764887,
+                        "longitude": 120.32179627897676
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.63032905950155,
+                        "longitude": 120.32207349497942
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.6298399634858,
+                        "longitude": 120.32193779696344
+                    },
+                    {
+                        "id": 10,
+                        "name": "p11",
+                        "latitude": 30.62864287314744,
+                        "longitude": 120.3215110124943
+                    },
+                    {
+                        "id": 11,
+                        "name": "p12",
+                        "latitude": 30.62619673889404,
+                        "longitude": 120.32063234653096
+                    },
+                    {
+                        "id": 12,
+                        "name": "p13",
+                        "latitude": 30.624819440480373,
+                        "longitude": 120.32014330216184
+                    },
+                    {
+                        "id": 13,
+                        "name": "p14",
+                        "latitude": 30.621943566963083,
+                        "longitude": 120.3191199797201
+                    },
+                    {
+                        "id": 14,
+                        "name": "p15",
+                        "latitude": 30.622323912568746,
+                        "longitude": 120.31751892674342
+                    },
+                    {
+                        "id": 15,
+                        "name": "p16",
+                        "latitude": 30.62453130778239,
+                        "longitude": 120.31820697230758
+                    },
+                    {
+                        "id": 16,
+                        "name": "p17",
+                        "latitude": 30.624906473508045,
+                        "longitude": 120.31646333219076
+                    },
+                    {
+                        "id": 17,
+                        "name": "p18",
+                        "latitude": 30.624954662326104,
+                        "longitude": 120.31628383941108
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 1414125,
+                    "mediumC": 28272,
+                    "bigC": 830
+                }
+            },
+            {
+                "id": "1996386810094858242",
+                "airSpaceNumber": "KY25000006",
+                "airSpaceName": "湖州杭华功能材料有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.630209341843337,
+                        "longitude": 120.30983462800408
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.63053648460726,
+                        "longitude": 120.31003090475627
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.630796384448463,
+                        "longitude": 120.31058301440412
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.630975096602494,
+                        "longitude": 120.31129312893154
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.631123288834974,
+                        "longitude": 120.3120633021681
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.631210209768067,
+                        "longitude": 120.31260280262524
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.63125551199107,
+                        "longitude": 120.31304311619746
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.631258743241396,
+                        "longitude": 120.3131645785926
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.628798464317317,
+                        "longitude": 120.31296166662196
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.628801568987164,
+                        "longitude": 120.3097632954088
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 349050,
+                    "mediumC": 6960,
+                    "bigC": 200
+                }
+            },
+            {
+                "id": "1996379583644610562",
+                "airSpaceNumber": "KY25000002",
+                "airSpaceName": "浙江拓普药业股份有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.642810434951063,
+                        "longitude": 120.18409778636048
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.642374826978173,
+                        "longitude": 120.1842728095766
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.641212446044772,
+                        "longitude": 120.18437413920032
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.63973101881467,
+                        "longitude": 120.18435897023858
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.63995672776455,
+                        "longitude": 120.18271310205527
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.641508417247255,
+                        "longitude": 120.1822352394425
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.643062342002423,
+                        "longitude": 120.18183005170236
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 312525,
+                    "mediumC": 6240,
+                    "bigC": 180
+                }
+            },
+            {
+                "id": "1996387794879688705",
+                "airSpaceNumber": "KY25000007",
+                "airSpaceName": "浙江思达包装材料有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.63387500596243,
+                        "longitude": 120.3179816221708
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.633710990171267,
+                        "longitude": 120.31916538254823
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.63246538153149,
+                        "longitude": 120.3190548522006
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.632523448337476,
+                        "longitude": 120.31788195821824
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 76875,
+                    "mediumC": 1536,
+                    "bigC": 40
+                }
+            },
+            {
+                "id": "1996408658983563265",
+                "airSpaceNumber": "KY25000012",
+                "airSpaceName": "浙江威昇作物科技有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.63086192187119,
+                        "longitude": 120.30994890893336
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.631491373011333,
+                        "longitude": 120.31210143434296
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.633878722791287,
+                        "longitude": 120.31217807746935
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.634468134345635,
+                        "longitude": 120.31217474518527
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.634572211341272,
+                        "longitude": 120.31005518372254
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.634217235585172,
+                        "longitude": 120.3099565513641
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.634143879313783,
+                        "longitude": 120.31019718646156
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.63111735599758,
+                        "longitude": 120.30995742283164
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.63111735599758,
+                        "longitude": 120.30995742283164
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 345225,
+                    "mediumC": 6888,
+                    "bigC": 200
+                }
+            },
+            {
+                "id": "1998672824574320668",
+                "airSpaceNumber": "KY2600477",
+                "airSpaceName": "德清莫干山机场",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "2",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "8499141576719889026",
+                        "latitude": 30.50265199224461,
+                        "longitude": 120.1076832422069,
+                        "name": "p1",
+                        "radius": 5700.669339142262
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 478915425,
+                    "mediumC": 9578304,
+                    "bigC": 283800
+                }
+            },
+            {
+                "id": "1996383911952429057",
+                "airSpaceNumber": "KY25000003",
+                "airSpaceName": "浙江大桥油漆有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.63448162768464,
+                        "longitude": 120.31229351574412
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.63443391324923,
+                        "longitude": 120.31303071700478
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.63440211722339,
+                        "longitude": 120.3138575612438
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.634343486283992,
+                        "longitude": 120.31468240223188
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.634216752254293,
+                        "longitude": 120.3154575573044
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.633340544564717,
+                        "longitude": 120.31538639639189
+                    },
+                    {
+                        "id": 6,
+                        "name": "p7",
+                        "latitude": 30.63141218996508,
+                        "longitude": 120.31532491124516
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.63154476959271,
+                        "longitude": 120.31320354277388
+                    },
+                    {
+                        "id": 8,
+                        "name": "p9",
+                        "latitude": 30.63157725372787,
+                        "longitude": 120.3130000737878
+                    },
+                    {
+                        "id": 9,
+                        "name": "p10",
+                        "latitude": 30.631417044687502,
+                        "longitude": 120.31219551234848
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 452775,
+                    "mediumC": 9048,
+                    "bigC": 260
+                }
+            },
+            {
+                "id": "1998672824574320669",
+                "airSpaceNumber": "KY2600478",
+                "airSpaceName": "康乾派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "1599313306092650622",
+                        "latitude": 30.54264395535704,
+                        "longitude": 120.05306311755452,
+                        "name": "p1"
+                    },
+                    {
+                        "id": "4580148202093170464",
+                        "latitude": 30.542018355148684,
+                        "longitude": 120.0554250344557,
+                        "name": "p2"
+                    },
+                    {
+                        "id": "5799285835511696806",
+                        "latitude": 30.54196616984443,
+                        "longitude": 120.05635295953984,
+                        "name": "p3"
+                    },
+                    {
+                        "id": "1564452835099716688",
+                        "latitude": 30.54276888874158,
+                        "longitude": 120.05628073694224,
+                        "name": "p4"
+                    },
+                    {
+                        "id": "1437753412208836496",
+                        "latitude": 30.543592457134636,
+                        "longitude": 120.05626877869508,
+                        "name": "p5"
+                    },
+                    {
+                        "id": "7559635433724919175",
+                        "latitude": 30.54390521319224,
+                        "longitude": 120.0561483003242,
+                        "name": "p6"
+                    },
+                    {
+                        "id": "5465085450768042770",
+                        "latitude": 30.544082464604156,
+                        "longitude": 120.05566626369432,
+                        "name": "p7"
+                    },
+                    {
+                        "id": "6781608637383688312",
+                        "latitude": 30.544176315242225,
+                        "longitude": 120.05516011723672,
+                        "name": "p8"
+                    },
+                    {
+                        "id": "2169431704002266893",
+                        "latitude": 30.54430143294856,
+                        "longitude": 120.05477448657764,
+                        "name": "p9"
+                    },
+                    {
+                        "id": "3048253632626743108",
+                        "latitude": 30.544499531444032,
+                        "longitude": 120.05419604606875,
+                        "name": "p10"
+                    },
+                    {
+                        "id": "2921140703691384732",
+                        "latitude": 30.54455166826172,
+                        "longitude": 120.05388271829702,
+                        "name": "p11"
+                    },
+                    {
+                        "id": "4792769223866416151",
+                        "latitude": 30.544562096164217,
+                        "longitude": 120.0538104113002,
+                        "name": "p12"
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 296550,
+                    "mediumC": 5928,
+                    "bigC": 170
+                }
+            },
+            {
+                "id": "1998672824574320670",
+                "airSpaceNumber": "KY2600479",
+                "airSpaceName": "下渚湖派出所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "6236806287046962140",
+                        "latitude": 30.50853654678458,
+                        "longitude": 120.01708335325296,
+                        "name": "p1"
+                    },
+                    {
+                        "id": "1953451271200288364",
+                        "latitude": 30.507940578887062,
+                        "longitude": 120.01716129254066,
+                        "name": "p2"
+                    },
+                    {
+                        "id": "6236920429999922221",
+                        "latitude": 30.507887166943092,
+                        "longitude": 120.01720351923484,
+                        "name": "p3"
+                    },
+                    {
+                        "id": "1994190400847443506",
+                        "latitude": 30.508069876731764,
+                        "longitude": 120.0181390779179,
+                        "name": "p4"
+                    },
+                    {
+                        "id": "7393217854986575629",
+                        "latitude": 30.508469064354035,
+                        "longitude": 120.01815534961632,
+                        "name": "p5"
+                    },
+                    {
+                        "id": "2456899045015360079",
+                        "latitude": 30.5086770944177,
+                        "longitude": 120.01818460251944,
+                        "name": "p6"
+                    },
+                    {
+                        "id": "6090111602510561214",
+                        "latitude": 30.508887937239695,
+                        "longitude": 120.01825933563022,
+                        "name": "p7"
+                    },
+                    {
+                        "id": "1567594588704648671",
+                        "latitude": 30.508927295030382,
+                        "longitude": 120.01825933889737,
+                        "name": "p8"
+                    },
+                    {
+                        "id": "225256270468677760",
+                        "latitude": 30.508952599385697,
+                        "longitude": 120.01805143310058,
+                        "name": "p9"
+                    },
+                    {
+                        "id": "516956857448410816",
+                        "latitude": 30.50893011072389,
+                        "longitude": 120.01793123511752,
+                        "name": "p10"
+                    },
+                    {
+                        "id": "7556973136805519134",
+                        "latitude": 30.508803608360715,
+                        "longitude": 120.01756739159109,
+                        "name": "p11"
+                    },
+                    {
+                        "id": "9217191495176897244",
+                        "latitude": 30.50861807107597,
+                        "longitude": 120.01717756266554,
+                        "name": "p12"
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 43950,
+                    "mediumC": 864,
+                    "bigC": 20
+                }
+            },
+            {
+                "id": "1998672824574320671",
+                "airSpaceNumber": "KY2600480",
+                "airSpaceName": "女子戒毒所",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "7099954881954291492",
+                        "latitude": 30.532580668740145,
+                        "longitude": 119.97264790409,
+                        "name": "p1"
+                    },
+                    {
+                        "id": "5514921582397639748",
+                        "latitude": 30.532381891210026,
+                        "longitude": 119.97262727616156,
+                        "name": "p2"
+                    },
+                    {
+                        "id": "1605630763470891768",
+                        "latitude": 30.53185365557535,
+                        "longitude": 119.97263273960024,
+                        "name": "p3"
+                    },
+                    {
+                        "id": "4419860195050143416",
+                        "latitude": 30.531336462354236,
+                        "longitude": 119.97275759754427,
+                        "name": "p4"
+                    },
+                    {
+                        "id": "2178627836195076148",
+                        "latitude": 30.53085013886953,
+                        "longitude": 119.97299706154556,
+                        "name": "p5"
+                    },
+                    {
+                        "id": "1595610114493130022",
+                        "latitude": 30.530413328724563,
+                        "longitude": 119.9733419499273,
+                        "name": "p6"
+                    },
+                    {
+                        "id": "440073961255686559",
+                        "latitude": 30.5300427771532,
+                        "longitude": 119.97377903998527,
+                        "name": "p7"
+                    },
+                    {
+                        "id": "1035745303522814690",
+                        "latitude": 30.529752689174384,
+                        "longitude": 119.97429157501438,
+                        "name": "p8"
+                    },
+                    {
+                        "id": "5266800862692997500",
+                        "latitude": 30.52955418513964,
+                        "longitude": 119.9748599067064,
+                        "name": "p9"
+                    },
+                    {
+                        "id": "5447247036694434993",
+                        "latitude": 30.52945487452738,
+                        "longitude": 119.97546224829182,
+                        "name": "p10"
+                    },
+                    {
+                        "id": "2691502156050017028",
+                        "latitude": 30.52933253344051,
+                        "longitude": 119.97701741944124,
+                        "name": "p11"
+                    },
+                    {
+                        "id": "7173411543003776104",
+                        "latitude": 30.529334726929587,
+                        "longitude": 119.97761384498855,
+                        "name": "p12"
+                    },
+                    {
+                        "id": "2079291069780281686",
+                        "latitude": 30.52943426075692,
+                        "longitude": 119.97819897554868,
+                        "name": "p13"
+                    },
+                    {
+                        "id": "2032322681700839082",
+                        "latitude": 30.529627526116755,
+                        "longitude": 119.97875159593072,
+                        "name": "p14"
+                    },
+                    {
+                        "id": "5730441785016553984",
+                        "latitude": 30.52990751574054,
+                        "longitude": 119.9792516693942,
+                        "name": "p15"
+                    },
+                    {
+                        "id": "1928812775365296077",
+                        "latitude": 30.530264077903993,
+                        "longitude": 119.97968106399848,
+                        "name": "p16"
+                    },
+                    {
+                        "id": "8984432654872501541",
+                        "latitude": 30.530684284428396,
+                        "longitude": 119.9800242099634,
+                        "name": "p17"
+                    },
+                    {
+                        "id": "851488904448388396",
+                        "latitude": 30.531152899346537,
+                        "longitude": 119.98026866422,
+                        "name": "p18"
+                    },
+                    {
+                        "id": "2648413251910680645",
+                        "latitude": 30.531652931255632,
+                        "longitude": 119.98040556168226,
+                        "name": "p19"
+                    },
+                    {
+                        "id": "1809427802733909742",
+                        "latitude": 30.531856802715115,
+                        "longitude": 119.98043800760787,
+                        "name": "p20"
+                    },
+                    {
+                        "id": "1219875359999384621",
+                        "latitude": 30.53240198922614,
+                        "longitude": 119.9804601458565,
+                        "name": "p21"
+                    },
+                    {
+                        "id": "3102976040764943040",
+                        "latitude": 30.532939866964806,
+                        "longitude": 119.98035450614488,
+                        "name": "p22"
+                    },
+                    {
+                        "id": "3924438981425262490",
+                        "latitude": 30.533448445218617,
+                        "longitude": 119.98012540541217,
+                        "name": "p23"
+                    },
+                    {
+                        "id": "8647783985200321576",
+                        "latitude": 30.533906930830252,
+                        "longitude": 119.97978220857244,
+                        "name": "p24"
+                    },
+                    {
+                        "id": "6864173556756982026",
+                        "latitude": 30.53429657839757,
+                        "longitude": 119.97933894589596,
+                        "name": "p25"
+                    },
+                    {
+                        "id": "2554601387331825696",
+                        "latitude": 30.534601456788817,
+                        "longitude": 119.9788137395418,
+                        "name": "p26"
+                    },
+                    {
+                        "id": "4340342986066520672",
+                        "latitude": 30.53480910061308,
+                        "longitude": 119.97822806266454,
+                        "name": "p27"
+                    },
+                    {
+                        "id": "430218706030339014",
+                        "latitude": 30.534911019988147,
+                        "longitude": 119.97760586138448,
+                        "name": "p28"
+                    },
+                    {
+                        "id": "5301188709105466",
+                        "latitude": 30.53502827251307,
+                        "longitude": 119.97603879927614,
+                        "name": "p29"
+                    },
+                    {
+                        "id": "2472571420445337208",
+                        "latitude": 30.535022267045026,
+                        "longitude": 119.97542577548812,
+                        "name": "p30"
+                    },
+                    {
+                        "id": "7988688123681284932",
+                        "latitude": 30.534913528315215,
+                        "longitude": 119.97482585207564,
+                        "name": "p31"
+                    },
+                    {
+                        "id": "8205827453786767517",
+                        "latitude": 30.534706222007493,
+                        "longitude": 119.97426201148856,
+                        "name": "p32"
+                    },
+                    {
+                        "id": "5094601938321780236",
+                        "latitude": 30.534408289803576,
+                        "longitude": 119.9737558535569,
+                        "name": "p33"
+                    },
+                    {
+                        "id": "2435585057127777508",
+                        "latitude": 30.534031145077815,
+                        "longitude": 119.97332676788513,
+                        "name": "p34"
+                    },
+                    {
+                        "id": "3797756364572507630",
+                        "latitude": 30.533589235579058,
+                        "longitude": 119.9729911910072,
+                        "name": "p35"
+                    },
+                    {
+                        "id": "4895792832372284278",
+                        "latitude": 30.53309948986882,
+                        "longitude": 119.97276197677397,
+                        "name": "p36"
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 1818225,
+                    "mediumC": 36360,
+                    "bigC": 1070
+                }
+            },
+            {
+                "id": "1996406973921931266",
+                "airSpaceNumber": "KY25000011",
+                "airSpaceName": "湖州远邦新材料有限公司",
+                "timeRestrictions": {
+                    "isValid": true,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": 0,
+                        "name": "p1",
+                        "latitude": 30.63101801775413,
+                        "longitude": 120.28927509806137
+                    },
+                    {
+                        "id": 1,
+                        "name": "p2",
+                        "latitude": 30.63091321486122,
+                        "longitude": 120.29000414050996
+                    },
+                    {
+                        "id": 2,
+                        "name": "p3",
+                        "latitude": 30.630878953214363,
+                        "longitude": 120.29013080403466
+                    },
+                    {
+                        "id": 3,
+                        "name": "p4",
+                        "latitude": 30.630845543731713,
+                        "longitude": 120.29028653612176
+                    },
+                    {
+                        "id": 4,
+                        "name": "p5",
+                        "latitude": 30.63083084525172,
+                        "longitude": 120.29033810175726
+                    },
+                    {
+                        "id": 5,
+                        "name": "p6",
+                        "latitude": 30.628766238083603,
+                        "longitude": 120.2897939482284
+                    },
+                    {
+                        "id": 7,
+                        "name": "p8",
+                        "latitude": 30.628937888479157,
+                        "longitude": 120.28832207386108
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 138300,
+                    "mediumC": 2760,
+                    "bigC": 80
+                }
+            },
+            {
+                "id": "1998672824574320672",
+                "airSpaceNumber": "KY2600481",
+                "airSpaceName": "钟管派出所",
+                "timeRestrictions": {
+                    "isValid": false,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "4148945705278324084",
+                        "latitude": 30.64600166534079,
+                        "longitude": 120.1780615494496,
+                        "name": "p1"
+                    },
+                    {
+                        "id": "3648686382737900047",
+                        "latitude": 30.64503834853345,
+                        "longitude": 120.17823164745968,
+                        "name": "p2"
+                    },
+                    {
+                        "id": "4344299777819583180",
+                        "latitude": 30.645358900617847,
+                        "longitude": 120.1791048214744,
+                        "name": "p3"
+                    },
+                    {
+                        "id": "1789575171478802688",
+                        "latitude": 30.645462986798385,
+                        "longitude": 120.1792000654846,
+                        "name": "p4"
+                    },
+                    {
+                        "id": "7703199959210097198",
+                        "latitude": 30.64589328494991,
+                        "longitude": 120.17912431745452,
+                        "name": "p5"
+                    },
+                    {
+                        "id": "3711721066585108584",
+                        "latitude": 30.646255308712412,
+                        "longitude": 120.17898956865244,
+                        "name": "p6"
+                    },
+                    {
+                        "id": "4084768488559196794",
+                        "latitude": 30.646056461612034,
+                        "longitude": 120.17804341023592,
+                        "name": "p7"
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 48300,
+                    "mediumC": 960,
+                    "bigC": 20
+                }
+            },
+            {
+                "id": "1998672824574320673",
+                "airSpaceNumber": "KY2600482",
+                "airSpaceName": "禹越派出所",
+                "timeRestrictions": {
+                    "isValid": false,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "1",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "5095824040522690123",
+                        "latitude": 30.516417165110298,
+                        "longitude": 120.26677404592454,
+                        "name": "p1"
+                    },
+                    {
+                        "id": "532499814651341425",
+                        "latitude": 30.51609091059384,
+                        "longitude": 120.26670751160614,
+                        "name": "p2"
+                    },
+                    {
+                        "id": "7290904046360748016",
+                        "latitude": 30.51602765115893,
+                        "longitude": 120.26710419758336,
+                        "name": "p3"
+                    },
+                    {
+                        "id": "1097500273512884745",
+                        "latitude": 30.516362022422307,
+                        "longitude": 120.26718628113856,
+                        "name": "p4"
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 6825,
+                    "mediumC": 120,
+                    "bigC": 1
+                }
+            },
+            {
+                "id": "1998672824574320738",
+                "airSpaceNumber": "KY2600573",
+                "airSpaceName": "武警",
+                "timeRestrictions": {
+                    "isValid": false,
+                    "active": 2,
+                    "timeRange": [],
+                    "daysActive": [
+                        "Monday",
+                        "Tuesday",
+                        "Wednesday",
+                        "Thursday",
+                        "Friday",
+                        "Saturday",
+                        "Sunday"
+                    ],
+                    "dayTimeRange": [
+                        "00:00:00",
+                        "23:59:59"
+                    ]
+                },
+                "conditionStr": null,
+                "shape": "2",
+                "altType": 3,
+                "altMax": 120,
+                "altMin": 0,
+                "spaceType": "WG",
+                "airSpaceProperty": null,
+                "boundaryData": [
+                    {
+                        "id": "446590785646222947",
+                        "latitude": 30.589045913408462,
+                        "longitude": 120.01249698264176,
+                        "name": "p1",
+                        "radius": 356.98304016642226
+                    }
+                ],
+                "notes": null,
+                "capacity": {
+                    "smallC": 1877025,
+                    "mediumC": 37536,
+                    "bigC": 1110
+                }
+            }
+        ],
+        "total": 42,
+        "size": 42,
+        "current": 1,
+        "orders": [],
+        "optimizeCountSql": true,
+        "searchCount": true,
+        "countId": null,
+        "maxLimit": null,
+        "pages": 1
+    },
+    "iv": null
+}

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>实验设计 - 低空经济仿真验证平台</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<style>
+        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', system-ui, sans-serif; }
+        .sidebar-item-active { background: linear-gradient(90deg, rgba(22, 119, 255, 0.2) 0%, rgba(22, 119, 255, 0) 100%); border-left: 4px solid #1677ff; color: #1677ff; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .input-dark { background: rgba(30, 41, 59, 1); border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 0.5rem; width: 100%; transition: all 0.3s; color: white; }
+        .input-dark:focus { border-color: #1677ff; outline: none; box-shadow: 0 0 0 2px rgba(22, 119, 255, 0.3); }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden">
+<!-- 侧边导航 (复用同 index.html) -->
+<aside class="w-64 border-r border-slate-800 flex flex-col bg-slate-900">
+<div class="p-6 flex items-center gap-3">
+<span class="iconify text-3xl text-blue-500" data-icon="ri:drone-fill"></span>
+<span class="font-bold text-lg tracking-wider">低空仿真系统</span>
+</div>
+<nav class="flex-1 mt-4 px-3 space-y-1">
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="index.html">
+<span class="iconify" data-icon="ri:dashboard-3-line"></span> 实验列表
+            </a>
+<a class="sidebar-item-active flex items-center gap-3 p-3 rounded-lg transition-all" href="design.html">
+<span class="iconify" data-icon="ri:edit-box-line"></span> 实验设计
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="scheduling.html">
+<span class="iconify" data-icon="ri:list-settings-line"></span> 实验调度
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="monitor.html">
+<span class="iconify" data-icon="ri:radar-line"></span> 执行监控
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="result.html">
+<span class="iconify" data-icon="ri:pie-chart-2-line"></span> 单轮结果
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="comparison.html">
+<span class="iconify" data-icon="ri:bubble-chart-line"></span> 多轮对比
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="iteration.html">
+<span class="iconify" data-icon="ri:history-line"></span> 迭代记录
+            </a>
+<a class="flex items-center gap-3 p-3 rounded-lg text-slate-400 hover:text-blue-500 hover:bg-slate-800 transition-all" href="log-audit.html">
+<span class="iconify" data-icon="ri:file-list-3-line"></span> 日志审计
+            </a>
+</nav>
+<div class="p-6 border-t border-slate-800 text-sm text-slate-500">2026-03-10</div>
+</aside>
+<main class="flex-1 flex flex-col overflow-hidden bg-[#0a0f1c]">
+<header class="h-16 border-b border-slate-800 flex items-center justify-between px-8 bg-slate-900/50">
+<div class="flex items-center gap-4">
+<a class="text-slate-400 hover:text-white" href="index.html"><span class="iconify text-xl" data-icon="ri:arrow-left-line"></span></a>
+<h1 class="text-xl font-semibold">实验设计方案配置</h1>
+</div>
+<div class="flex gap-4">
+<button class="bg-slate-700 px-4 py-2 rounded-md text-sm">暂存草稿</button>
+<a class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md text-sm font-medium" href="scheduling.html">生成实验队列</a>
+</div>
+</header>
+<section class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- 基础信息 -->
+<div class="glass-card p-6 rounded-xl">
+<h2 class="text-white font-bold mb-6 flex items-center gap-2">
+<span class="w-1 h-4 bg-blue-500 rounded-full"></span> 基础信息
+                </h2>
+<div class="grid grid-cols-2 gap-8">
+<div class="space-y-2">
+<label class="text-xs text-slate-400 uppercase">实验名称</label>
+<input class="input-dark" type="text" value="低空物流配送方案验证实验-V2"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs text-slate-400 uppercase">场景类型</label>
+<select class="input-dark">
+<option>城市低空物流</option>
+<option>山区急救配送</option>
+<option>高层消防巡检</option>
+</select>
+</div>
+<div class="col-span-2 space-y-2">
+<label class="text-xs text-slate-400 uppercase">实验目的</label>
+<textarea class="input-dark h-20">对比不同航线策略与飞行速度，验证最优方案，实现安全、效率、合规、经济多维度优化。</textarea>
+</div>
+</div>
+</div>
+<!-- 变量配置区 -->
+<div class="grid grid-cols-2 gap-8">
+<!-- 自变量 -->
+<div class="glass-card p-6 rounded-xl">
+<h2 class="text-white font-bold mb-6 flex items-center gap-2">
+<span class="w-1 h-4 bg-purple-500 rounded-full"></span> 实验自变量 (可调参数)
+                    </h2>
+<div class="space-y-6">
+<div class="flex items-center justify-between">
+<span class="text-sm">飞行速度梯度 (m/s)</span>
+<div class="flex gap-2">
+<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded border border-blue-500/30">6</span>
+<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded border border-blue-500/30">8</span>
+<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded border border-blue-500/30">10</span>
+<span class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded border border-blue-500/30">12</span>
+</div>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm">航线规划策略</span>
+<select class="input-dark w-48 text-xs">
+<option>最短路径优先</option>
+<option>航线平衡路径</option>
+<option>避让禁飞区优先</option>
+</select>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-sm">任务并行架次</span>
+<input class="w-48 appearance-none bg-slate-700 h-1 rounded" type="range"/>
+</div>
+</div>
+</div>
+<!-- 观测指标 -->
+<div class="glass-card p-6 rounded-xl">
+<h2 class="text-white font-bold mb-6 flex items-center gap-2">
+<span class="w-1 h-4 bg-green-500 rounded-full"></span> 观测指标 (因变量)
+                    </h2>
+<div class="grid grid-cols-2 gap-4">
+<label class="flex items-center gap-3 bg-slate-800/50 p-3 rounded-lg border border-white/5 cursor-pointer hover:border-blue-500">
+<input checked="" class="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500" type="checkbox"/>
+<span class="text-sm">航线合规性分数</span>
+</label>
+<label class="flex items-center gap-3 bg-slate-800/50 p-3 rounded-lg border border-white/5 cursor-pointer hover:border-blue-500">
+<input checked="" class="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500" type="checkbox"/>
+<span class="text-sm">能源利用率检测</span>
+</label>
+<label class="flex items-center gap-3 bg-slate-800/50 p-3 rounded-lg border border-white/5 cursor-pointer hover:border-blue-500">
+<input checked="" class="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500" type="checkbox"/>
+<span class="text-sm">平均配送时长</span>
+</label>
+<label class="flex items-center gap-3 bg-slate-800/50 p-3 rounded-lg border border-white/5 cursor-pointer hover:border-blue-500">
+<input class="w-4 h-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500" type="checkbox"/>
+<span class="text-sm">碰撞风险系数评估</span>
+</label>
+</div>
+</div>
+</div>
+<!-- 迭代策略 -->
+<div class="glass-card p-6 rounded-xl">
+<h2 class="text-white font-bold mb-6 flex items-center gap-2">
+<span class="iconify text-yellow-500" data-icon="ri:loop-right-line"></span> 自动迭代策略配置
+                </h2>
+<div class="grid grid-cols-4 gap-6">
+<div class="space-y-2">
+<label class="text-xs text-slate-400">迭代目标 (综合分)</label>
+<input class="input-dark" type="number" value="90"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs text-slate-400">最大迭代轮次</label>
+<input class="input-dark" type="number" value="5"/>
+</div>
+<div class="space-y-2">
+<label class="text-xs text-slate-400">优化优先级</label>
+<select class="input-dark">
+<option>安全性 &gt; 效率</option>
+<option>效率 &gt; 经济</option>
+</select>
+</div>
+<div class="space-y-2">
+<label class="text-xs text-slate-400">收敛终止条件</label>
+<select class="input-dark">
+<option>连续2轮无提升</option>
+<option>达到目标分值</option>
+</select>
+</div>
+</div>
+</div>
+</section>
+</main>
+</body>
+</html>

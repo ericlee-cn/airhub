@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>想定列表页 - 想定编辑系统</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1677ff',
+                        success: '#00b42a',
+                        warning: '#ff7d00',
+                        danger: '#f53f3f',
+                    }
+                }
+            }
+        }
+    </script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00A3FF',
+                        success: '#00b42a',
+                        warning: '#ff7d00',
+                        danger: '#FF4D4F',
+                        darkBg: '#0A0C10',
+                        surface: 'rgba(22, 27, 34, 0.8)',
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        :root {
+            --bg-primary: #0A0C10;
+            --surface-color: rgba(22, 27, 34, 0.8);
+            --accent-blue: #00A3FF;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-main: rgba(255, 255, 255, 0.95);
+            --text-dim: rgba(255, 255, 255, 0.65);
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        /* 模拟三维地图背景 */
+        .map-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            background: 
+                radial-gradient(circle at center, transparent 0%, var(--bg-primary) 90%),
+                repeating-linear-gradient(rgba(0, 163, 255, 0.05) 0px, rgba(0, 163, 255, 0.05) 1px, transparent 1px, transparent 40px),
+                repeating-linear-gradient(90deg, rgba(0, 163, 255, 0.05) 0px, rgba(0, 163, 255, 0.05) 1px, transparent 1px, transparent 40px);
+            filter: brightness(1.2) contrast(1.1);
+        }
+
+        .map-background::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 163, 255, 0.1) 0%, transparent 80%);
+        }
+
+        /* 侧边栏和面板 */
+        .glass-panel {
+            background: var(--surface-color);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .sidebar-height { height: calc(100vh - 60px); }
+        .transition-all { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* 科技感按钮 */
+        .btn-sci-fi {
+            border: 1px solid var(--accent-blue);
+            background: rgba(0, 163, 255, 0.1);
+            color: var(--accent-blue);
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-sci-fi:hover {
+            background: rgba(0, 163, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 163, 255, 0.4);
+            text-shadow: 0 0 5px rgba(0, 163, 255, 0.5);
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }
+
+        input, select {
+            background: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-main) !important;
+        }
+        input:focus { border-color: var(--accent-blue) !important; outline: none; }
+    </style>
+</head>
+<body class="overflow-hidden text-sm">
+<div class="map-background"></div>
+<!-- 顶部导航栏 -->
+<header class="h-[60px] glass-panel border-b-0 flex items-center justify-between px-4 z-50 relative shrink-0">
+<div class="flex items-center space-x-6">
+<div class="flex items-center space-x-2 cursor-pointer" onclick="location.href='index.html'">
+<span class="iconify text-2xl text-primary" data-icon="mdi:shield-airplane"></span>
+<span class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600 whitespace-nowrap">想定编辑系统</span>
+</div>
+<nav class="flex space-x-4">
+<a class="text-primary font-medium border-b-2 border-primary pb-4 mt-4 whitespace-nowrap text-sm" href="index.html">想定列表</a>
+<a class="text-white/60 hover:text-primary pb-4 mt-4 transition-colors whitespace-nowrap text-sm" href="basic_info.html">新建想定</a>
+<a class="text-white/60 hover:text-primary pb-4 mt-4 transition-colors whitespace-nowrap text-sm" href="#">从模板创建</a>
+<a class="text-white/60 hover:text-primary pb-4 mt-4 transition-colors whitespace-nowrap text-sm" href="#">帮助文档</a>
+</nav>
+</div>
+<div class="flex items-center space-x-3 whitespace-nowrap">
+<div class="flex flex-col items-end mr-2">
+<span class="text-[10px] text-white/40">当前时间</span>
+<span class="text-[11px] text-white/60">2026-03-06</span>
+</div>
+<span class="iconify text-3xl text-white/40" data-icon="mdi:account-circle"></span>
+<span class="text-white/80 text-sm">系统管理员</span>
+</div>
+</header>
+<div class="flex relative z-10">
+<!-- 左侧菜单面板 -->
+<aside class="w-[260px] sidebar-height glass-panel m-2 rounded-xl flex flex-col space-y-4 p-4">
+<div class="relative">
+<input class="w-full h-10 pl-10 pr-4 rounded focus:outline-none" placeholder="搜索想定/模板..." type="text"/>
+<span class="iconify absolute left-3 top-3 text-white/40" data-icon="mdi:magnify"></span>
+</div>
+<div class="flex items-center space-x-2 h-10">
+<select class="rounded px-2 py-1 flex-1 text-xs">
+<option>状态：全部</option>
+<option>草稿</option>
+<option>已发布</option>
+</select>
+<select class="rounded px-2 py-1 flex-1 text-xs">
+<option>类型：全部</option>
+</select>
+</div>
+<div class="flex-1 overflow-y-auto pr-1">
+<div class="h-[30px] font-bold text-white/40 border-b border-white/10 mb-2 flex items-center justify-between">
+<span>我的想定</span>
+<span class="iconify" data-icon="mdi:chevron-down"></span>
+</div>
+<div class="space-y-2">
+<div class="p-3 bg-primary/10 border-l-4 border-primary rounded-r flex items-center justify-between cursor-pointer group">
+<span class="text-primary font-medium">想定1 | V1.0</span>
+<span class="text-[10px] px-1.5 py-0.5 bg-white/10 text-white/60 rounded">草稿</span>
+</div>
+<div class="p-3 hover:bg-white/5 flex items-center justify-between cursor-pointer rounded transition-all border-b border-white/5">
+<span class="text-white/70">想定2 | V1.1</span>
+<span class="text-[10px] px-1.5 py-0.5 bg-green-500/20 text-green-400 rounded">已发布</span>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-4">
+<button class="w-full h-10 btn-sci-fi rounded flex items-center justify-center p-2">
+<span class="iconify mr-2" data-icon="mdi:folder-table"></span>
+                    想定模板库
+                </button>
+</div>
+</aside>
+<!-- 中间主内容区 -->
+<main class="flex-1 sidebar-height p-6 overflow-y-auto">
+<div class="flex flex-col items-center justify-center h-[240px] border border-dashed border-white/20 rounded-2xl mb-8 glass-panel group hover:border-primary/50 transition-all">
+<div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="iconify text-4xl text-primary" data-icon="mdi:file-document-edit-outline"></span>
+</div>
+<p class="text-white/60 text-base">开始新的任务筹划</p>
+<button class="mt-6 px-8 py-2.5 bg-primary text-white rounded-full font-bold hover:shadow-[0_0_20px_rgba(0,163,255,0.5)] transition-all" onclick="location.href='basic_info.html'">
+                    新建想定
+                </button>
+</div>
+<div class="flex items-center justify-between mb-4 px-2">
+<div class="font-bold text-white/80 flex items-center">
+<span class="iconify mr-2 text-primary" data-icon="mdi:clock-outline"></span> 最近编辑
+                </div>
+<div class="text-xs text-white/40">共 12 个项目</div>
+</div>
+<div class="grid grid-cols-1 gap-3">
+<div class="glass-panel rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-all cursor-pointer group">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center border border-white/10 group-hover:border-primary/30">
+<span class="iconify text-2xl text-primary" data-icon="mdi:map-marker-radius"></span>
+</div>
+<div>
+<div class="font-bold text-white/90">想定1 - 南海演习场景</div>
+<div class="text-xs text-white/40 mt-1">2026-02-27 10:30 · 修改人：Admin</div>
+</div>
+</div>
+<div class="flex space-x-3 opacity-0 group-hover:opacity-100 transition-all">
+<button class="px-3 py-1 text-primary hover:bg-primary/10 rounded border border-primary/20" onclick="location.href='basic_info.html'">编辑</button>
+<button class="px-3 py-1 text-white/60 hover:text-white hover:bg-white/10 rounded border border-white/10">预览</button>
+<button class="px-3 py-1 text-danger hover:bg-danger/10 rounded border border-danger/20 text-xs">删除</button>
+</div>
+</div>
+<div class="glass-panel rounded-xl p-4 flex items-center justify-between hover:border-primary/40 transition-all cursor-pointer group">
+<div class="flex items-center space-x-4">
+<div class="w-12 h-12 bg-white/5 rounded-lg flex items-center justify-center border border-white/10 group-hover:border-primary/30">
+<span class="iconify text-2xl text-green-400" data-icon="mdi:check-decagram-outline"></span>
+</div>
+<div>
+<div class="font-bold text-white/90">想定2 - 东部战区演练</div>
+<div class="text-xs text-white/40 mt-1">2026-02-26 15:45 · 修改人：Admin</div>
+</div>
+</div>
+<div class="flex space-x-3 opacity-0 group-hover:opacity-100 transition-all">
+<button class="px-3 py-1 text-primary hover:bg-primary/10 rounded border border-primary/20">编辑</button>
+<button class="px-3 py-1 text-white/60 hover:text-white hover:bg-white/10 rounded border border-white/10">预览</button>
+<button class="px-3 py-1 text-danger hover:bg-danger/10 rounded border border-danger/20 text-xs">删除</button>
+</div>
+</div>
+</div>
+</main>
+<!-- 右侧信息面板 -->
+<aside class="w-[280px] sidebar-height glass-panel m-2 rounded-xl transition-all relative overflow-visible" id="info-panel">
+<div class="p-5 space-y-6 h-full flex flex-col">
+<div>
+<div class="h-[30px] font-bold text-white/80 border-b border-white/10 mb-4 flex items-center">
+                        数据概览
+                    </div>
+<div class="grid grid-cols-2 gap-3">
+<div class="p-3 bg-white/5 rounded border border-white/5">
+<div class="text-white/40 text-[10px] mb-1">想定总数</div>
+<div class="text-xl font-bold text-primary">05</div>
+</div>
+<div class="p-3 bg-white/5 rounded border border-white/5">
+<div class="text-white/40 text-[10px] mb-1">已发布</div>
+<div class="text-xl font-bold text-green-400">02</div>
+</div>
+</div>
+</div>
+<div class="flex-1">
+<div class="h-[30px] font-bold text-white/80 border-b border-white/10 mb-4">操作指南</div>
+<div class="p-4 bg-primary/5 border border-primary/10 rounded-lg text-xs text-white/50 leading-loose">
+<div class="flex items-center text-primary mb-2">
+<span class="iconify mr-2" data-icon="mdi:information"></span>
+<span>提示</span>
+</div>
+                        1. 创建新想定后，请按照左侧导航顺序完成所有配置。<br/>
+                        2. 每个步骤都会自动保存您的改动。<br/>
+                        3. 只有通过校验的想定才能最终对外发布使用。
+                    </div>
+</div>
+<div class="pt-4 border-t border-white/10 text-[10px] text-white/30 text-center">
+                    系统版本: v2.0.260227
+                </div>
+</div>
+<!-- 收起按钮 -->
+<button class="absolute left-[-16px] top-1/2 -translate-y-1/2 w-8 h-8 glass-panel border border-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-primary hover:border-primary transition-all z-20" onclick="togglePanel()">
+<span class="iconify" data-icon="mdi:chevron-right" id="panel-toggle-icon"></span>
+</button>
+</aside>
+</div>
+<script>
+        let panelVisible = true;
+        function togglePanel() {
+            const panel = document.getElementById('info-panel');
+            const icon = document.getElementById('panel-toggle-icon');
+            if (panelVisible) {
+                panel.style.width = '0px';
+                panel.style.margin = '0px';
+                panel.style.border = 'none';
+                panel.style.opacity = '0';
+                icon.setAttribute('data-icon', 'mdi:chevron-left');
+            } else {
+                panel.style.width = '280px';
+                panel.style.margin = '8px';
+                panel.style.opacity = '1';
+                icon.setAttribute('data-icon', 'mdi:chevron-right');
+            }
+            panelVisible = !panelVisible;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,226 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "5G基站-1",
+        "category": "communication",
+        "displayName": "通讯设备",
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9712967977313, 30.52355836887861]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "5G基站-2",
+        "category": "communication",
+        "displayName": "通讯设备",
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9624061139184, 30.51517207893123]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "5G基站-3",
+        "category": "communication",
+        "displayName": "通讯设备",
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9762522651380, 30.51426268892555]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "5G基站-4",
+        "category": "communication",
+        "displayName": "通讯设备",
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9591012335834, 30.52901861304756]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "5G基站-5",
+        "category": "communication",
+        "displayName": "通讯设备",
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9185180664063, 30.55856553798283]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "5G基站-6",
+        "category": "communication",
+        "displayName": "通讯设备",
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.8819541931152, 30.59846854371451]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "5G基站-7",
+        "category": "communication",
+        "displayName": "通讯设备",
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [120.0372219085693, 30.52910807064572]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "5G基站-8",
+        "category": "communication",
+        "displayName": "通讯设备",
+        "color": "#10b981"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [120.0234031677246, 30.54688710949595]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "CORS-1",
+        "category": "navigation",
+        "displayName": "导航设备",
+        "color": "#3b82f6"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9030685424805, 30.57999697131928]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "CORS-2",
+        "category": "navigation",
+        "displayName": "导航设备",
+        "color": "#3b82f6"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9806594848633, 30.56078280238087]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "CORS-3",
+        "category": "navigation",
+        "displayName": "导航设备",
+        "color": "#3b82f6"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9349975585938, 30.54156482797521]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "CORS-4",
+        "category": "navigation",
+        "displayName": "导航设备",
+        "color": "#3b82f6"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9967956542969, 30.49128445210019]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "CORS-5",
+        "category": "navigation",
+        "displayName": "导航设备",
+        "color": "#3b82f6"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [120.0771331787109, 30.52116004661714]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "监视雷达-1",
+        "category": "surveillance",
+        "displayName": "监视设备",
+        "color": "#a855f7"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.904785156250, 30.53860787885457]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "监视雷达-2",
+        "category": "surveillance",
+        "displayName": "监视设备",
+        "color": "#a855f7"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [119.9657893180847, 30.51820247638195]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "监视雷达-3",
+        "category": "surveillance",
+        "displayName": "监视设备",
+        "color": "#a855f7"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [120.0446891784668, 30.50134260771591]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "监视雷达-4",
+        "category": "surveillance",
+        "displayName": "监视设备",
+        "color": "#a855f7"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [120.0156784057617, 30.56433032003468]
+      }
+    }
+  ]
+}

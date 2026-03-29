@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=1920, user-scalable=no" name="viewport"/>
+<title>仿真系统综合管理平台 - 权限管控</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+        body { background-color: #121212; font-family: "Microsoft YaHei", sans-serif; color: #E5E7EB; }
+        .sidebar-item:hover { background-color: #ffffff0a; }
+        .card-shadow { box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+        .tab-active { color: #1677FF; border-bottom: 2px solid #1677FF; }
+        .border-custom { border-color: #2D2D2D; }
+    </style>
+</head>
+<body class="w-[1920px] h-[1080px] overflow-hidden flex">
+<!-- 左侧导航 -->
+<aside class="w-[240px] bg-[#1A1A1A] h-full border-r border-[#2D2D2D] flex flex-col flex-shrink-0">
+<div class="p-6 flex items-center gap-3 border-b border-[#2D2D2D]">
+<div class="w-8 h-8 bg-[#1677FF] rounded flex items-center justify-center">
+<span class="iconify text-white text-xl" data-icon="mdi:hubspot"></span>
+</div>
+<span class="text-lg font-bold text-white">仿真系统管理</span>
+</div>
+<nav class="flex-1 py-4">
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="index.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:view-dashboard"></span>
+<span>首页概览</span>
+</a>
+<a class="flex items-center px-6 py-4 bg-[#1677FF22] border-right-3 border-[#1677FF] text-[#1677FF]" href="permission.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:shield-account"></span>
+<span>权限管控</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="log-audit.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:clipboard-text-clock"></span>
+<span>日志审计</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="microservice-monitor.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:monitor-dashboard"></span>
+<span>微服务监控</span>
+</a>
+<a class="flex items-center px-6 py-4 text-gray-400 sidebar-item" href="exception-handle.html">
+<span class="iconify mr-3 text-xl" data-icon="mdi:alert-box"></span>
+<span>应急处置</span>
+</a>
+</nav>
+</aside>
+<!-- 主体区域 -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<header class="h-16 bg-[#1A1A1A] border-b border-[#2D2D2D] flex items-center justify-between px-8">
+<div class="flex items-center gap-2 text-sm text-gray-500">
+<a class="hover:text-[#1677FF]" href="index.html">首页</a>
+<span class="iconify" data-icon="mdi:chevron-right"></span>
+<span class="text-gray-300 font-medium">权限管控</span>
+</div>
+<div class="flex gap-4">
+<button class="bg-[#1677FF] text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-600">
+<span class="iconify" data-icon="mdi:plus"></span>
+<span>新增账号</span>
+</button>
+<button class="bg-[#2D2D2D] border border-[#444] text-gray-300 px-4 py-2 rounded flex items-center gap-2 hover:bg-[#3D3D3D]">
+<span class="iconify" data-icon="mdi:export-variant"></span>
+<span>导出记录</span>
+</button>
+</div>
+</header>
+<div class="p-8 flex-1 overflow-y-auto">
+<!-- 标签页切换 -->
+<div class="bg-[#1E1E1E] rounded-lg card-shadow">
+<div class="flex border-b border-[#2D2D2D] px-6">
+<button class="px-8 py-4 font-bold text-lg tab-active">用户管理</button>
+<button class="px-8 py-4 font-bold text-lg text-gray-500 hover:text-gray-300">角色管理</button>
+<button class="px-8 py-4 font-bold text-lg text-gray-500 hover:text-gray-300">权限审计</button>
+</div>
+<div class="p-8">
+<!-- 搜索筛选栏 -->
+<div class="flex gap-4 mb-8">
+<div class="relative w-80">
+<span class="iconify absolute left-3 top-3 text-gray-500" data-icon="mdi:magnify"></span>
+<input class="w-full pl-10 pr-4 py-2 bg-[#121212] border border-[#2D2D2D] rounded-md text-gray-200 focus:ring-2 focus:ring-[#1677FF] outline-none" placeholder="搜索用户名/姓名/角色..." type="text"/>
+</div>
+<select class="bg-[#121212] border border-[#2D2D2D] text-gray-300 rounded-md px-4 py-2 outline-none">
+<option>所有角色</option>
+<option>超级管理员</option>
+<option>运维工程师</option>
+<option>安全审计员</option>
+</select>
+<select class="bg-[#121212] border border-[#2D2D2D] text-gray-300 rounded-md px-4 py-2 outline-none">
+<option>所有状态</option>
+<option>启用</option>
+<option>禁用</option>
+</select>
+<button class="bg-[#2D2D2D] px-4 py-2 rounded text-gray-400 hover:bg-[#3D3D3D]">重置</button>
+<button class="bg-[#1677FF] px-6 py-2 rounded text-white font-medium">查询</button>
+</div>
+<!-- 用户表格 -->
+<table class="w-full text-left">
+<thead>
+<tr class="bg-[#ffffff05] text-gray-400 font-medium">
+<th class="p-4 border border-[#2D2D2D]">ID</th>
+<th class="p-4 border border-[#2D2D2D]">用户名</th>
+<th class="p-4 border border-[#2D2D2D]">所属角色</th>
+<th class="p-4 border border-[#2D2D2D]">状态</th>
+<th class="p-4 border border-[#2D2D2D]">最后登录时间</th>
+<th class="p-4 border border-[#2D2D2D]">操作</th>
+</tr>
+</thead>
+<tbody class="text-gray-400">
+<!-- 模拟数据 -->
+<tr class="border-b border-[#2D2D2D] hover:bg-[#ffffff05]">
+<td class="p-4">1001</td>
+<td class="p-4 flex items-center gap-3">
+<img alt="U" class="w-8 h-8 rounded-full" src="https://modao.cc/agent-py/media/generated_images/2026-03-10/fbc52e82726c440abce559bb136b6f3a.jpg"/>
+<span class="text-gray-200">super_admin</span>
+</td>
+<td class="p-4"><span class="bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded text-xs border border-blue-900/50">超级管理员</span></td>
+<td class="p-4"><span class="flex items-center gap-1 text-[#52C41A]"><span class="w-2 h-2 rounded-full bg-[#52C41A]"></span> 启用</span></td>
+<td class="p-4">2026-03-10 15:44:12</td>
+<td class="p-4">
+<div class="flex gap-3 text-[#1677FF]">
+<button class="hover:underline">编辑</button>
+<button class="hover:underline">权限分配</button>
+<button class="text-red-500 hover:underline">禁用</button>
+</div>
+</td>
+</tr>
+<tr class="border-b border-[#2D2D2D] hover:bg-[#ffffff05]">
+<td class="p-4">1002</td>
+<td class="p-4 flex items-center gap-3">
+<img alt="U" class="w-8 h-8 rounded-full text-xs" src="https://modao.cc/agent-py/media/generated_images/2026-03-10/fbc52e82726c440abce559bb136b6f3a.jpg"/>
+<span class="text-gray-200">ops_zhangsan</span>
+</td>
+<td class="p-4"><span class="bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded text-xs border border-blue-900/50">运维工程师</span></td>
+<td class="p-4"><span class="flex items-center gap-1 text-[#52C41A]"><span class="w-2 h-2 rounded-full bg-[#52C41A]"></span> 启用</span></td>
+<td class="p-4">2026-03-10 14:20:00</td>
+<td class="p-4">
+<div class="flex gap-3 text-[#1677FF]">
+<button class="hover:underline">编辑</button>
+<button class="hover:underline">权限分配</button>
+<button class="text-red-500 hover:underline">禁用</button>
+</div>
+</td>
+</tr>
+<tr class="border-b border-[#2D2D2D] hover:bg-[#ffffff05]">
+<td class="p-4">1003</td>
+<td class="p-4 flex items-center gap-3">
+<img alt="U" class="w-8 h-8 rounded-full text-xs" src="https://modao.cc/agent-py/media/generated_images/2026-03-10/fbc52e82726c440abce559bb136b6f3a.jpg"/>
+<span class="text-gray-200">security_audit</span>
+</td>
+<td class="p-4"><span class="bg-blue-900/30 text-blue-400 px-2 py-0.5 rounded text-xs border border-blue-900/50">安全审计员</span></td>
+<td class="p-4"><span class="flex items-center gap-1 text-[#52C41A]"><span class="w-2 h-2 rounded-full bg-[#52C41A]"></span> 启用</span></td>
+<td class="p-4">2026-03-09 18:30:11</td>
+<td class="p-4">
+<div class="flex gap-3 text-[#1677FF]">
+<button class="hover:underline">编辑</button>
+<button class="hover:underline">权限分配</button>
+<button class="text-red-500 hover:underline">禁用</button>
+</div>
+</td>
+</tr>
+<tr class="border-b border-[#2D2D2D] hover:bg-[#ffffff05] text-gray-500">
+<td class="p-4 font-mono text-xs text-gray-600">1004</td>
+<td class="p-4 flex items-center gap-3">
+<img alt="U" class="w-8 h-8 rounded-full" src="https://modao.cc/agent-py/media/generated_images/2026-03-10/fbc52e82726c440abce559bb136b6f3a.jpg"/>
+<span class="text-gray-500">test_user_01</span>
+</td>
+<td class="p-4"><span class="bg-[#2D2D2D] text-gray-500 px-2 py-0.5 rounded text-xs border border-[#444]">访客角色</span></td>
+<td class="p-4"><span class="flex items-center gap-1 text-gray-600"><span class="w-2 h-2 rounded-full bg-gray-600"></span> 已禁用</span></td>
+<td class="p-4">2026-02-28 10:11:00</td>
+<td class="p-4">
+<div class="flex gap-3 text-[#1677FF]">
+<button class="hover:underline">编辑</button>
+<button class="hover:underline">权限分配</button>
+<button class="text-green-600 hover:underline">启用</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- 分页 -->
+<div class="flex items-center justify-between mt-8 text-gray-500 text-sm">
+<span>共 4 条记录，第 1 / 1 页</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-[#2D2D2D] rounded bg-[#2D2D2D] text-gray-600 cursor-not-allowed"><span class="iconify" data-icon="mdi:chevron-left"></span></button>
+<button class="px-3 py-1 border border-[#1677FF] rounded bg-[#1677FF] text-white">1</button>
+<button class="px-3 py-1 border border-[#2D2D2D] rounded bg-[#1A1A1A] hover:bg-[#2D2D2D]"><span class="iconify" data-icon="mdi:chevron-right"></span></button>
+</div>
+</div>
+</div>
+</div>
+<!-- 权限统计展示 -->
+<div class="grid grid-cols-2 gap-8 mt-8">
+<div class="bg-[#1E1E1E] p-6 rounded-lg card-shadow">
+<h3 class="text-lg font-bold text-gray-200 mb-6">近7天权限合规分析</h3>
+<div class="flex items-center h-[300px]">
+<div class="w-full h-full" id="complianceChart"></div>
+</div>
+</div>
+<div class="bg-[#1E1E1E] p-6 rounded-lg card-shadow">
+<h3 class="text-lg font-bold text-gray-200 mb-4">异常越权尝试统计</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 bg-red-900/10 rounded border border-red-900/20">
+<div class="flex items-center gap-3">
+<span class="bg-red-500 text-white p-2 rounded-full"><span class="iconify text-xl" data-icon="mdi:shield-alert"></span></span>
+<div>
+<p class="font-bold text-red-500">未授权访问API</p>
+<p class="text-sm text-red-500/70">尝试绕过权限校验调用支付接口</p>
+</div>
+</div>
+<span class="font-bold text-red-500 text-xl">12次</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-orange-900/10 rounded border border-orange-900/20">
+<div class="flex items-center gap-3">
+<span class="bg-orange-500 text-white p-2 rounded-full"><span class="iconify text-xl" data-icon="mdi:account-lock"></span></span>
+<div>
+<p class="font-bold text-orange-500">角色越权修改</p>
+<p class="text-sm text-orange-500/70">试图提升自身普通用户权限</p>
+</div>
+</div>
+<span class="font-bold text-orange-500 text-xl">3次</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        const compChart = echarts.init(document.getElementById('complianceChart'));
+        compChart.setOption({
+            tooltip: { trigger: 'item' },
+            legend: { bottom: '5%', left: 'center', textStyle: { color: '#999' } },
+            series: [{
+                name: '权限状态',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: { borderRadius: 10, borderColor: '#1E1E1E', borderWidth: 2 },
+                label: { show: false, position: 'center' },
+                emphasis: { label: { show: true, fontSize: 20, fontWeight: 'bold' } },
+                data: [
+                    { value: 98, name: '操作合规', itemStyle: { color: '#52C41A' } },
+                    { value: 2, name: '越权违规', itemStyle: { color: '#FF4D4F' } }
+                ]
+            }]
+        });
+    </script></body>
+</html>

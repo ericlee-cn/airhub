@@ -1,0 +1,15 @@
+{
+  "_comment": "全局推演配置，所有想定共用，可被 scene_override.json 覆盖",
+  "sim_step_s": 0.5,
+  "max_sim_time_s": 3600,
+  "websocket_port": 8765,
+  "http_port": 8080,
+  "broadcast_interval_s": 0.5,
+  "max_uav_count": 100,
+  "horizontal_gap_m": 50,
+  "vertical_gap_m": 30,
+  "auto_stop_on_no_fly": false,
+  "export_frame_record": true,
+  "export_alarm_log": true,
+  "coord_system": "WGS84"
+}

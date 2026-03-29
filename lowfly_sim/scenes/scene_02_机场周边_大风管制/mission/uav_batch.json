@@ -1,0 +1,43 @@
+{
+  "uav_task_list": [
+    {
+      "uav_id": "UAV_A01",
+      "uav_type": "delivery",
+      "speed_m_s": 12,
+      "h_safe_gap_m": 60,
+      "v_safe_gap_m": 40,
+      "start_delay_s": 0,
+      "route": [
+        [120.300, 30.210, 80],
+        [120.350, 30.220, 90],
+        [120.380, 30.240, 100]
+      ]
+    },
+    {
+      "uav_id": "UAV_A02",
+      "uav_type": "inspection",
+      "speed_m_s": 8,
+      "h_safe_gap_m": 60,
+      "v_safe_gap_m": 40,
+      "start_delay_s": 20,
+      "route": [
+        [120.310, 30.215, 70],
+        [120.355, 30.225, 80],
+        [120.390, 30.242, 90]
+      ]
+    },
+    {
+      "uav_id": "UAV_A03",
+      "uav_type": "patrol",
+      "speed_m_s": 10,
+      "h_safe_gap_m": 60,
+      "v_safe_gap_m": 40,
+      "start_delay_s": 40,
+      "route": [
+        [120.295, 30.218, 60],
+        [120.340, 30.230, 70],
+        [120.370, 30.245, 80]
+      ]
+    }
+  ]
+}

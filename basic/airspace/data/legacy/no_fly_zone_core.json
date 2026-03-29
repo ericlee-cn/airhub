@@ -1,0 +1,50 @@
+{
+  "type": "FeatureCollection",
+  "name": "禁飞区-核心枢纽",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "禁飞区-核心枢纽",
+        "type": "no_fly_zone",
+        "description": "严格封锁 | 全高度层",
+        "status": "HIGH_ALERT",
+        "color": "red"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [119.96, 30.52],
+            [119.96, 30.54],
+            [119.98, 30.54],
+            [119.98, 30.52],
+            [119.96, 30.52]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "禁飞区-核心枢纽2",
+        "type": "no_fly_zone",
+        "description": "严格封锁 | 全高度层",
+        "status": "HIGH_ALERT",
+        "color": "red"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [120.00, 30.52],
+            [120.00, 30.54],
+            [120.02, 30.54],
+            [120.02, 30.52],
+            [120.00, 30.52]
+          ]
+        ]
+      }
+    }
+  ]
+}

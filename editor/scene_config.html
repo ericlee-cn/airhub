@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>空域环境配置 - 想定编辑系统</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+<script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#00A3FF',
+                        darkBg: '#0A0C10',
+                        surface: 'rgba(22, 27, 34, 0.8)',
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        :root {
+            --bg-primary: #0A0C10;
+            --surface-color: rgba(22, 27, 34, 0.8);
+            --accent-blue: #00A3FF;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: rgba(255, 255, 255, 0.95);
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .map-container {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/114.17,22.28,10,0/1200x800?access_token=none');
+            background-size: cover;
+            filter: brightness(0.6) contrast(1.2) saturate(0.5);
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1;
+            background-image: 
+                linear-gradient(rgba(0, 163, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 163, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background: var(--surface-color);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar-height { height: calc(100vh - 60px); }
+        .transition-all { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 2px; }
+    </style>
+</head>
+<body class="overflow-hidden text-sm">
+<div class="map-container"></div>
+<div class="grid-overlay"></div>
+<header class="h-[60px] glass-panel flex items-center justify-between px-4 z-50 relative border-b border-white/10 shrink-0">
+<div class="flex items-center space-x-3 flex-shrink-0">
+<div class="flex items-center space-x-2 cursor-pointer" onclick="location.href='index.html'">
+<span class="iconify text-2xl text-primary" data-icon="mdi:shield-airplane"></span>
+<span class="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-blue-600 whitespace-nowrap">想定编辑系统</span>
+</div>
+<div class="h-6 w-[1px] bg-white/10"></div>
+<div class="flex items-center space-x-1 text-white/60 whitespace-nowrap">
+<span class="text-xs">当前想定:</span>
+<span class="text-sm font-medium text-white/90">东海联合演训-2026A</span>
+</div>
+</div>
+<nav class="flex items-center mx-2 overflow-hidden">
+<div class="flex items-center space-x-0.5">
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="basic_info.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">1</span>
+                    基本信息
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 bg-primary text-white shadow-[0_0_15px_rgba(22,119,255,0.3)] whitespace-nowrap" href="scene_config.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">2</span>
+                    空域环境配置
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="flight_plan.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">3</span>
+                    飞行计划配置
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="rule_config.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">4</span>
+                    推演规则配置
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="evaluation_model.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">5</span>
+                    评估模型
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="verify_preview.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">6</span>
+                    校验预览
+                </a>
+<span class="iconify text-white/20 shrink-0" data-icon="mdi:chevron-right"></span>
+<a class="px-2 py-2 rounded-lg text-xs transition-all flex items-center gap-1.5 text-white/50 hover:text-white hover:bg-white/5 whitespace-nowrap" href="publish.html">
+<span class="w-5 h-5 rounded-full border border-current flex items-center justify-center text-[10px] shrink-0">7</span>
+                    发布配置
+                </a>
+</div>
+</nav>
+<div class="flex items-center space-x-2 flex-shrink-0">
+<div class="hidden xl:flex flex-col items-end mr-2">
+<span class="text-[10px] text-white/40 text-right">最后保存</span>
+<span class="text-[11px] text-white/70">2026-03-06 14:30:22</span>
+</div>
+<button class="p-1.5 hover:bg-white/5 rounded-full transition-colors text-white/60 hover:text-white">
+<span class="iconify text-xl" data-icon="mdi:content-save-outline"></span>
+</button>
+<button class="px-3 py-1.5 bg-primary/10 border border-primary/50 text-primary rounded text-[11px] font-bold hover:bg-primary/20 transition-all whitespace-nowrap">
+                完成编辑
+            </button>
+</div>
+</header>
+<div class="flex relative z-10">
+<aside class="w-[240px] sidebar-height glass-panel m-2 rounded-xl p-4 flex flex-col space-y-2">
+<div class="font-bold text-white/40 px-4 py-2 text-xs uppercase tracking-wider">编辑流程</div>
+<div class="space-y-1 text-xs">
+<a class="flex items-center px-4 h-10 text-white/50 hover:bg-white/5 rounded-lg transition-all" href="basic_info.html">
+<span class="iconify mr-3" data-icon="mdi:information-outline"></span> 1. 基础信息
+                </a>
+<a class="flex items-center px-4 h-10 bg-primary/20 text-primary border-l-4 border-primary rounded-r" href="scene_config.html">
+<span class="iconify mr-3" data-icon="mdi:map-outline"></span> 2. 空域环境配置
+                </a>
+<a class="flex items-center px-4 h-10 text-white/50 hover:bg-white/5 rounded-lg transition-all" href="flight_plan.html">
+<span class="iconify mr-3" data-icon="mdi:rhombus-split-outline"></span> 3. 飞行计划
+                </a>
+<a class="flex items-center px-4 h-10 text-white/50 hover:bg-white/5 rounded-lg transition-all" href="rule_config.html">
+<span class="iconify mr-3" data-icon="mdi:gavel"></span> 4. 推演规则
+                </a>
+<a class="flex items-center px-4 h-10 text-white/50 hover:bg-white/5 rounded-lg transition-all" href="evaluation_model.html">
+<span class="iconify mr-3" data-icon="mdi:chart-areaspline"></span> 5. 评估模型
+                </a>
+<a class="flex items-center px-4 h-10 text-white/50 hover:bg-white/5 rounded-lg transition-all" href="verify_preview.html">
+<span class="iconify mr-3" data-icon="mdi:check-circle-outline"></span> 6. 校验预览
+                </a>
+<a class="flex items-center px-4 h-10 text-white/50 hover:bg-white/5 rounded-lg transition-all" href="publish.html">
+<span class="iconify mr-3" data-icon="mdi:rocket-launch-outline"></span> 7. 发布任务
+                </a>
+</div>
+</aside>
+<main class="flex-1 sidebar-height p-4 flex flex-col pointer-events-none">
+<div class="flex space-x-2 mb-4 pointer-events-auto">
+<div class="glass-panel p-1 rounded-lg flex space-x-1 shadow-2xl">
+<button class="w-10 h-10 flex items-center justify-center rounded bg-primary text-white"><span class="iconify" data-icon="mdi:cursor-default"></span></button>
+<button class="w-10 h-10 flex items-center justify-center rounded text-white/60 hover:bg-white/10"><span class="iconify" data-icon="mdi:vector-rectangle"></span></button>
+<button class="w-10 h-10 flex items-center justify-center rounded text-white/60 hover:bg-white/10"><span class="iconify" data-icon="mdi:vector-polygon"></span></button>
+</div>
+<div class="glass-panel p-1 rounded-lg flex space-x-1 shadow-2xl">
+<button class="w-10 h-10 flex items-center justify-center rounded text-white/60 hover:bg-white/10"><span class="iconify" data-icon="mdi:map-marker-plus"></span></button>
+<button class="w-10 h-10 flex items-center justify-center rounded text-white/60 hover:bg-white/10"><span class="iconify" data-icon="mdi:map-search"></span></button>
+</div>
+</div>
+<div class="mt-auto pointer-events-auto">
+<div class="glass-panel p-4 rounded-xl w-64 shadow-2xl">
+<div class="text-[10px] text-white/40 mb-1 uppercase tracking-widest">WGS-84 Coordinate</div>
+<div class="text-xl font-mono text-primary flex justify-between">
+<span>114.1722</span>
+<span>22.2818</span>
+</div>
+</div>
+</div>
+</main>
+<aside class="w-[300px] sidebar-height glass-panel m-2 rounded-xl transition-all relative" id="info-panel">
+<div class="p-6 h-full flex flex-col">
+<div class="font-bold text-white/80 border-b border-white/10 pb-4 mb-6 flex items-center">
+<span class="iconify mr-2 text-primary" data-icon="mdi:layers-triple"></span>
+<span>空域环境详细配置</span>
+</div>
+<div class="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
+<!-- 地理环境 -->
+<div class="space-y-3">
+<label class="text-white/40 text-[10px] uppercase font-bold tracking-widest flex justify-between">
+<span>地理环境模型</span>
+<span class="text-primary hover:underline cursor-pointer">管理库</span>
+</label>
+<select class="w-full bg-black/40 border border-white/10 rounded p-2 text-white/80 focus:border-primary outline-none appearance-none cursor-pointer">
+<option>东南沿海丘陵模型_V2</option>
+<option>华北平原城市模型_V1</option>
+<option>西部荒漠高海拔模型_V3</option>
+<option>自定义坐标导入...</option>
+</select>
+</div>
+<!-- 空域划分 -->
+<div class="space-y-3">
+<label class="text-white/40 text-[10px] uppercase font-bold tracking-widest flex justify-between">
+<span>空域划分模型</span>
+<span class="text-primary hover:underline cursor-pointer">管理库</span>
+</label>
+<select class="w-full bg-black/40 border border-white/10 rounded p-2 text-white/80 focus:border-primary outline-none appearance-none cursor-pointer">
+<option>标准训练区划分_2024</option>
+<option>三类限制区配置_测试</option>
+<option>空白空域（手动划设）</option>
+</select>
+</div>
+<!-- 固定航路 -->
+<div class="space-y-3">
+<label class="text-white/40 text-[10px] uppercase font-bold tracking-widest flex justify-between">
+<span>固定航路预设</span>
+<span class="text-primary hover:underline cursor-pointer">管理库</span>
+</label>
+<select class="w-full bg-black/40 border border-white/10 rounded p-2 text-white/80 focus:border-primary outline-none appearance-none cursor-pointer">
+<option>民航常用航路（华东区）</option>
+<option>低空物流测试航路_A</option>
+<option>无预设航路</option>
+</select>
+</div>
+<!-- 气象环境 -->
+<div class="space-y-3">
+<label class="text-white/40 text-[10px] uppercase font-bold tracking-widest flex justify-between">
+<span>气象环境模型</span>
+<span class="text-primary hover:underline cursor-pointer">管理库</span>
+</label>
+<select class="w-full bg-black/40 border border-white/10 rounded p-2 text-white/80 focus:border-primary outline-none appearance-none cursor-pointer">
+<option>晴朗无风（标准）</option>
+<option>雷雨大风（极端天气）</option>
+<option>典型晨雾（低能见度）</option>
+</select>
+</div>
+<!-- 电磁环境 -->
+<div class="space-y-3">
+<label class="text-white/40 text-[10px] uppercase font-bold tracking-widest flex justify-between">
+<span>电磁环境模型</span>
+<span class="text-primary hover:underline cursor-pointer">管理库</span>
+</label>
+<select class="w-full bg-black/40 border border-white/10 rounded p-2 text-white/80 focus:border-primary outline-none appearance-none cursor-pointer">
+<option>常规电磁环境</option>
+<option>复杂电磁干扰_演练</option>
+<option>静默环境</option>
+</select>
+</div>
+<div class="space-y-3 border-t border-white/5 pt-4">
+<label class="text-white/40 text-[10px] uppercase font-bold tracking-widest">仿真时钟倍率</label>
+<div class="p-3 bg-black/40 border border-white/5 rounded-lg flex items-center space-x-3">
+<input class="flex-1 bg-white/10 accent-primary" max="10" min="1" step="1" type="range" value="2"/>
+<span class="text-primary font-bold">2.0x</span>
+</div>
+</div>
+</div>
+<div class="mt-4 pt-4 border-t border-white/10">
+<button class="w-full py-3 bg-primary text-white rounded font-bold hover:shadow-[0_0_15px_rgba(0,163,255,0.4)] transition-all">保存配置</button>
+<p class="text-[10px] text-white/30 text-center mt-3">上次保存: 2026-02-27 10:45:01</p>
+</div>
+</div>
+<button class="absolute left-[-16px] top-1/2 -translate-y-1/2 w-8 h-8 glass-panel border border-white/20 rounded-full flex items-center justify-center text-white/60 hover:text-primary z-20 transition-all shadow-xl" onclick="togglePanel()">
+<span class="iconify" data-icon="mdi:chevron-right" id="panel-toggle-icon"></span>
+</button>
+</aside>
+</div>
+<script>
+        let panelVisible = true;
+        function togglePanel() {
+            const panel = document.getElementById('info-panel');
+            const icon = document.getElementById('panel-toggle-icon');
+            if (panelVisible) {
+                panel.style.width = '0px';
+                panel.style.margin = '0px';
+                panel.style.opacity = '0';
+                panel.style.pointerEvents = 'none';
+                icon.setAttribute('data-icon', 'mdi:chevron-left');
+            } else {
+                panel.style.width = '300px';
+                panel.style.margin = '8px';
+                panel.style.opacity = '1';
+                panel.style.pointerEvents = 'auto';
+                icon.setAttribute('data-icon', 'mdi:chevron-right');
+            }
+            panelVisible = !panelVisible;
+        }
+    </script>
+</body>
+</html>
