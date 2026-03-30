@@ -110,6 +110,7 @@ createApp({
         const expandedCategoriesIndicators = reactive({});
         const allExpandedIndicators = ref(true);
         const totalIndicators = ref(0);
+        const indicatorsRulesMap = ref({});  // id -> rules[]
 
         // ── computed ──
         const ruleCountByCategory = computed(() => {
@@ -206,6 +207,14 @@ createApp({
                 loadingIndicators.value=false;
             }}); }).catch(e => { indicatorsError.value=`加载失败:${e.message}`; indicatorsLoaded.value=false; loadingIndicators.value=false; });
         };
+        const loadIndicatorsRules = () => {
+            fetch('./indicators_rules.json').then(r => r.json())
+            .then(json => {
+                const map = {};
+                (json.indicators || []).forEach(item => { map[item.id] = item.rules || []; });
+                indicatorsRulesMap.value = map;
+            }).catch(() => {});
+        };
 
         // ── 规则操作 ──
         const selectRule = (category, ruleName, ruleItems) => {
@@ -249,7 +258,7 @@ createApp({
             else if (type==='indicators') { const s=!allExpandedIndicators.value; Object.keys(expandedCategoriesIndicators).forEach(c=>{expandedCategoriesIndicators[c]=s;}); allExpandedIndicators.value=s; }
         };
 
-        onMounted(() => { loadRulesCSV(); loadStandardsJSON(); loadIndicatorsCSV(); });
+        onMounted(() => { loadRulesCSV(); loadStandardsJSON(); loadIndicatorsCSV(); loadIndicatorsRules(); });
 
         return {
             currentTab, switchTab,
@@ -261,7 +270,7 @@ createApp({
             expandedStandardCategories, selectStandard, toggleStandardCategory,
             groupedIndicators, selectedIndicator, loadingIndicators, indicatorsError, indicatorsLoaded, totalIndicators,
             expandedCategoriesIndicators, allExpandedIndicators, indicatorCountByCategory,
-            selectIndicator, exportSelectedIndicator,
+            selectIndicator, exportSelectedIndicator, indicatorsRulesMap,
             toggleCategory, toggleAllCategories,
         };
     },
@@ -591,6 +600,24 @@ createApp({
                                     <div class="p-4 bg-slate-800/50 rounded"><p class="text-sm text-slate-400 mb-2">指标单位</p><p class="text-xl font-bold text-blue-400">{{ selectedIndicator['指标单位'] }}</p></div>
                                     <div class="p-4 bg-slate-800/50 rounded"><p class="text-sm text-slate-400 mb-2">指标范围</p><p class="text-xl font-bold text-blue-400">{{ selectedIndicator['指标范围'] }}</p></div>
                                     <div class="p-4 bg-slate-800/50 rounded"><p class="text-sm text-slate-400 mb-2">指标分类</p><p class="text-xl font-bold text-orange-400">{{ selectedIndicator['指标分类'] }}</p></div>
+                                </div>
+                                <div v-if="indicatorsRulesMap[selectedIndicator['指标ID']] && indicatorsRulesMap[selectedIndicator['指标ID']].length > 0" class="p-4 bg-slate-800/40 rounded border border-blue-500/20">
+                                    <p class="text-xs text-slate-400 mb-3 uppercase tracking-wide font-semibold flex items-center gap-2">
+                                        <span class="iconify text-blue-400" data-icon="mdi:link-variant"></span>对应低空规则
+                                    </p>
+                                    <div class="space-y-2">
+                                        <div v-for="(rule, idx) in indicatorsRulesMap[selectedIndicator['指标ID']]" :key="idx"
+                                            class="flex items-start gap-3 p-3 rounded bg-slate-900/50 border border-slate-700/50 hover:border-blue-500/30 transition-all">
+                                            <span class="iconify text-orange-400 flex-shrink-0 mt-0.5" data-icon="mdi:book-open-page-variant-outline"></span>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="flex flex-wrap items-center gap-2 mb-1">
+                                                    <span class="text-xs bg-orange-500/15 text-orange-300 border border-orange-500/25 px-2 py-0.5 rounded-full">{{ rule.dimension }}</span>
+                                                    <span class="text-sm font-medium text-slate-200">{{ rule.rule_name }}</span>
+                                                </div>
+                                                <p class="text-xs text-slate-400 leading-relaxed">{{ rule.note }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
