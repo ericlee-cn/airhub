@@ -207,12 +207,22 @@ createApp({
                 loadingIndicators.value=false;
             }}); }).catch(e => { indicatorsError.value=`加载失败:${e.message}`; indicatorsLoaded.value=false; loadingIndicators.value=false; });
         };
+        const ruleToIndicatorsMap = ref({});  // rule_name -> [{id,category,name,note}]
         const loadIndicatorsRules = () => {
             fetch('./indicators_rules.json').then(r => r.json())
             .then(json => {
                 const map = {};
-                (json.indicators || []).forEach(item => { map[item.id] = item.rules || []; });
+                const reverseMap = {};
+                (json.indicators || []).forEach(item => {
+                    map[item.id] = item.rules || [];
+                    (item.rules || []).forEach(rule => {
+                        const key = rule.rule_name;
+                        if (!reverseMap[key]) reverseMap[key] = [];
+                        reverseMap[key].push({ id: item.id, category: item.category, name: item.name, note: rule.note });
+                    });
+                });
                 indicatorsRulesMap.value = map;
+                ruleToIndicatorsMap.value = reverseMap;
             }).catch(() => {});
         };
 
@@ -241,6 +251,19 @@ createApp({
             nextTick(() => { selectedStandard.value = matched||null; if(matched) expandedStandardCategories[matched.category]=true; });
         };
 
+        // ── 规则→指标跳转 ──
+        const jumpToIndicator = (indicatorId, indicatorCategory) => {
+            switchTab('indicators');
+            nextTick(() => {
+                // 展开对应分类
+                expandedCategoriesIndicators[indicatorCategory] = true;
+                // 找到该指标并选中
+                const group = groupedIndicators.value[indicatorCategory] || [];
+                const indicator = group.find(i => i['指标ID'] == indicatorId);
+                if (indicator) selectedIndicator.value = indicator;
+            });
+        };
+
         // ── 指标操作 ──
         const selectIndicator = (indicator) => { selectedIndicator.value = indicator; };
         const exportSelectedIndicator = () => {
@@ -265,12 +288,12 @@ createApp({
             groupedRules, selectedRule, loadingRules, rulesError, rulesLoaded, totalRules,
             expandedCategoriesRules, allExpandedRules,
             ruleCountByCategory, rulesByCategory, ruleSources,
-            selectRule, exportSelectedRule, jumpToStandard,
+            selectRule, exportSelectedRule, jumpToStandard, jumpToIndicator,
             groupedStandards, selectedStandard, loadingStandards, standardsError, standardsLoaded, totalStandards,
             expandedStandardCategories, selectStandard, toggleStandardCategory,
             groupedIndicators, selectedIndicator, loadingIndicators, indicatorsError, indicatorsLoaded, totalIndicators,
             expandedCategoriesIndicators, allExpandedIndicators, indicatorCountByCategory,
-            selectIndicator, exportSelectedIndicator, indicatorsRulesMap,
+            selectIndicator, exportSelectedIndicator, indicatorsRulesMap, ruleToIndicatorsMap,
             toggleCategory, toggleAllCategories,
         };
     },
@@ -478,6 +501,26 @@ createApp({
                                             <p class="text-xs text-slate-600">暂无权威来源</p>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+                            <!-- 关联评估指标区块 -->
+                            <div v-if="ruleToIndicatorsMap[selectedRule.name] && ruleToIndicatorsMap[selectedRule.name].length > 0"
+                                class="mt-6 p-4 bg-slate-800/40 rounded border border-purple-500/20">
+                                <p class="text-xs text-slate-400 mb-3 uppercase tracking-wide font-semibold flex items-center gap-2">
+                                    <span class="iconify text-purple-400" data-icon="mdi:chart-bar"></span>关联评估指标
+                                    <span class="text-slate-600 font-normal normal-case">（点击跳转查看指标详情）</span>
+                                </p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button v-for="ind in ruleToIndicatorsMap[selectedRule.name]" :key="ind.id"
+                                        @click="jumpToIndicator(ind.id, ind.category)"
+                                        class="px-3 py-2 rounded-lg text-xs bg-purple-500/10 text-purple-300 border border-purple-500/20 hover:bg-purple-500/25 hover:border-purple-400/60 hover:text-purple-200 transition-all flex items-center gap-2 group"
+                                        :title="ind.note">
+                                        <span class="iconify text-purple-500 group-hover:text-purple-300 flex-shrink-0" data-icon="mdi:arrow-right-circle-outline"></span>
+                                        <div class="text-left">
+                                            <div class="font-medium">{{ ind.name }}</div>
+                                            <div class="text-purple-400/70 text-xs mt-0.5">{{ ind.category }}</div>
+                                        </div>
+                                    </button>
                                 </div>
                             </div>
                         </div>
