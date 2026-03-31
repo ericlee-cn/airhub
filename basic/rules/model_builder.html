@@ -213,7 +213,7 @@
                                             <span class="iconify" :data-icon="expandedRules[indicator['指标ID']] ? 'mdi:chevron-up' : 'mdi:chevron-down'"></span>
                                             {{ expandedRules[indicator['指标ID']] ? '收起规则' : '展开规则' }}
                                         </button>
-                                        <div v-show="expandedRules[indicator['指标ID']]]" class="space-y-1">
+                                        <div v-show="expandedRules[indicator['指标ID']]" class="space-y-1">
                                             <div v-for="rule in getIndicatorRules(indicator['指标ID'])" :key="rule.rule_name"
                                                 class="text-xs p-2 rounded bg-slate-800/70 border border-slate-700/50">
                                                 <div class="flex items-center gap-1 text-amber-400 mb-1">
