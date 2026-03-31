@@ -184,22 +184,44 @@
                             </h3>
                             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                                 <div v-for="indicator in items" :key="indicator['指标ID']"
-                                    @click="toggleIndicator(indicator)"
-                                    class="indicator-card p-4 rounded-lg cursor-pointer relative"
+                                    class="indicator-card p-4 rounded-lg relative"
                                     :class="{ 'selected': isSelected(indicator['指标ID']) }">
-                                    <div class="flex items-start gap-3">
-                                        <div class="mt-0.5">
-                                            <span v-if="isSelected(indicator['指标ID'])" class="iconify text-purple-400 text-xl" data-icon="mdi:checkbox-marked-circle"></span>
-                                            <span v-else class="iconify text-slate-600 text-xl" data-icon="mdi:checkbox-blank-circle-outline"></span>
+                                    <!-- 点击选择区域 -->
+                                    <div @click="toggleIndicator(indicator)" class="cursor-pointer">
+                                        <div class="flex items-start gap-3">
+                                            <div class="mt-0.5">
+                                                <span v-if="isSelected(indicator['指标ID'])" class="iconify text-purple-400 text-xl" data-icon="mdi:checkbox-marked-circle"></span>
+                                                <span v-else class="iconify text-slate-600 text-xl" data-icon="mdi:checkbox-blank-circle-outline"></span>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-medium text-slate-200 truncate">{{ indicator['指标名称'] }}</p>
+                                                <p class="text-xs text-slate-500 mt-1 line-clamp-2">{{ indicator['指标说明'] || indicator['指标定义'] || '暂无说明' }}</p>
+                                                <div class="flex items-center gap-2 mt-2">
+                                                    <span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-400">{{ indicator['指标单位'] }}</span>
+                                                    <span v-if="getIndicatorRules(indicator['指标ID']).length" 
+                                                          class="text-xs px-2 py-0.5 rounded bg-amber-500/20 text-amber-300">
+                                                        {{ getIndicatorRules(indicator['指标ID']).length }} 条规则
+                                                    </span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="font-medium text-slate-200 truncate">{{ indicator['指标名称'] }}</p>
-                                            <p class="text-xs text-slate-500 mt-1 line-clamp-2">{{ indicator['指标说明'] || indicator['指标定义'] || '暂无说明' }}</p>
-                                            <div class="flex items-center gap-2 mt-2">
-                                                <span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-400">{{ indicator['指标单位'] }}</span>
-                                                <span v-if="indicator['关联规则数']" class="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">
-                                                    {{ indicator['关联规则数'] }} 条规则
-                                                </span>
+                                    </div>
+                                    <!-- 规则展开区域 -->
+                                    <div v-if="getIndicatorRules(indicator['指标ID']).length > 0" class="mt-3 pt-3 border-t border-slate-700/50">
+                                        <button @click.stop="toggleRulesExpand(indicator['指标ID'])" 
+                                            class="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1 mb-2">
+                                            <span class="iconify" :data-icon="expandedRules[indicator['指标ID']] ? 'mdi:chevron-up' : 'mdi:chevron-down'"></span>
+                                            {{ expandedRules[indicator['指标ID']] ? '收起规则' : '展开规则' }}
+                                        </button>
+                                        <div v-show="expandedRules[indicator['指标ID']]]" class="space-y-1">
+                                            <div v-for="rule in getIndicatorRules(indicator['指标ID'])" :key="rule.rule_name"
+                                                class="text-xs p-2 rounded bg-slate-800/70 border border-slate-700/50">
+                                                <div class="flex items-center gap-1 text-amber-400 mb-1">
+                                                    <span class="iconify" data-icon="mdi:book-open-variant"></span>
+                                                    <span class="font-medium">{{ rule.dimension }}</span>
+                                                </div>
+                                                <p class="text-slate-300">{{ rule.rule_name }}</p>
+                                                <p v-if="rule.note" class="text-slate-500 mt-1 text-xs">{{ rule.note }}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -554,6 +576,15 @@ createApp({
             }
         };
 
+        // Rules expand state
+        const expandedRules = reactive({});
+        const toggleRulesExpand = (indicatorId) => {
+            expandedRules[indicatorId] = !expandedRules[indicatorId];
+        };
+        const getIndicatorRules = (indicatorId) => {
+            return indicatorsRulesMap.value[indicatorId] || [];
+        };
+
         // Weight management
         const totalWeight = computed(() => 
             selectedIndicators.value.reduce((sum, item) => sum + (Number(item.weight) || 0), 0)
@@ -631,6 +662,7 @@ createApp({
             allIndicators, groupedIndicators, filteredIndicators,
             selectedIndicators, searchKeyword,
             isSelected, toggleIndicator,
+            expandedRules, toggleRulesExpand, getIndicatorRules,
             totalWeight, isWeightValid, autoDistributeWeight,
             addScoringRule, removeScoringRule,
             vetoCount, nextStep, prevStep, exportModel
