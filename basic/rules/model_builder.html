@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>评估模型构建 - 低空仿真系统配置平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.1/iconify.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #030a1c;
+            color: #e2e8f0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .glass-panel {
+            background: rgba(15,23,42,0.85);
+            border: 1px solid rgba(0,170,255,0.2);
+            backdrop-filter: blur(12px);
+        }
+        .step-active { background: rgba(139,92,246,0.25); border-color: rgba(139,92,246,0.6); color: #c084fc; }
+        .step-done { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.4); color: #4ade80; }
+        .step-pending { background: rgba(30,41,59,0.6); border-color: rgba(71,85,105,0.5); color: #64748b; }
+        .indicator-card {
+            transition: all 0.2s;
+            border: 1px solid rgba(71,85,105,0.4);
+        }
+        .indicator-card:hover { border-color: rgba(139,92,246,0.5); background: rgba(139,92,246,0.05); }
+        .indicator-card.selected { 
+            border-color: rgba(139,92,246,0.8); 
+            background: rgba(139,92,246,0.15);
+            box-shadow: 0 0 15px rgba(139,92,246,0.2);
+        }
+        .weight-input::-webkit-inner-spin-button,
+        .weight-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        .progress-bar {
+            background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
+            transition: width 0.3s ease;
+        }
+        .grade-a { background: rgba(34,197,94,0.15); border-color: rgba(34,197,94,0.4); color: #4ade80; }
+        .grade-b { background: rgba(234,179,8,0.15); border-color: rgba(234,179,8,0.4); color: #facc15; }
+        .grade-c { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #f87171; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="flex flex-col h-screen">
+        <!-- Header -->
+        <header class="h-16 flex items-center justify-between px-6 border-b border-slate-700 glass-panel z-50">
+            <div class="flex items-center gap-3">
+                <span class="iconify text-3xl text-purple-400" data-icon="mdi:puzzle-plus-outline"></span>
+                <h1 class="text-xl font-bold tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-300">
+                    评估模型构建
+                </h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="index.html" class="px-4 py-2 rounded border border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white transition-all flex items-center gap-2 text-sm">
+                    <span class="iconify" data-icon="mdi:arrow-left"></span>返回规则页
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-hidden flex">
+            <!-- Left Sidebar - Steps -->
+            <div class="w-64 glass-panel border-r border-slate-800 flex flex-col">
+                <div class="p-4 border-b border-slate-700">
+                    <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wide">构建步骤</h2>
+                </div>
+                <div class="flex-1 p-4 space-y-3">
+                    <div class="flex items-center gap-3 p-3 rounded-lg border"
+                         :class="currentStep === 0 ? 'step-active' : (currentStep > 0 ? 'step-done' : 'step-pending')">
+                        <span class="iconify text-xl" :data-icon="currentStep > 0 ? 'mdi:check-circle' : 'mdi:numeric-1-circle'"></span>
+                        <div>
+                            <p class="font-medium text-sm">基础信息</p>
+                            <p class="text-xs opacity-70">模型名称与场景</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-lg border"
+                         :class="currentStep === 1 ? 'step-active' : (currentStep > 1 ? 'step-done' : 'step-pending')">
+                        <span class="iconify text-xl" :data-icon="currentStep > 1 ? 'mdi:check-circle' : 'mdi:numeric-2-circle'"></span>
+                        <div>
+                            <p class="font-medium text-sm">选择指标</p>
+                            <p class="text-xs opacity-70">从指标库中选择</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-lg border"
+                         :class="currentStep === 2 ? 'step-active' : (currentStep > 2 ? 'step-done' : 'step-pending')">
+                        <span class="iconify text-xl" :data-icon="currentStep > 2 ? 'mdi:check-circle' : 'mdi:numeric-3-circle'"></span>
+                        <div>
+                            <p class="font-medium text-sm">配置权重</p>
+                            <p class="text-xs opacity-70">设置权重与规则</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 rounded-lg border"
+                         :class="currentStep === 3 ? 'step-active' : 'step-pending'">
+                        <span class="iconify text-xl" data-icon="mdi:numeric-4-circle"></span>
+                        <div>
+                            <p class="font-medium text-sm">预览导出</p>
+                            <p class="text-xs opacity-70">生成JSON文件</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Selected Indicators Summary -->
+                <div class="p-4 border-t border-slate-700 bg-slate-900/30">
+                    <p class="text-xs text-slate-400 mb-2">已选指标</p>
+                    <p class="text-2xl font-bold text-purple-400">{{ selectedIndicators.length }} <span class="text-sm text-slate-500">个</span></p>
+                    <div class="mt-2 h-1 bg-slate-700 rounded-full overflow-hidden">
+                        <div class="h-full progress-bar" :style="{ width: Math.min(selectedIndicators.length * 5, 100) + '%' }"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Area -->
+            <div class="flex-1 overflow-y-auto bg-slate-950/50">
+                <!-- Step 0: Basic Info -->
+                <div v-if="currentStep === 0" class="p-8 max-w-3xl mx-auto">
+                    <div class="glass-panel rounded-xl p-8">
+                        <h2 class="text-2xl font-bold text-purple-400 mb-6 flex items-center gap-2">
+                            <span class="iconify" data-icon="mdi:information-outline"></span>模型基础信息
+                        </h2>
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">模型名称 <span class="text-red-400">*</span></label>
+                                <input v-model="modelInfo.name" type="text" placeholder="例如：飞行计划评估模型"
+                                    class="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-600 text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">应用场景</label>
+                                <input v-model="modelInfo.scenario" type="text" placeholder="例如：飞行计划评估、空域容量评估..."
+                                    class="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-600 text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-2">模型说明</label>
+                                <textarea v-model="modelInfo.description" rows="4" placeholder="描述该评估模型的设计思路、适用范围..."
+                                    class="w-full px-4 py-3 rounded-lg bg-slate-800/50 border border-slate-600 text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none transition-all resize-none"></textarea>
+                            </div>
+                            <div class="pt-4">
+                                <button @click="nextStep" :disabled="!modelInfo.name.trim()"
+                                    class="px-6 py-3 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold transition-all flex items-center gap-2">
+                                    下一步 <span class="iconify" data-icon="mdi:arrow-right"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 1: Select Indicators -->
+                <div v-if="currentStep === 1" class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-purple-400 flex items-center gap-2">
+                            <span class="iconify" data-icon="mdi:checkbox-multiple-marked-outline"></span>选择评估指标
+                        </h2>
+                        <div class="flex items-center gap-3">
+                            <input v-model="searchKeyword" type="text" placeholder="搜索指标..."
+                                class="px-4 py-2 rounded-lg bg-slate-800/50 border border-slate-600 text-white placeholder-slate-500 focus:border-purple-500 focus:outline-none text-sm w-64">
+                            <button @click="prevStep" class="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 text-sm">
+                                上一步
+                            </button>
+                            <button @click="nextStep" :disabled="selectedIndicators.length === 0"
+                                class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-semibold">
+                                下一步 ({{ selectedIndicators.length }})
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div v-if="loading" class="flex items-center justify-center py-20">
+                        <span class="iconify text-4xl text-purple-400 animate-spin" data-icon="mdi:loading"></span>
+                        <span class="ml-3 text-slate-400">加载指标数据...</span>
+                    </div>
+
+                    <!-- Indicators Grid -->
+                    <div v-else class="space-y-6">
+                        <div v-for="(items, category) in filteredIndicators" :key="category" class="glass-panel rounded-xl p-4">
+                            <h3 class="text-lg font-semibold text-orange-400 mb-4 flex items-center gap-2">
+                                <span class="iconify" data-icon="mdi:folder-outline"></span>{{ category }}
+                                <span class="text-sm text-slate-500 font-normal">({{ items.length }} 个指标)</span>
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                <div v-for="indicator in items" :key="indicator['指标ID']"
+                                    @click="toggleIndicator(indicator)"
+                                    class="indicator-card p-4 rounded-lg cursor-pointer relative"
+                                    :class="{ 'selected': isSelected(indicator['指标ID']) }">
+                                    <div class="flex items-start gap-3">
+                                        <div class="mt-0.5">
+                                            <span v-if="isSelected(indicator['指标ID'])" class="iconify text-purple-400 text-xl" data-icon="mdi:checkbox-marked-circle"></span>
+                                            <span v-else class="iconify text-slate-600 text-xl" data-icon="mdi:checkbox-blank-circle-outline"></span>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-medium text-slate-200 truncate">{{ indicator['指标名称'] }}</p>
+                                            <p class="text-xs text-slate-500 mt-1 line-clamp-2">{{ indicator['指标说明'] || indicator['指标定义'] || '暂无说明' }}</p>
+                                            <div class="flex items-center gap-2 mt-2">
+                                                <span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-400">{{ indicator['指标单位'] }}</span>
+                                                <span v-if="indicator['关联规则数']" class="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">
+                                                    {{ indicator['关联规则数'] }} 条规则
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Configure Weights -->
+                <div v-if="currentStep === 2" class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-purple-400 flex items-center gap-2">
+                            <span class="iconify" data-icon="mdi:tune"></span>配置权重与规则
+                        </h2>
+                        <div class="flex items-center gap-3">
+                            <button @click="autoDistributeWeight" class="px-4 py-2 rounded-lg border border-emerald-600/50 text-emerald-400 hover:bg-emerald-600/10 text-sm">
+                                <span class="iconify inline mr-1" data-icon="mdi:auto-fix"></span>自动均分权重
+                            </button>
+                            <button @click="prevStep" class="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 text-sm">
+                                上一步
+                            </button>
+                            <button @click="nextStep" :disabled="!isWeightValid"
+                                class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:bg-slate-700 disabled:text-slate-500 text-white text-sm font-semibold">
+                                下一步
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Weight Summary -->
+                    <div class="glass-panel rounded-xl p-4 mb-6" :class="isWeightValid ? 'border-emerald-500/30' : 'border-red-500/30'">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-slate-400">权重总和</p>
+                                <p class="text-3xl font-bold" :class="isWeightValid ? 'text-emerald-400' : 'text-red-400'">
+                                    {{ totalWeight.toFixed(2) }}
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm" :class="isWeightValid ? 'text-emerald-400' : 'text-red-400'">
+                                    {{ isWeightValid ? '✓ 权重配置正确' : '✗ 权重总和必须等于 1.00' }}
+                                </p>
+                                <p class="text-xs text-slate-500 mt-1">所有指标权重之和必须等于 1.00</p>
+                            </div>
+                        </div>
+                        <div class="mt-3 h-2 bg-slate-700 rounded-full overflow-hidden">
+                            <div class="h-full transition-all duration-300 rounded-full"
+                                 :class="isWeightValid ? 'bg-emerald-500' : 'bg-red-500'"
+                                 :style="{ width: Math.min(totalWeight * 100, 100) + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <!-- Indicators Configuration -->
+                    <div class="space-y-4">
+                        <div v-for="(item, index) in selectedIndicators" :key="item.indicator['指标ID']"
+                            class="glass-panel rounded-xl p-5">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                    <span class="text-lg font-bold text-purple-400">{{ item.seq }}</span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <h3 class="text-lg font-semibold text-slate-200">{{ item.indicator['指标名称'] }}</h3>
+                                        <span class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-400">{{ item.indicator['指标分类'] }}</span>
+                                        <label class="flex items-center gap-2 ml-auto">
+                                            <input type="checkbox" v-model="item.isVeto" class="rounded bg-slate-700 border-slate-600 text-purple-500 focus:ring-purple-500">
+                                            <span class="text-sm text-slate-400">一票否决</span>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-xs text-slate-500 mb-1">权重 (0-1)</label>
+                                            <input v-model.number="item.weight" type="number" step="0.01" min="0" max="1"
+                                                class="weight-input w-full px-3 py-2 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-purple-500 focus:outline-none">
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-500 mb-1">指标方向</label>
+                                            <select v-model="item.direction"
+                                                class="w-full px-3 py-2 rounded bg-slate-800/50 border border-slate-600 text-white focus:border-purple-500 focus:outline-none">
+                                                <option value="positive">正向（越大越好）</option>
+                                                <option value="negative">负向（越小越好）</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-xs text-slate-500 mb-1">指标单位</label>
+                                            <input :value="item.indicator['指标单位']" disabled
+                                                class="w-full px-3 py-2 rounded bg-slate-800/30 border border-slate-700 text-slate-500">
+                                        </div>
+                                    </div>
+
+                                    <!-- Scoring Rules -->
+                                    <div class="bg-slate-900/50 rounded-lg p-3">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <label class="text-xs text-slate-500">评分规则（条件 → 得分）</label>
+                                            <button @click="addScoringRule(index)" class="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                                                <span class="iconify" data-icon="mdi:plus"></span>添加规则
+                                            </button>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div v-for="(rule, rIdx) in item.scoringRules" :key="rIdx" class="flex items-center gap-2">
+                                                <input v-model="rule.condition" type="text" placeholder="条件描述"
+                                                    class="flex-1 px-3 py-1.5 rounded bg-slate-800/50 border border-slate-600 text-sm text-white focus:border-purple-500 focus:outline-none">
+                                                <input v-model.number="rule.score" type="number" min="0" max="100" placeholder="得分"
+                                                    class="w-20 px-3 py-1.5 rounded bg-slate-800/50 border border-slate-600 text-sm text-white focus:border-purple-500 focus:outline-none">
+                                                <button @click="removeScoringRule(index, rIdx)" class="p-1.5 rounded hover:bg-red-500/20 text-red-400">
+                                                    <span class="iconify" data-icon="mdi:delete"></span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Linked Rules -->
+                                    <div v-if="item.linkedRules.length > 0" class="mt-3">
+                                        <p class="text-xs text-slate-500 mb-2">关联飞行规则</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span v-for="rule in item.linkedRules" :key="rule.rule_name"
+                                                class="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                                                {{ rule.dimension }} · {{ rule.rule_name }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Preview & Export -->
+                <div v-if="currentStep === 3" class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-purple-400 flex items-center gap-2">
+                            <span class="iconify" data-icon="mdi:file-export"></span>预览与导出
+                        </h2>
+                        <div class="flex items-center gap-3">
+                            <button @click="prevStep" class="px-4 py-2 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 text-sm">
+                                上一步
+                            </button>
+                            <button @click="exportModel"
+                                class="px-6 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold flex items-center gap-2">
+                                <span class="iconify" data-icon="mdi:download"></span>导出 JSON
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Model Summary -->
+                        <div class="glass-panel rounded-xl p-6">
+                            <h3 class="text-lg font-semibold text-slate-200 mb-4">模型概览</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between py-2 border-b border-slate-700">
+                                    <span class="text-slate-400">模型名称</span>
+                                    <span class="text-slate-200 font-medium">{{ modelInfo.name }}</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-slate-700">
+                                    <span class="text-slate-400">应用场景</span>
+                                    <span class="text-slate-200">{{ modelInfo.scenario || '未指定' }}</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-slate-700">
+                                    <span class="text-slate-400">指标数量</span>
+                                    <span class="text-purple-400 font-bold">{{ selectedIndicators.length }} 个</span>
+                                </div>
+                                <div class="flex justify-between py-2 border-b border-slate-700">
+                                    <span class="text-slate-400">一票否决项</span>
+                                    <span class="text-red-400">{{ vetoCount }} 个</span>
+                                </div>
+                                <div class="p-3 bg-slate-800/50 rounded-lg">
+                                    <p class="text-xs text-slate-500 mb-1">模型说明</p>
+                                    <p class="text-sm text-slate-300">{{ modelInfo.description || '无' }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Grade Preview -->
+                            <div class="mt-6">
+                                <h4 class="text-sm font-medium text-slate-400 mb-3">评分等级设定</h4>
+                                <div class="space-y-2">
+                                    <div class="flex items-center gap-3 p-3 rounded-lg border grade-a">
+                                        <span class="text-2xl font-bold">A</span>
+                                        <div class="flex-1">
+                                            <p class="font-medium">优秀 (90-100分)</p>
+                                            <p class="text-xs opacity-70">直接通过</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-3 rounded-lg border grade-b">
+                                        <span class="text-2xl font-bold">B</span>
+                                        <div class="flex-1">
+                                            <p class="font-medium">合格 (70-89分)</p>
+                                            <p class="text-xs opacity-70">人工审核</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-3 p-3 rounded-lg border grade-c">
+                                        <span class="text-2xl font-bold">C</span>
+                                        <div class="flex-1">
+                                            <p class="font-medium">不合格 (0-69分)</p>
+                                            <p class="text-xs opacity-70">驳回重规划</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Indicators Preview -->
+                        <div class="glass-panel rounded-xl p-6">
+                            <h3 class="text-lg font-semibold text-slate-200 mb-4">指标配置预览</h3>
+                            <div class="space-y-3 max-h-96 overflow-y-auto">
+                                <div v-for="item in selectedIndicators" :key="item.indicator['指标ID']"
+                                    class="p-3 rounded-lg bg-slate-800/50 border border-slate-700">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs px-2 py-0.5 rounded bg-purple-500/20 text-purple-300">{{ item.seq }}</span>
+                                            <span class="font-medium text-slate-200">{{ item.indicator['指标名称'] }}</span>
+                                        </div>
+                                        <span class="text-emerald-400 font-mono">{{ (item.weight * 100).toFixed(0) }}%</span>
+                                    </div>
+                                    <div class="flex items-center gap-3 text-xs text-slate-500">
+                                        <span>{{ item.direction === 'positive' ? '正向' : '负向' }}</span>
+                                        <span v-if="item.isVeto" class="text-red-400">● 一票否决</span>
+                                        <span>{{ item.scoringRules.length }} 条评分规则</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, reactive, computed, onMounted } = Vue;
+
+createApp({
+    setup() {
+        // Step control
+        const currentStep = ref(0);
+        
+        // Model info
+        const modelInfo = reactive({
+            name: '',
+            scenario: '',
+            description: ''
+        });
+
+        // Data loading
+        const loading = ref(true);
+        const allIndicators = ref([]);
+        const indicatorsRulesMap = ref({});
+        const ruleToIndicatorsMap = ref({});
+
+        // Selection
+        const selectedIndicators = ref([]);
+        const searchKeyword = ref('');
+
+        // Load data
+        const loadData = async () => {
+            loading.value = true;
+            try {
+                // Load indicators
+                const csvRes = await fetch('./evaluation_indicators.csv');
+                const csvText = await csvRes.text();
+                const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+                allIndicators.value = parsed.data.filter(r => r['指标ID']);
+
+                // Load indicators-rules mapping
+                const jsonRes = await fetch('./indicators_rules.json');
+                const jsonData = await jsonRes.json();
+                
+                // Build maps
+                const irMap = {};
+                const riMap = {};
+                (jsonData.indicators || []).forEach(item => {
+                    irMap[item.id] = item.rules || [];
+                    (item.rules || []).forEach(rule => {
+                        if (!riMap[rule.rule_name]) riMap[rule.rule_name] = [];
+                        riMap[rule.rule_name].push({
+                            id: item.id,
+                            category: item.category,
+                            name: item.name,
+                            note: rule.note,
+                            dimension: rule.dimension
+                        });
+                    });
+                });
+                indicatorsRulesMap.value = irMap;
+                ruleToIndicatorsMap.value = riMap;
+
+                // Add rule count to indicators
+                allIndicators.value.forEach(ind => {
+                    const rules = irMap[ind['指标ID']] || [];
+                    ind['关联规则数'] = rules.length;
+                });
+            } catch (e) {
+                console.error('加载数据失败:', e);
+            }
+            loading.value = false;
+        };
+
+        onMounted(loadData);
+
+        // Grouped indicators
+        const groupedIndicators = computed(() => {
+            const groups = {};
+            allIndicators.value.forEach(ind => {
+                const cat = ind['指标分类'] || '未分类';
+                if (!groups[cat]) groups[cat] = [];
+                groups[cat].push(ind);
+            });
+            return groups;
+        });
+
+        // Filtered indicators
+        const filteredIndicators = computed(() => {
+            if (!searchKeyword.value) return groupedIndicators.value;
+            const kw = searchKeyword.value.toLowerCase();
+            const result = {};
+            Object.entries(groupedIndicators.value).forEach(([cat, items]) => {
+                const filtered = items.filter(i => 
+                    i['指标名称']?.toLowerCase().includes(kw) ||
+                    i['指标说明']?.toLowerCase().includes(kw) ||
+                    i['指标定义']?.toLowerCase().includes(kw)
+                );
+                if (filtered.length) result[cat] = filtered;
+            });
+            return result;
+        });
+
+        // Selection helpers
+        const isSelected = (id) => selectedIndicators.value.some(s => s.indicator['指标ID'] == id);
+        
+        const toggleIndicator = (indicator) => {
+            const idx = selectedIndicators.value.findIndex(s => s.indicator['指标ID'] == indicator['指标ID']);
+            if (idx >= 0) {
+                selectedIndicators.value.splice(idx, 1);
+                // Renumber
+                selectedIndicators.value.forEach((s, i) => { s.seq = `F${String(i+1).padStart(2,'0')}`; });
+            } else {
+                const rules = indicatorsRulesMap.value[indicator['指标ID']] || [];
+                selectedIndicators.value.push({
+                    seq: `F${String(selectedIndicators.value.length+1).padStart(2,'0')}`,
+                    indicator,
+                    weight: 0.1,
+                    direction: 'positive',
+                    isVeto: false,
+                    scoringRules: [
+                        { condition: '优秀', score: 100 },
+                        { condition: '良好', score: 75 },
+                        { condition: '一般', score: 40 }
+                    ],
+                    linkedRules: rules.map(r => ({ rule_name: r.rule_name, dimension: r.dimension }))
+                });
+            }
+        };
+
+        // Weight management
+        const totalWeight = computed(() => 
+            selectedIndicators.value.reduce((sum, item) => sum + (Number(item.weight) || 0), 0)
+        );
+        const isWeightValid = computed(() => Math.abs(totalWeight.value - 1) < 0.001);
+        
+        const autoDistributeWeight = () => {
+            const n = selectedIndicators.value.length;
+            if (n === 0) return;
+            const base = Math.floor(100 / n) / 100;
+            selectedIndicators.value.forEach((item, i) => {
+                item.weight = i === n - 1 ? parseFloat((1 - base * (n - 1)).toFixed(4)) : base;
+            });
+        };
+
+        // Scoring rules
+        const addScoringRule = (idx) => {
+            selectedIndicators.value[idx].scoringRules.push({ condition: '', score: 50 });
+        };
+        const removeScoringRule = (idx, rIdx) => {
+            selectedIndicators.value[idx].scoringRules.splice(rIdx, 1);
+        };
+
+        // Veto count
+        const vetoCount = computed(() => selectedIndicators.value.filter(s => s.isVeto).length);
+
+        // Step navigation
+        const nextStep = () => { if (currentStep.value < 3) currentStep.value++; };
+        const prevStep = () => { if (currentStep.value > 0) currentStep.value--; };
+
+        // Export
+        const exportModel = () => {
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const model = {
+                model_id: `model_${Date.now()}`,
+                model_name: modelInfo.name,
+                scenario: modelInfo.scenario,
+                description: modelInfo.description,
+                version: '1.0',
+                created_at: dateStr,
+                scoring: {
+                    formula: '总分 = Σ(指标得分 × 指标权重)',
+                    max_score: 100,
+                    grades: [
+                        { grade: 'A', label: '优秀', min: 90, max: 100, color: '#22c55e', action: '直接通过' },
+                        { grade: 'B', label: '合格', min: 70, max: 89, color: '#eab308', action: '人工审核' },
+                        { grade: 'C', label: '不合格', min: 0, max: 69, color: '#ef4444', action: '驳回重规划' }
+                    ],
+                    veto_indicators: selectedIndicators.value.filter(s => s.isVeto).map(s => s.seq)
+                },
+                indicators: selectedIndicators.value.map(s => ({
+                    seq: s.seq,
+                    indicator_id: s.indicator['指标ID'],
+                    indicator_name: s.indicator['指标名称'],
+                    category: s.indicator['指标分类'],
+                    definition: s.indicator['指标说明'] || s.indicator['指标定义'] || '',
+                    weight: Number(s.weight),
+                    direction: s.direction,
+                    is_veto: s.isVeto,
+                    scoring_rules: s.scoringRules,
+                    linked_rules: s.linkedRules
+                }))
+            };
+            
+            const blob = new Blob([JSON.stringify(model, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `${modelInfo.name.replace(/\s+/g, '_')}_${dateStr}.json`;
+            link.click();
+        };
+
+        return {
+            currentStep, modelInfo, loading,
+            allIndicators, groupedIndicators, filteredIndicators,
+            selectedIndicators, searchKeyword,
+            isSelected, toggleIndicator,
+            totalWeight, isWeightValid, autoDistributeWeight,
+            addScoringRule, removeScoringRule,
+            vetoCount, nextStep, prevStep, exportModel
+        };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>

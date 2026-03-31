@@ -1,0 +1,234 @@
+{
+  "model_id": "model_001",
+  "model_name": "飞行计划评估模型",
+  "scenario": "飞行计划评估",
+  "description": "兼顾安全底线与收益效率，既防止风险又最大化运营效益的飞行计划综合评估模型。采用4+12核心指标集与组合赋权权重表。",
+  "version": "1.0",
+  "created_at": "2026-03-31",
+  "scoring": {
+    "formula": "总分 = Σ(指标得分 × 指标权重)",
+    "max_score": 100,
+    "grades": [
+      { "grade": "A", "label": "最优计划", "min": 90, "max": 100, "color": "#22c55e", "action": "直接放行，优先执行" },
+      { "grade": "B", "label": "合格计划", "min": 70, "max": 89, "color": "#eab308", "action": "需人工简要审核，确认无重大疏漏后执行" },
+      { "grade": "C", "label": "不合格计划", "min": 0, "max": 69, "color": "#ef4444", "action": "系统自动驳回，要求重新规划航线" }
+    ],
+    "veto_indicators": ["F01"]
+  },
+  "dimensions": [
+    { "id": "D1", "name": "核心安全维度", "color": "#ef4444", "weight_ratio": 0.50 },
+    { "id": "D2", "name": "运营效率维度", "color": "#3b82f6", "weight_ratio": 0.13 },
+    { "id": "D3", "name": "资源与成本维度", "color": "#10b981", "weight_ratio": 0.18 },
+    { "id": "D4", "name": "风险与应急维度", "color": "#f59e0b", "weight_ratio": 0.12 },
+    { "id": "D5", "name": "政策与合规维度", "color": "#8b5cf6", "weight_ratio": 0.07 }
+  ],
+  "indicators": [
+    {
+      "seq": "F01",
+      "dimension_id": "D1",
+      "indicator_id": null,
+      "indicator_name": "空域合规性",
+      "definition": "计划航线是否穿越禁飞区、限飞区",
+      "weight": 0.20,
+      "direction": "positive",
+      "is_veto": true,
+      "scoring_rules": [
+        { "condition": "无违规", "score": 100 },
+        { "condition": "轻微违规", "score": 60 },
+        { "condition": "侵入禁飞区", "score": 0 }
+      ],
+      "linked_rules": [
+        { "dimension": "空域管理类", "rule_name": "空域分类与动态划设规则" }
+      ]
+    },
+    {
+      "seq": "F02",
+      "dimension_id": "D1",
+      "indicator_id": null,
+      "indicator_name": "气象适配度",
+      "definition": "飞行时段天气条件与机型性能匹配度",
+      "weight": 0.15,
+      "direction": "positive",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "极佳", "score": 100 },
+        { "condition": "适宜", "score": 75 },
+        { "condition": "不适宜", "score": 30 }
+      ],
+      "linked_rules": [
+        { "dimension": "飞行行为与性能类", "rule_name": "飞行器气象适飞标准规则" }
+      ]
+    },
+    {
+      "seq": "F03",
+      "dimension_id": "D1",
+      "indicator_id": null,
+      "indicator_name": "障碍物规避",
+      "definition": "航线高程与周边障碍物（建筑/山体）安全余量",
+      "weight": 0.15,
+      "direction": "positive",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "安全余量>100m", "score": 100 },
+        { "condition": "安全余量50-100m", "score": 70 },
+        { "condition": "安全余量<50m", "score": 30 }
+      ],
+      "linked_rules": [
+        { "dimension": "飞行行为与性能类", "rule_name": "低空飞行最低安全高度规则" }
+      ]
+    },
+    {
+      "seq": "F04",
+      "dimension_id": "D2",
+      "indicator_id": null,
+      "indicator_name": "航迹最优性",
+      "definition": "航线距离、油耗与理论最短路径的偏差",
+      "weight": 0.12,
+      "direction": "negative",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "偏差<5%", "score": 100 },
+        { "condition": "偏差5%-10%", "score": 70 },
+        { "condition": "偏差>10%", "score": 40 }
+      ],
+      "linked_rules": []
+    },
+    {
+      "seq": "F05",
+      "dimension_id": "D2",
+      "indicator_id": null,
+      "indicator_name": "空域利用率",
+      "definition": "申请空域的形状与实际航线覆盖的匹配效率",
+      "weight": 0.08,
+      "direction": "positive",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "利用率>90%", "score": 100 },
+        { "condition": "利用率70%-90%", "score": 70 },
+        { "condition": "利用率<70%", "score": 40 }
+      ],
+      "linked_rules": [
+        { "dimension": "空域管理类", "rule_name": "空域分类与动态划设规则" }
+      ]
+    },
+    {
+      "seq": "F06",
+      "dimension_id": "D2",
+      "indicator_id": null,
+      "indicator_name": "起降协调度",
+      "definition": "起飞点与降落点布局合理性，是否折返",
+      "weight": 0.05,
+      "direction": "positive",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "直飞", "score": 100 },
+        { "condition": "单次折返", "score": 70 },
+        { "condition": "复杂折返", "score": 40 }
+      ],
+      "linked_rules": []
+    },
+    {
+      "seq": "F07",
+      "dimension_id": "D3",
+      "indicator_id": null,
+      "indicator_name": "燃油经济性",
+      "definition": "计划油耗对应单位运输成本的合理性",
+      "weight": 0.08,
+      "direction": "negative",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "成本低于基准20%以上", "score": 100 },
+        { "condition": "成本接近基准", "score": 70 },
+        { "condition": "成本高于基准", "score": 40 }
+      ],
+      "linked_rules": []
+    },
+    {
+      "seq": "F08",
+      "dimension_id": "D3",
+      "indicator_id": null,
+      "indicator_name": "空管协调耗时",
+      "definition": "申请批复该航线计划所需的平均等待时间",
+      "weight": 0.05,
+      "direction": "negative",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "即时批复", "score": 100 },
+        { "condition": "等待<30min", "score": 80 },
+        { "condition": "等待>30min", "score": 60 }
+      ],
+      "linked_rules": [
+        { "dimension": "飞行审批与申报类", "rule_name": "超视距飞行审批技术规则" }
+      ]
+    },
+    {
+      "seq": "F09",
+      "dimension_id": "D3",
+      "indicator_id": null,
+      "indicator_name": "设备负载率",
+      "definition": "计划载荷与无人机/飞行器额定负载的匹配度",
+      "weight": 0.05,
+      "direction": "positive",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "满载(80%-100%)", "score": 100 },
+        { "condition": "半载(50%-80%)", "score": 80 },
+        { "condition": "轻载(<50%)", "score": 60 }
+      ],
+      "linked_rules": []
+    },
+    {
+      "seq": "F10",
+      "dimension_id": "D4",
+      "indicator_id": null,
+      "indicator_name": "应急备降点可达性",
+      "definition": "沿途预设备降点与航线的距离及通达性",
+      "weight": 0.05,
+      "direction": "positive",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "最近备降点<5km", "score": 100 },
+        { "condition": "最近备降点5-10km", "score": 70 },
+        { "condition": "最近备降点>10km", "score": 50 }
+      ],
+      "linked_rules": [
+        { "dimension": "飞行行为与性能类", "rule_name": "飞行器应急处置规则" }
+      ]
+    },
+    {
+      "seq": "F11",
+      "dimension_id": "D4",
+      "indicator_id": null,
+      "indicator_name": "干扰风险指数",
+      "definition": "航线途经人群密集区、电磁干扰区的概率",
+      "weight": 0.02,
+      "direction": "negative",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "无干扰", "score": 100 },
+        { "condition": "轻微干扰", "score": 60 },
+        { "condition": "高风险区域", "score": 20 }
+      ],
+      "linked_rules": [
+        { "dimension": "飞行行为与性能类", "rule_name": "数据链通信最低性能规则" }
+      ]
+    },
+    {
+      "seq": "F12",
+      "dimension_id": "D5",
+      "indicator_id": null,
+      "indicator_name": "飞行时段合规",
+      "definition": "申请时段是否符合当地宵禁、噪声管控规定",
+      "weight": 0.02,
+      "direction": "positive",
+      "is_veto": false,
+      "scoring_rules": [
+        { "condition": "合规", "score": 100 },
+        { "condition": "违规", "score": 0 }
+      ],
+      "linked_rules": [
+        { "dimension": "飞行审批与申报类", "rule_name": "飞行活动备案与公告规则" }
+      ]
+    }
+  ]
+}
